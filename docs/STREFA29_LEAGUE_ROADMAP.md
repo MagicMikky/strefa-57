@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # STREFA 29 LEAGUE — plan rozbudowy
 
 Ten dokument opisuje przyszły system ligowy. Nie włącza go. Nie ma tabel drużyn, turniejów, wyników ani rankingu i nie wolno ich dodawać, dopóki właściciel nie zleci konkretnej wersji.
@@ -108,3 +110,4 @@ Limit prób logowania zostaje wspólny z Better Auth. Osobno trzeba będzie ogra
 Każdy etap zaczyna się od zatwierdzonych zasad i własnej migracji. Istniejących wierszy `User` pracowników nie przepisujemy na nowy model tożsamości. Dochodzą tylko powiązane rekordy.
 
 Nie scalać tego planu z produkcją i nie wdrażać go razem z panelem, dopóki właściciel nie poprosi o konkretny etap.
+

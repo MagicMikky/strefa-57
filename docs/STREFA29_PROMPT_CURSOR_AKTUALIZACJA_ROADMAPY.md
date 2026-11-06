@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # Prompt dla Cursor Agent — wdrożenie dokumentacji roadmapy
 
 W projekcie `D:\Projects\paintball website` z repozytorium `MagicMikky/strefa-57` zaktualizuj **dokumentację produktu**, korzystając z przekazanych plików:
@@ -16,3 +18,4 @@ Przyjmij wartości początkowe: max 8 zawodników w drużynie, 2–4 drużyny w 
 Plan wersji: 1.0 strona; 1.5A logowanie pracowników i inbox (już rozpoczęte); 1.5B panel ownera + CMS i wszystkie edytowalne dane biznesowe; 2.0 rezerwacje gościnne, kalendarz i płatności; 2.1 konta klientów; 2.2 drużyny; 2.3 rankingi; 3.0 liga/turnieje/nagrody.
 
 W tej operacji **nie implementuj v2.0 ani nowych ekranów produkcyjnych**. To zadanie porządkujące wymagania i backlog. Na końcu wygeneruj plan PR-ów, zależności, listę niespójności i raport dokumentacyjny. Zrób commit na osobnej gałęzi i przygotuj PR do przeglądu, ale nie wykonuj merge ani wdrożenia produkcyjnego bez zgody właściciela.
+

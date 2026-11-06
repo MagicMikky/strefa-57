@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # Raport testów panelu pracownika
 
 Data lokalna: 2026-11-06. Gałąź `feature/staff-panel`. Polecenia uruchomiono w katalogu projektu.
@@ -32,3 +34,4 @@ Pierwszy `npm run build` zatrzymał się na `delete` w teście adaptera. Po usun
 Nie ma lokalnego PostgreSQL, więc `prisma migrate deploy` nie został wykonany na prawdziwej bazie. Została wygenerowana migracja SQL i job CI `database`, który ma ją zastosować na Postgres 16. Adapter Prismy jest pokryty atrapą w teście jednostkowym, nie pełnym silnikiem.
 
 Nie uruchamiano Lighthouse w tej turze. Nie było wdrożenia ani testu na prawdziwym Resend.
+

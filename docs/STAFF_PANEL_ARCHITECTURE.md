@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # Architektura panelu pracownika
 
 Wersja 1.5 dodaje konta pracowników i trwały zapis zgłoszeń z publicznego formularza. Nie dodaje kont klientów, rezerwacji ani płatności.
@@ -51,3 +53,4 @@ Każdy pracownik widzi wspólną skrzynkę firmy. Nie ma osobnych skrzynek klien
 - `/panel/ustawienia`
 
 Panel jest poza sitemapą. Przy włączonym indeksowaniu `robots` blokuje `/api/` i `/panel`.
+

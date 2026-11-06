@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # Aktualizacja dokumentacji roadmapy — 6 listopada 2026
 
 Ten plik zapisuje porządkowanie wymagań. Nie dodaje ekranów, tabel ani płatności.
@@ -48,3 +50,4 @@ Nie scalać #11, #13, #14 ani tego PR bez zgody właściciela. Nie wdrażać pro
 9. v3.0 liga, turnieje i nagrody
 
 Każdy z nich startuje dopiero po osobnym zleceniu i po zamknięciu decyzji oznaczonych jako warunek wejścia.
+
