@@ -31,6 +31,7 @@ test.describe("gallery coverflow", () => {
   });
 
   test("moves with buttons, side photos and keyboard without global arrow capture", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await openGallery(page);
     await page.getByRole("button", { name: "Następne zdjęcie" }).click();
     await expect(page.locator("[data-offset='0']")).toHaveAttribute("aria-label", "Powiększ zdjęcie: Teren");
