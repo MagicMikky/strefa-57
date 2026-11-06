@@ -121,7 +121,7 @@ export function AvailabilityCalendar({
                   <strong>{slot.start}–{slot.end}</strong>
                   <span>{slot.statusLabel}. Wolne fizycznie: {slot.freePhysicalSeats}/{settings.maxPlayersPerSlot}. Dla kolejnej drużyny: {slot.bookableSeats}.{showOperations && slot.closed ? ` Powód: ${closureReason(schedule, selectedDay.date, slot.start) ?? "niepodany"}.` : ""}</span>
                   {selectedDay.date >= today && slot.fitsRequest ? (
-                    <a href={`/zapytaj-o-termin?data=${selectedDay.date}`}>Zapytaj o ten slot</a>
+                    <a href={inquiryHref(selectedDay.date, { slot: slot.start, players, privateSlot })}>Zapytaj o ten slot</a>
                   ) : <em>Niedostępny dla wybranej grupy</em>}
                 </li>
               ))}
@@ -168,7 +168,7 @@ function DaySlots({
         {day.slots.map((slot) => (
           <li key={slot.start}>
             <span>{slot.start}–{slot.end}. {date < today ? "Dzień minął" : slot.statusLabel}. Wolne fizycznie: {slot.freePhysicalSeats}/{settings.maxPlayersPerSlot}. Dla kolejnej drużyny: {slot.bookableSeats}.{showOperations && slot.closed ? ` Powód: ${closureReason(schedule, date, slot.start) ?? "niepodany"}.` : ""}</span>
-            {date >= today && slot.fitsRequest ? <a href={`/zapytaj-o-termin?data=${date}`}>Zapytaj o ten slot</a> : <em>Niedostępny dla wybranej grupy</em>}
+            {date >= today && slot.fitsRequest ? <a href={inquiryHref(date, { slot: slot.start, players, privateSlot })}>Zapytaj o ten slot</a> : <em>Niedostępny dla wybranej grupy</em>}
           </li>
         ))}
       </ul>
@@ -225,7 +225,7 @@ function LaterDates({
     <div>
       <p>Inne dni w tym samym miesiącu</p>
       <ul>
-        {dates.map((item) => <li key={item}><a href={`/zapytaj-o-termin?data=${item}`}>Zapytaj o {item}</a></li>)}
+        {dates.map((item) => <li key={item}><a href={inquiryHref(item, { players, privateSlot })}>Zapytaj o {item}</a></li>)}
       </ul>
     </div>
   );
@@ -262,6 +262,13 @@ function DayButton({
       <span className="sr-only">{date}, {day.statusLabel}</span>
     </button>
   );
+}
+
+function inquiryHref(date: string, options: { slot?: string; players: number; privateSlot: boolean }): string {
+  const query = [`data=${date}`, `gracze=${options.players}`];
+  if (options.slot) query.push(`slot=${options.slot}`);
+  if (options.privateSlot) query.push("tryb=prywatny");
+  return `/zapytaj-o-termin?${query.join("&")}`;
 }
 
 function usesOn(holds: ReadonlyArray<SlotUse & { date: string; expiresAt?: string }>, date: string): SlotUse[] {

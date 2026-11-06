@@ -36,6 +36,8 @@ export interface InquiryFormProps {
   initialPackageId?: string;
   initialEventType?: string;
   initialDate?: string;
+  initialPlayers?: number;
+  initialMessage?: string;
 }
 
 type FormStatus =
@@ -153,6 +155,8 @@ export function InquiryForm({
   initialPackageId,
   initialEventType,
   initialDate,
+  initialPlayers,
+  initialMessage,
 }: InquiryFormProps) {
   const packageOptions = useMemo(() => {
     const unique = new Map<string, InquiryPackageOption>();
@@ -327,6 +331,7 @@ export function InquiryForm({
               inputMode="numeric"
               max={MAX_PLAYER_COUNT}
               min={MIN_PLAYER_COUNT}
+              defaultValue={initialPlayers}
               name="playerCount"
               required
               step={1}
@@ -384,6 +389,7 @@ export function InquiryForm({
             <p className="mt-2 text-xs text-stone-600" id="inquiry-date-hint">
               Wskazanie daty nie oznacza jej dostępności.
             </p>
+            {initialMessage ? <p className="mt-2 text-xs text-stone-600">Wybrany slot jest preferencją. Wysłanie formularza nie rezerwuje terminu.</p> : null}
             <FieldError errors={fieldErrors} field="preferredDate" />
           </div>
 
@@ -574,6 +580,7 @@ export function InquiryForm({
               disabled={isSubmitting}
               id="inquiry-message"
               maxLength={MAX_MESSAGE_LENGTH}
+              defaultValue={initialMessage}
               name="message"
               rows={5}
             />
