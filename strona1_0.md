@@ -11,6 +11,9 @@
 | Płatność online | poza zakresem |
 | Dokument źródłowy | `PLAN_BUDOWY_STRONY_STREFA_29.md` |
 | Dokument następnego etapu | `strona2_0.md` |
+| Plan nadrzędny od 2026-11-06 | `docs/STREFA29_NOWA_ROADMAPA_I_PLAN_WERSJI_2026-11-06.md` |
+
+Ten plik nadal opisuje tylko wersję 1.0. Nie zezwala na rezerwacje, płatności ani konta klientów. Ceny, telefon, e-mail i dane prawne pozostają niezatwierdzone w rejestrze decyzji; zdania o cenach orientacyjnych nie są zgodą na wpisanie stawek.
 
 Wersja 1.0 ma profesjonalnie prezentować Paintball Strefa 29, odpowiadać na najważniejsze pytania klientów i ułatwiać kontakt z obsługą. Strona nie pokazuje dostępności na żywo, nie blokuje terminów i nie tworzy rezerwacji.
 
@@ -483,6 +486,6 @@ Statusy: `ZATWIERDZONE`, `OTWARTE`, `ZABLOKOWANE`.
 
 ## 16. Następny etap
 
-Po stabilizacji wersji 1.0 można rozpocząć realizację `strona2_0.md`. Wersja 2.0 wykorzysta publiczne podstrony, komponenty, design system, pakiety oraz identyfikatory treści z wersji 1.0, ale doda osobny, transakcyjny system rezerwacji.
+Po stabilizacji wersji 1.0 kolejność prac wyznacza plan nadrzędny: najpierw dokończenie 1.5A, potem 1.5B, a dopiero później rezerwacje z `strona2_0.md`. Wersja 2.0 wykorzysta publiczne podstrony, komponenty, design system, pakiety oraz identyfikatory treści z wersji 1.0, ale doda osobny, transakcyjny system rezerwacji.
 
 Do czasu produkcyjnego uruchomienia wersji 2.0 `/zapytaj-o-termin` pozostaje jedyną internetową ścieżką zgłoszenia preferowanego terminu.

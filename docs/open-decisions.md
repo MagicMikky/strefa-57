@@ -1,6 +1,12 @@
 # Decyzje właściciela
 
-Wartości poniżej nie są zatwierdzone. Kod nie przyjmuje dla nich własnego domysłu.
+Pełny rejestr jest w `docs/STREFA29_REJESTR_DECYZJI_DO_USTALENIA.md`. Plan wersji jest w `docs/STREFA29_NOWA_ROADMAPA_I_PLAN_WERSJI_2026-11-06.md`.
+
+Wartości startowe z 2026-11-06 są seedem przyszłego panelu, nie stałą w kodzie: 8 zawodników w drużynie, 2–4 drużyny w meczu, 32 graczy na slot, starty 08:00, 11:00 i 14:00, 120 minut gry i 60 minut przerwy. Trzy sloty dają 96 miejsc, a próg połowy wynosi 48. Kolor dnia: zielony poniżej połowy, niebieski od połowy, czerwony gdy brak dostępności. Rezerwacja może być współdzielona albo prywatna. Właściciel blokuje dzień albo slot. Dopłata za slot prywatny nie ma kwoty.
+
+Ceny, zadatek, anulowanie, zwroty, operator płatności, liczba zestawów i pozostałe pozycje OTWARTE nie mają wartości produkcyjnej. Pogoda (U-11) jest tylko preferencją i wymaga oceny prawnej oraz wyjątków bezpieczeństwa.
+
+Poniższe sprawy techniczne też nie są zatwierdzone. Kod nie przyjmuje dla nich własnego domysłu.
 
 | Temat | Stan | Skutek w kodzie |
 | --- | --- | --- |
