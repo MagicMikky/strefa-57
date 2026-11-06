@@ -294,8 +294,11 @@ h3 {
 
 .eyebrow {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
+  max-width: 100%;
+  min-width: 0;
   margin-bottom: 16px;
   color: var(--forest);
   font-size: 0.75rem;
@@ -316,7 +319,8 @@ h3 {
 }
 
 .section-heading {
-  max-width: 760px;
+  max-width: min(760px, 100%);
+  min-width: 0;
   margin-bottom: 42px;
 }
 
@@ -337,6 +341,7 @@ h3 {
   font-weight: 800;
   letter-spacing: 0.015em;
   line-height: 0.98;
+  overflow-wrap: break-word;
   text-transform: uppercase;
 }
 
@@ -401,6 +406,7 @@ h3 {
 .page-hero__copy {
   position: relative;
   z-index: 2;
+  min-width: 0;
 }
 
 .page-hero h1 {
@@ -411,6 +417,7 @@ h3 {
   font-weight: 800;
   letter-spacing: 0.01em;
   line-height: 0.88;
+  overflow-wrap: break-word;
   text-transform: uppercase;
 }
 
@@ -796,6 +803,12 @@ h3 {
   .button-row,
   .button-row .button {
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .button-row .button {
+    white-space: normal;
   }
 
   .section-heading {
@@ -1799,7 +1812,7 @@ h3 {
 @media (max-width: 900px) {
   .offer-terrain__grid,
   .offer-safety__grid,
-  .offer-preparation__grid { grid-template-columns: repeat(2, 1fr); }
+  .offer-preparation__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .offer-mission__layout,
   .offer-visit__layout,
   .pricing-addons__layout,
@@ -1807,7 +1820,7 @@ h3 {
   .audiences-planning__layout,
   .faq-checklist__layout,
   .pricing-payment__inner,
-  .faq-content__layout { grid-template-columns: 1fr; }
+  .faq-content__layout { grid-template-columns: minmax(0, 1fr); }
   .audiences-overview__nav { grid-template-columns: repeat(3, 1fr); }
   .audiences-overview__nav a { border-bottom: 1px solid var(--line); }
   .faq-content__intro { position: static; }
@@ -1816,7 +1829,7 @@ h3 {
 @media (max-width: 620px) {
   .offer-terrain__grid,
   .offer-safety__grid,
-  .offer-preparation__grid { grid-template-columns: 1fr; }
+  .offer-preparation__grid { grid-template-columns: minmax(0, 1fr); }
   .offer-terrain-card { min-height: 250px; }
   .offer-terrain-card__number { margin-bottom: 65px; }
   .audiences-overview__nav { grid-template-columns: 1fr 1fr; }
