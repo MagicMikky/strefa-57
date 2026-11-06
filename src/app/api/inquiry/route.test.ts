@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "./route";
 import { getWarsawDate } from "@/lib/inquiry";
+import { MemoryInquiryRepository } from "@/lib/inquiries/memory-repository";
 import { getInquiryRepository, resetInquiryRepositoryForTests } from "@/lib/inquiries/repository";
 import { resetRateLimitForTests } from "@/lib/rate-limit";
 
@@ -212,6 +213,17 @@ describe("POST /api/inquiry", () => {
     const stored = await getInquiryRepository()?.counts();
     expect(stored?.fresh).toBe(1);
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps a saved inquiry when marking the notification throws", async () => {
+    const mark = vi.spyOn(MemoryInquiryRepository.prototype, "markNotification").mockRejectedValue(new Error("mark failed"));
+    try {
+      const response = await POST(inquiryRequest(validBody()));
+      expect(response.status).toBe(200);
+      expect((await getInquiryRepository()?.counts())?.fresh).toBe(1);
+    } finally {
+      mark.mockRestore();
+    }
   });
 
   it("returns 503 when the inquiry store is unavailable and does not echo the address", async () => {

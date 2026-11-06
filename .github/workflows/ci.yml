@@ -102,3 +102,9 @@ jobs:
         run: npx prisma migrate deploy
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/strefa?schema=public
+
+      - name: Test one hold wins a shared slot
+        run: npx vitest run src/lib/holds/store.postgres.test.ts
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/strefa?schema=public
+          HOLD_PG_TEST: "1"

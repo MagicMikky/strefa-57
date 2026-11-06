@@ -17,7 +17,7 @@ export function getInquiryRepository(): InquiryRepository | null {
     return new FailingInquiryRepository();
   }
 
-  if (process.env.INQUIRY_STORE === "memory") {
+  if (process.env.INQUIRY_STORE === "memory" && process.env.NODE_ENV !== "production") {
     memoryRepository ??= new MemoryInquiryRepository();
     return memoryRepository;
   }

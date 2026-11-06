@@ -289,11 +289,11 @@ export async function POST(request: Request) {
     );
   }
 
+  let saved: Awaited<ReturnType<typeof repository.createIfAbsent>>;
   try {
-    const saved = await repository.createIfAbsent({
+    saved = await repository.createIfAbsent({
       record: inquiryFromPayload(validation.data, dedupe.dedupeKey, contentHash),
     });
-    await dispatchInquiryNotification(repository, saved.record.id, validation.data);
   } catch (error) {
     if (error instanceof InquiryConflictError) {
       return jsonResponse(
@@ -314,6 +314,12 @@ export async function POST(request: Request) {
       503,
       rateLimitHeaders,
     );
+  }
+
+  try {
+    await dispatchInquiryNotification(repository, saved.record.id, validation.data);
+  } catch {
+    // The inquiry is already stored. A later worker can retry the notification.
   }
 
   return jsonResponse(
