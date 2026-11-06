@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # V1.5B-4 — harmonogram i blokady
 
 Data: 2026-11-06. Gałąź: `feature/schedule-cms`, baza: `main`.
@@ -11,3 +13,4 @@ Wersja robocza nie jest publiczna. Ten etap nie liczy wolnych miejsc, nie rysuje
 ## Następny etap
 
 V2.0-1: kalendarz klienta i wyliczanie dostępności, dopiero po zatwierdzonych cenach i zasadach.
+

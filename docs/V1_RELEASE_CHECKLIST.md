@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # Lista odbioru wersji 1.0
 
 Strona nie jest gotowa do publikacji, dopóki punkty P0 nie są odhaczone przez właściciela i ponownie przetestowane.
@@ -40,3 +42,4 @@ Strona nie jest gotowa do publikacji, dopóki punkty P0 nie są odhaczone przez 
 - [ ] `npm audit` bez `--force`
 
 Wyniki konkretnego przebiegu wpisuje się w opisie pull requesta, nie w tej liście z góry.
+

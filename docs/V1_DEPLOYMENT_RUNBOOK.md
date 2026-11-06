@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # Runbook wdrożenia wersji 1.0
 
 Nie wdrażać produkcji i nie scalać do `main` bez zgody właściciela. Wersja 2.0 nie wchodzi w to wdrożenie.
@@ -78,3 +80,4 @@ Wymagane:
 ## Zgody i prawo
 
 Teksty w `/regulamin`, `/polityka-prywatnosci` i `/cookies` są robocze. Nie traktować ich jako zatwierdzonych. Analityka nie startuje przed zgodą, a bez wybranego dostawcy zgoda nie wysyła danych do żadnej firmy.
+

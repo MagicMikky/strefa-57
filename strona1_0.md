@@ -1,5 +1,7 @@
 # Paintball Strefa 29 — plan strony 1.0
 
+> Historia wymagań 1.0. Bieżący stan i plan są w `docs/STREFA29_MASTER_PLAN.md`.
+
 ## 1. Status i przeznaczenie dokumentu
 
 | Pole | Wartość |

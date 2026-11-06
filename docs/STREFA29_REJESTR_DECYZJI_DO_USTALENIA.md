@@ -1,5 +1,7 @@
 # Strefa 29 — rejestr decyzji właściciela do ustalenia
 
+> Historyczny rejestr. Kanoniczne wartości są w `docs/STREFA29_DECYZJE_DO_USTALENIA.md`, a plan w `docs/STREFA29_MASTER_PLAN.md`.
+
 **Data utworzenia:** 6 listopada 2026  
 **Plik nadrzędny:** `docs/STREFA29_NOWA_ROADMAPA_I_PLAN_WERSJI_2026-11-06.md`  
 **Uwaga:** Wartości oznaczone jako OTWARTE nie mogą stać się domyślnymi danymi produkcyjnymi bez decyzji właściciela.

@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # V1.5B-1 — fundament panelu właściciela
 
 Data: 2026-11-06. Gałąź: `feature/owner-cms`. Baza: `feature/gallery-coverflow` (PR #14, zielone CI) plus treść `docs/product-roadmap` (PR #15).
@@ -83,3 +85,4 @@ Kolejność o najmniejszym ryzyku, bez merge do `main`:
 ## Następny sprint — V1.5B-2
 
 Poza tym etapem zostają: edytor wszystkich tekstów i podstron, oferta i pakiety, galeria oraz kategorie Coverflow, harmonogram i dostępność, liczba zestawów, blokowanie dni i slotów, zasady anulowania, ceny i zadatki, płatności. Te pola mają zostać nieaktywne, aż właściciel zatwierdzi wartości.
+

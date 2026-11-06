@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # Analiza luk wersji 1.0
 
 Data: 2026-11-06. Gałąź: `release/v1-readiness`, oparta na `fix/audit-2026-11-06`.
@@ -57,3 +59,4 @@ Strona nie jest gotowa do publikacji. Brakuje zatwierdzonych danych firmy, konta
 ## Blockery właściciela
 
 Lista pozostaje w `docs/BRAKI_DANYCH_DO_ZATWIERDZENIA.md`. Nie dodano drugiej, sprzecznej listy wartości.
+

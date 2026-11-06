@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # Paintball Strefa 29 — nowa roadmapa produktu i szczegółowy plan wersji
 
 **Wersja dokumentu:** 1.0 (plan produktowy, 6 listopada 2026)  
@@ -585,3 +587,4 @@ Każdy PR zawiera: zakres, migracje, testy, screenshoty zmian UI, zagrożenia i 
 3. Jeżeli wymagania stoją w sprzeczności z aktualnym zachowaniem systemu, dodać migrację i testy regresyjne; nie nadpisywać automatycznie dawnych rezerwacji.
 4. Dokumenty `strona1_0.md`, `strona2_0.md` i `docs/STREFA29_LEAGUE_ROADMAP.md` należy zaktualizować po zatwierdzeniu nowej roadmapy, tak aby Cursor nie realizował sprzecznych instrukcji.
 5. Zakaz automatycznego mergowania lub deployowania bez wyraźnej zgody właściciela pozostaje w mocy.
+

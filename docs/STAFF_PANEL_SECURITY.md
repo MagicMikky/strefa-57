@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # Bezpieczeństwo panelu pracownika
 
 Przegląd dotyczy kodu na gałęzi `feature/staff-panel`. To przegląd konstrukcji, nie zewnętrzny pentest.
@@ -34,3 +36,4 @@ Bootstrap i worker używają nagłówka `Bearer` porównywanego w czasie niezale
 ## Ryzyka otwarte
 
 Limit logowania jest w pamięci jednego procesu. Przy wielu instancjach trzeba podłączyć wspólny magazyn, tak jak przy Upstash dla formularza. MFA jest tylko kolumną `mfaEnrolled`. Pierwszy właściciel powstaje tylko wtedy, gdy sekret bootstrapu jest ustawiony w środowisku i usunięty po użyciu. Okres retencji nadal wymaga decyzji właściciela. Panel nie jest audytem produkcyjnym i nie był uruchamiany na danych prawdziwych klientów.
+

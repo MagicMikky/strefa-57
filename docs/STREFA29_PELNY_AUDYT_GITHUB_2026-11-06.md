@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # PAINTBALL STREFA 29 — pełny audyt repozytorium GitHub
 
 **Data analizy:** 6 listopada 2026, około 18:44 CET  
@@ -217,3 +219,4 @@ Nieweryfikowalne z repo: faktyczny hosting, opłacona domena, prawdziwe `.env`, 
 - Rejestr decyzji: https://github.com/MagicMikky/strefa-57/blob/main/docs/STREFA29_REJESTR_DECYZJI_DO_USTALENIA.md
 
 *Raport opiera się na analizie kodu źródłowego i logów GitHub. Nie jest certyfikatem bezpieczeństwa, prawną opinią RODO ani wynikiem produkcyjnego testu E2E.*
+
