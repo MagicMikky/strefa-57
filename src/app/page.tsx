@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { FaqList, MissionPanel, NumberedSteps, PackageCard } from "@/components/content";
+import { GalleryCoverflow } from "@/components/gallery-coverflow";
 import { Icon } from "@/components/icons";
 import { ButtonLink, Container, CtaBand, Eyebrow, FeatureCard, SectionHeading, TacticalMark } from "@/components/ui";
-import { galleryPreviewPhotos } from "@/data/gallery";
+import { galleryPhotos } from "@/data/gallery";
 import { attractions, audiences, eventTypeForAudience, faqItems, packages, visitSteps } from "@/data/site";
 
 export const metadata: Metadata = {
@@ -61,24 +61,11 @@ export default function HomePage() {
             <SectionHeading
               eyebrow="Poznaj Strefę 29"
               title="Zobacz teren, zanim zapytasz o termin."
-              body="Dwa kadry bez widocznych osób: okopy i drewniana osłona w lesie. Rakieta V2 jest w sekcji scenariusza i w pełnej galerii."
+              body="Okopy, drewniana osłona i rakieta V2. W tych kadrach nie ma zawodników."
             />
             <Link className="text-link" href="/galeria">Zobacz całą galerię <Icon name="arrow" width={18} height={18} /></Link>
           </div>
-          <div className="field-preview">
-            {galleryPreviewPhotos.map((photo) => (
-              <Link href="/galeria" key={photo.src}>
-                <Image
-                  src={photo.src}
-                  alt={photo.alt}
-                  width={photo.width}
-                  height={photo.height}
-                  sizes="(max-width: 760px) 100vw, 50vw"
-                />
-                <span>{photo.title}</span>
-              </Link>
-            ))}
-          </div>
+          <GalleryCoverflow photos={galleryPhotos} />
         </Container>
       </section>
 

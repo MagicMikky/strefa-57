@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { AnalyticsView } from "@/components/analytics-view";
-import { GalleryBrowser } from "@/components/gallery-browser";
+import { GalleryCoverflow } from "@/components/gallery-coverflow";
 import { ButtonLink, Container, CtaBand, PageHero, SectionHeading } from "@/components/ui";
 import { galleryPhotos } from "@/data/gallery";
 
@@ -10,7 +10,13 @@ export const metadata: Metadata = {
   alternates: { canonical: "/galeria" },
 };
 
-export default function GalleryPage() {
+export default async function GalleryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ filtr?: string }>;
+}) {
+  const params = await searchParams;
+
   return (
     <>
       <PageHero
@@ -29,7 +35,7 @@ export default function GalleryPage() {
             title="Miejsca, które tworzą scenariusz."
             body="Okopy, osłona w lesie i punkt przy rakiecie V2. Tak wygląda teren, na którym rozgrywa się scenariusz."
           />
-          <GalleryBrowser photos={galleryPhotos} />
+          <GalleryCoverflow photos={galleryPhotos} empty={params.filtr === "pusta"} />
           <AnalyticsView event="gallery_view" />
         </Container>
       </section>
