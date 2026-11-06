@@ -77,8 +77,6 @@ export const galleryPhotos: readonly GalleryPhoto[] = [
   },
 ];
 
-export const galleryPreviewPhotos = [...galleryPhotos].sort((left, right) => left.order - right.order);
-
 export function categoriesWithPhotos(photos: readonly GalleryPhoto[]) {
   return galleryCategories.filter((category) =>
     category.id === "wszystkie"
