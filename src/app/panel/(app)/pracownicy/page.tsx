@@ -13,7 +13,7 @@ export default async function StaffPage() {
             <div>
               <strong>{member.name}</strong>
               <p className="text-sm text-[var(--muted)]">
-                {member.email} · {member.role} · {member.status === "active" ? "aktywny" : "zablokowany"}
+                {member.login ?? member.email} · {member.role} · {member.status === "active" ? "aktywny" : "zablokowany"}
               </p>
             </div>
             {member.role === "owner" ? null : (
