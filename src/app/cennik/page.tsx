@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { InfoNotice, NumberedSteps, PackageCard } from "@/components/content";
 import {
   ButtonLink,
@@ -90,13 +91,15 @@ export default async function PricingPage() {
             body="Każdy wariant obejmuje organizację rozgrywki, ale jego ostateczna zawartość zależy od zatwierdzonego cennika i ustaleń dla konkretnej grupy."
             align="center"
           />
+          <p className="pricing-note">Kwotę każdego wariantu potwierdza obsługa. Poniżej jest charakter gry, nie wiążący cennik.</p>
           <div className="package-grid">
             {packages.map((item) => (
               <PackageCard item={item} key={item.id} />
             ))}
           </div>
           <p className="section-footnote">
-            Wysłanie zapytania o pakiet nie rezerwuje terminu i nie zobowiązuje do zakupu.
+            Wysłanie zapytania o pakiet nie rezerwuje terminu i nie zobowiązuje do zakupu.{" "}
+            <Link href="/rezerwacja">Sprawdź orientacyjną dostępność dni</Link>.
           </p>
         </Container>
       </section>

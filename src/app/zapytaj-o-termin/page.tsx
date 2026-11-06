@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { InquiryForm } from "@/components/inquiry-form";
 import { Icon } from "@/components/icons";
 import { Container, PageHero } from "@/components/ui";
@@ -37,17 +38,6 @@ export default async function InquiryPage({ searchParams }: InquiryPageProps) {
       />
       <section className="section section--cream inquiry-section">
         <Container className="inquiry-layout">
-          <aside className="inquiry-sidebar">
-            <p className="eyebrow">Zanim wyślesz</p>
-            <h2>To zapytanie, nie rezerwacja.</h2>
-            <p>Nie pokazujemy pozornej dostępności i nie blokujemy terminu bez potwierdzenia obsługi.</p>
-            <ol>
-              <li><span>01</span><div><strong>Wyślij preferencje</strong><small>Data, grupa i pakiet.</small></div></li>
-              <li><span>02</span><div><strong>Poczekaj na kontakt</strong><small>Obsługa sprawdzi możliwości.</small></div></li>
-              <li><span>03</span><div><strong>Potwierdź szczegóły</strong><small>Cena, termin i dalsze kroki.</small></div></li>
-            </ol>
-            <div className="inquiry-sidebar__secure"><Icon name="shield" width={20} height={20} /><span>Nie podawaj danych karty ani informacji o zdrowiu w polu wiadomości.</span></div>
-          </aside>
           <div className="inquiry-form-shell">
             <InquiryForm
               packages={packages.map(({ id, name }) => ({ id, name }))}
@@ -60,6 +50,18 @@ export default async function InquiryPage({ searchParams }: InquiryPageProps) {
               slotStarts={business.settings.slotStartTimes}
             />
           </div>
+          <aside className="inquiry-sidebar">
+            <p className="eyebrow">Zanim wyślesz</p>
+            <h2>To zapytanie, nie rezerwacja.</h2>
+            <p>Nie pokazujemy pozornej dostępności i nie blokujemy terminu bez potwierdzenia obsługi.</p>
+            <ol>
+              <li><span>01</span><div><strong>Wyślij preferencje</strong><small>Data, grupa i pakiet.</small></div></li>
+              <li><span>02</span><div><strong>Poczekaj na kontakt</strong><small>Obsługa sprawdzi możliwości.</small></div></li>
+              <li><span>03</span><div><strong>Potwierdź szczegóły</strong><small>Cena, termin i dalsze kroki.</small></div></li>
+            </ol>
+            <p><Link className="text-link" href="/rezerwacja">Zobacz orientacyjną dostępność <Icon name="arrow" width={18} height={18} /></Link></p>
+            <div className="inquiry-sidebar__secure"><Icon name="shield" width={20} height={20} /><span>Nie podawaj danych karty ani informacji o zdrowiu w polu wiadomości.</span></div>
+          </aside>
         </Container>
       </section>
     </>

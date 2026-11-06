@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { MapEmbed } from "@/components/map-embed";
 import { ButtonLink, Container, CtaBand, PageHero, SectionHeading } from "@/components/ui";
@@ -38,6 +39,9 @@ export default async function ContactPage() {
             title="Najpierw formularz."
             body="Terminu nie da się zarezerwować samodzielnie. Podaj datę i wielkość grupy, a obsługa wróci z ceną i dalszymi krokami."
           />
+          <p className="quiet-note">
+            <Link href="/rezerwacja">Sprawdź orientacyjną dostępność</Link> zanim wyślesz zapytanie. Ten widok nie potwierdza terminu.
+          </p>
           <div className={phoneReady || emailReady ? "contact-grid" : "contact-grid contact-grid--single"}>
             <article className="contact-card contact-card--primary">
               <span><Icon name="calendar" width={27} height={27} /></span>

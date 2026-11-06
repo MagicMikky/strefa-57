@@ -10,13 +10,13 @@ export function PackageCard({ item }: { item: OfferPackage }) {
       {item.featured ? <span className="package-card__badge">Polecany punkt startu</span> : null}
       <p className="package-card__eyebrow">{item.eyebrow}</p>
       <h3>{item.name}</h3>
-      <p className="package-card__price">{item.price}</p>
       <p className="package-card__description">{item.description}</p>
       <ul>
         {item.features.map((feature) => (
           <li key={feature}><Icon name="check" width={17} height={17} /> {feature}</li>
         ))}
       </ul>
+      <p className="package-card__price">{item.price}</p>
       <TrackedLink className="package-card__link" eventName="package_inquiry_click" eventProperties={{ packageId: item.id }} href={`/zapytaj-o-termin?pakiet=${item.id}`}>
         Zapytaj o ten pakiet <Icon name="arrow" width={18} height={18} />
       </TrackedLink>

@@ -133,8 +133,8 @@ h3 {
   flex: 0 0 auto;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding-block: 8px;
+  gap: 0;
+  padding-block: 0;
 }
 
 .logo {
@@ -730,6 +730,10 @@ h3 {
 
   .site-header__main > .button--header {
     display: none;
+  }
+
+  .menu-toggle {
+    margin-left: auto;
   }
 
   .logo img,
@@ -2193,6 +2197,14 @@ h3 {
 .pricing-note {
   margin-inline: auto;
   text-align: center;
+}
+
+.section-footnote a,
+.quiet-note a {
+  color: var(--forest);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .heading-row {

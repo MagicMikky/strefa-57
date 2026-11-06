@@ -1,63 +1,70 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
-import { FaqList, MissionPanel, NumberedSteps, PackageCard } from "@/components/content";
-import { GalleryCoverflow } from "@/components/gallery-coverflow";
+import { FaqList, MissionPanel, PackageCard } from "@/components/content";
 import { Icon } from "@/components/icons";
-import { ButtonLink, Container, CtaBand, Eyebrow, FeatureCard, SectionHeading, TacticalMark } from "@/components/ui";
-import { getPublishedGallery } from "@/lib/gallery/public";
-import { audiences, eventTypeForAudience, visitSteps } from "@/data/site";
+import { ButtonLink, Container, CtaBand, Eyebrow, SectionHeading, TacticalMark } from "@/components/ui";
+import { audiences, eventTypeForAudience } from "@/data/site";
+import type { GalleryPhoto } from "@/data/gallery";
+import { getPublicBusiness } from "@/lib/business/public";
 import { attractionsForDisplay, packagesForDisplay } from "@/lib/content/model";
 import { getPublishedSiteCopy } from "@/lib/content/public";
+import { getPublishedGallery } from "@/lib/gallery/public";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
+function leadPhoto(photos: readonly GalleryPhoto[]) {
+  return photos.find((photo) => photo.id === "okopy" || photo.src.includes("okopy")) ?? photos[0];
+}
+
 export default async function HomePage() {
-  const copy = await getPublishedSiteCopy();
-  const galleryPhotos = await getPublishedGallery();
+  const [copy, galleryPhotos, business] = await Promise.all([
+    getPublishedSiteCopy(),
+    getPublishedGallery(),
+    getPublicBusiness(),
+  ]);
   const attractions = attractionsForDisplay(copy);
   const packages = packagesForDisplay(copy);
   const faqItems = copy.faq;
+  const hero = leadPhoto(galleryPhotos);
+  const frames = galleryPhotos.slice(0, 3);
+
   return (
     <>
       <section className="home-hero">
-        <div className="home-hero__grid" aria-hidden="true" />
         <Container className="home-hero__inner">
           <div className="home-hero__copy">
-            <Eyebrow light>Paintball terenowy · Czaple</Eyebrow>
+            <div className="home-hero__kicker">
+              <Image className="home-hero__mark" src="/logo.png" alt="" width={112} height={112} />
+              <Eyebrow light>Paintball terenowy · Czaple</Eyebrow>
+            </div>
             <h1>Wejdź do <em>strefy.</em><br />Zagraj o każdy metr.</h1>
             <p>
               Okopy, bunkry, ambony i scenariusz z rakietą V2. Zbierz ekipę i sprawdź, jak działa współpraca pod presją.
             </p>
             <div className="button-row">
               <ButtonLink href="/zapytaj-o-termin">Zapytaj o wolny termin</ButtonLink>
-              <ButtonLink href="/oferta" variant="ghost">Zobacz pole</ButtonLink>
             </div>
             <p className="home-hero__disclaimer"><Icon name="shield" width={17} height={17} /> Zapytanie nie blokuje terminu. Dostępność potwierdzi obsługa.</p>
           </div>
           <div className="home-hero__visual">
-            <TacticalMark />
-          </div>
-        </Container>
-      </section>
-
-      <section className="section section--paper">
-        <Container>
-          <div className="heading-row">
-            <SectionHeading
-              eyebrow="To nie jest płaskie boisko"
-              title="Teren, który wymusza taktykę."
-              body="Każdy element pola daje inne możliwości. Znajdź osłonę, utrzymaj pozycję i komunikuj się, zanim zrobi to druga drużyna."
-            />
-            <Link className="text-link" href="/oferta">Poznaj pełną ofertę <Icon name="arrow" width={18} height={18} /></Link>
-          </div>
-          <div className="feature-grid">
-            {attractions.map((item, index) => (
-              <FeatureCard key={item.title} icon={item.icon as Parameters<typeof Icon>[0]["name"]} title={item.title} index={`0${index + 1}`}>
-                {item.description}
-              </FeatureCard>
-            ))}
+            {hero ? (
+              <figure className="home-hero__frame">
+                <Image
+                  src={hero.src}
+                  alt={hero.alt}
+                  width={hero.width}
+                  height={hero.height}
+                  sizes="(max-width: 760px) 92vw, 420px"
+                  priority
+                />
+                <figcaption>{hero.label}</figcaption>
+              </figure>
+            ) : (
+              <TacticalMark />
+            )}
           </div>
         </Container>
       </section>
@@ -72,7 +79,46 @@ export default async function HomePage() {
             />
             <Link className="text-link" href="/galeria">Zobacz całą galerię <Icon name="arrow" width={18} height={18} /></Link>
           </div>
-          <GalleryCoverflow photos={galleryPhotos} />
+          {frames.length > 0 ? (
+            <div className="home-frames">
+              {frames.map((photo) => (
+                <figure key={photo.id}>
+                  <Image
+                    src={photo.src}
+                    alt={photo.alt}
+                    width={photo.width}
+                    height={photo.height}
+                    sizes="(max-width: 760px) 92vw, 360px"
+                  />
+                  <figcaption>{photo.title}</figcaption>
+                </figure>
+              ))}
+            </div>
+          ) : null}
+        </Container>
+      </section>
+
+      <section className="section section--paper">
+        <Container>
+          <div className="heading-row">
+            <SectionHeading
+              eyebrow="To nie jest płaskie boisko"
+              title="Teren, który wymusza taktykę."
+              body="Każdy element pola daje inne możliwości. Znajdź osłonę, utrzymaj pozycję i komunikuj się, zanim zrobi to druga drużyna."
+            />
+            <Link className="text-link" href="/oferta">Poznaj pełną ofertę <Icon name="arrow" width={18} height={18} /></Link>
+          </div>
+          <ul className="terrain-list">
+            {attractions.map((item) => (
+              <li key={item.title}>
+                <Icon name={item.icon as Parameters<typeof Icon>[0]["name"]} width={28} height={28} />
+                <div>
+                  <h3>{item.title}</h3>
+                  <p>{item.description}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </Container>
       </section>
 
@@ -131,20 +177,6 @@ export default async function HomePage() {
       </section>
 
       <section className="section section--sand">
-        <Container className="split split--steps">
-          <div>
-            <SectionHeading
-              eyebrow="Od przyjazdu do ostatniej rundy"
-              title="Wiesz, co dzieje się dalej."
-              body="Dobra organizacja zaczyna się przed pierwszym strzałem. Dokładne godziny i długość wydarzenia obsługa potwierdzi dla wybranego wariantu."
-            />
-            <ButtonLink href="/faq" variant="secondary">Przeczytaj FAQ</ButtonLink>
-          </div>
-          <NumberedSteps items={visitSteps} />
-        </Container>
-      </section>
-
-      <section className="section section--paper">
         <Container className="faq-preview">
           <div>
             <SectionHeading
@@ -158,7 +190,10 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      <CtaBand />
+      <CtaBand
+        phoneHref={business.contact.phoneHref || undefined}
+        phoneLabel={business.contact.phoneDisplay || undefined}
+      />
     </>
   );
 }
