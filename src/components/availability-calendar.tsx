@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import type { BusinessSettingsInput } from "@/lib/business/model";
 import type { ScheduleCatalog } from "@/lib/schedule/model";
-import { evaluateDay, monthCells, type DayTone, type SlotUse } from "@/lib/availability/model";
+import { evaluateDay, monthCells, shiftDate, weekDates, type DayTone, type SlotUse } from "@/lib/availability/model";
 
 type CalendarSettings = Pick<
   BusinessSettingsInput,
@@ -25,6 +25,8 @@ export function AvailabilityCalendar({
   capacityKnown?: boolean;
 }) {
   const [cursor, setCursor] = useState(today.slice(0, 7));
+  const [view, setView] = useState<"month" | "week">("month");
+  const [weekAnchor, setWeekAnchor] = useState(today);
   const [players, setPlayers] = useState(4);
   const [privateSlot, setPrivateSlot] = useState(false);
   const [selected, setSelected] = useState("");
@@ -64,10 +66,12 @@ export function AvailabilityCalendar({
         </fieldset>
       </div>
       <div className="availability__nav">
-        <button type="button" onClick={() => setCursor(shiftMonth(cursor, -1))}>Poprzedni</button>
-        <strong>{monthName(year, month)}</strong>
-        <button type="button" onClick={() => setCursor(today.slice(0, 7))}>Dziś</button>
-        <button type="button" onClick={() => setCursor(shiftMonth(cursor, 1))}>Następny</button>
+        <button type="button" aria-pressed={view === "month"} onClick={() => setView("month")}>Miesiąc</button>
+        <button type="button" aria-pressed={view === "week"} onClick={() => setView("week")}>Tydzień</button>
+        <button type="button" onClick={() => view === "month" ? setCursor(shiftMonth(cursor, -1)) : setWeekAnchor(shiftDate(weekAnchor, -7))}>Poprzedni</button>
+        <strong>{view === "month" ? monthName(year, month) : `${weekDates(weekAnchor)[0]} – ${weekDates(weekAnchor)[6]}`}</strong>
+        <button type="button" onClick={() => { setCursor(today.slice(0, 7)); setWeekAnchor(today); }}>Dziś</button>
+        <button type="button" onClick={() => view === "month" ? setCursor(shiftMonth(cursor, 1)) : setWeekAnchor(shiftDate(weekAnchor, 7))}>Następny</button>
       </div>
       <div className="availability__legend">
         <span><i className="is-open" /> Dostępny</span>
@@ -75,14 +79,37 @@ export function AvailabilityCalendar({
         <span><i className="is-unavailable" /> Niedostępny</span>
         <span><i className="is-undecided" /> Nieustalony</span>
       </div>
-      <div className="availability__weekdays" aria-hidden="true">
-        {["Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd"].map((day) => <span key={day}>{day}</span>)}
-      </div>
-      <div className="availability__grid">
-        {cells.map((cell, index) => cell.inMonth ? (
-          <DayButton key={cell.date} date={cell.date} holds={holds} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} today={today} onSelect={setSelected} />
-        ) : <span key={`empty-${index}`} />)}
-      </div>
+      {view === "month" ? (
+        <>
+          <div className="availability__weekdays" aria-hidden="true">
+            {["Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd"].map((day) => <span key={day}>{day}</span>)}
+          </div>
+          <div className="availability__grid">
+            {cells.map((cell, index) => cell.inMonth ? (
+              <DayButton key={cell.date} date={cell.date} holds={holds} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} today={today} onSelect={setSelected} />
+            ) : <span key={`empty-${index}`} />)}
+          </div>
+        </>
+      ) : (
+        <div className="availability__days">
+          {weekDates(weekAnchor).map((date) => {
+            const day = evaluateDay(date, settings, schedule, usesOn(holds, date), { players, privateSlot }, today);
+            return (
+              <article key={date}>
+                <h2>{date} <small>{day.statusLabel}</small></h2>
+                <ul>
+                  {day.slots.map((slot) => (
+                    <li key={slot.start}>
+                      <span>{slot.start}–{slot.end}. {date < today ? "Dzień minął" : slot.statusLabel}. Wolne fizycznie: {slot.freePhysicalSeats}/{settings.maxPlayersPerSlot}. Dla kolejnej drużyny: {slot.bookableSeats}.</span>
+                      {date >= today && slot.fitsRequest ? <a href={`/zapytaj-o-termin?data=${date}`}>Zapytaj o ten slot</a> : <em>Niedostępny dla wybranej grupy</em>}
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            );
+          })}
+        </div>
+      )}
       {selectedDay ? (
         <div className="availability__dialog" role="dialog" aria-modal="true" aria-labelledby="availability-dialog-title">
           <div className="availability__sheet">

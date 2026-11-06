@@ -2763,6 +2763,7 @@ h3 {
 .availability { display: grid; gap: 18px; min-width: 0; }
 .availability__notice { margin: 0; padding: 12px 14px; border: 1px solid var(--line); background: var(--paper); }
 .availability__filters, .availability__nav, .availability__legend { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.availability__nav strong { min-width: 0; overflow-wrap: anywhere; }
 .availability label, .availability fieldset { display: grid; gap: 6px; min-width: 0; }
 .availability input, .availability button, .availability a { min-height: 44px; }
 .availability__legend i { display: inline-block; width: 14px; height: 14px; margin-right: 6px; }
@@ -2776,4 +2777,9 @@ h3 {
 .availability__dialog { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 16px; background: rgba(20, 16, 12, .72); }
 .availability__sheet { width: min(560px, 100%); max-height: min(80vh, 720px); overflow: auto; padding: 20px; background: var(--paper); color: var(--ink); }
 .availability__sheet ul { display: grid; gap: 12px; padding: 0; list-style: none; }
-.availability__sheet li { display: grid; gap: 6px; padding-top: 12px; border-top: 1px solid var(--line); }
+.availability__sheet li, .availability__days li { display: grid; gap: 6px; padding-top: 12px; border-top: 1px solid var(--line); }
+.availability__days { display: grid; gap: 16px; min-width: 0; }
+.availability__days article, .availability__days h2, .availability__days li { min-width: 0; }
+.availability__days h2 { margin: 0; font-size: 1rem; }
+.availability__days ul { margin: 8px 0 0; padding: 0; list-style: none; }
+.availability__days small { font-weight: 600; }
