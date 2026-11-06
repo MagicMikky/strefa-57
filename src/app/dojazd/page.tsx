@@ -8,6 +8,7 @@ import { formatAddress } from "@/data/site";
 export const metadata: Metadata = {
   title: "Dojazd do pola",
   description: "Mapa i informacje organizacyjne dotyczące dojazdu do Paintball Strefa 29 w Czaplach.",
+  alternates: { canonical: "/dojazd" },
 };
 
 export default function DirectionsPage() {

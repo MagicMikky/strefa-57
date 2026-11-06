@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { CookieConsent } from "@/components/cookie-consent";
 import { getSiteUrl, siteConfig } from "@/data/site";
+import { searchRobots } from "@/lib/seo";
 import "./globals.css";
 
 const siteUrl = getSiteUrl();
@@ -32,10 +33,7 @@ export const metadata: Metadata = {
     title: "Paintball Strefa 29 — wejdź do gry",
     description: siteConfig.description,
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
+  robots: searchRobots(),
 };
 
 export const viewport: Viewport = {

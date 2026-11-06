@@ -1,0 +1,5 @@
+---
+description: Fixed Strefa29 product scope and safe phasing
+alwaysApply: true
+---
+Read strona1_0.md and strona2_0.md. Phase 1.0 is Next.js + TypeScript + Tailwind and inquiry email only: no online availability, no checkout, no bookings and no customer accounts. Preserve marketing routes for v2. Phase 2.0 adds Postgres and a safe paid booking engine only after P0 rules (capacity, prices, refund policy, staff operations, payment provider) are approved. Use provider-specific official payment verification, not browser redirect. Do not fabricate photos or business/legal facts. Prevent accidental deployment and real-money transactions without user approval.

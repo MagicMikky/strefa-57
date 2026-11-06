@@ -1,8 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { FaqList, MissionPanel, NumberedSteps, PackageCard } from "@/components/content";
 import { Icon } from "@/components/icons";
 import { ButtonLink, Container, CtaBand, Eyebrow, FeatureCard, SectionHeading, TacticalMark } from "@/components/ui";
-import { attractions, audiences, faqItems, packages, stats, visitSteps } from "@/data/site";
+import { attractions, audiences, eventTypeForAudience, faqItems, packages, stats, visitSteps } from "@/data/site";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default function HomePage() {
   return (
@@ -110,7 +115,7 @@ export default function HomePage() {
           />
           <div className="audience-list">
             {audiences.map((item) => (
-              <Link key={item.slug} href={`/zapytaj-o-termin?wydarzenie=${item.slug}`}>
+              <Link key={item.slug} href={`/zapytaj-o-termin?wydarzenie=${eventTypeForAudience(item.slug)}`}>
                 <span>{item.number}</span>
                 <div><h3>{item.title}</h3><p>{item.description}</p></div>
                 <Icon name="arrow" width={23} height={23} />

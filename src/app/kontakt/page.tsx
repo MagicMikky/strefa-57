@@ -8,6 +8,7 @@ import { formatAddress, siteConfig } from "@/data/site";
 export const metadata: Metadata = {
   title: "Kontakt",
   description: "Kontakt i dojazd do Paintball Strefa 29 w Czaplach koło Gdańska.",
+  alternates: { canonical: "/kontakt" },
 };
 
 export default function ContactPage() {

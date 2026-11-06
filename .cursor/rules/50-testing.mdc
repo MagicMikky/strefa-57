@@ -1,0 +1,11 @@
+---
+description: Testing and release gates for production web applications
+globs: '**/*.{test,spec}.{js,jsx,ts,tsx}'
+alwaysApply: false
+---
+# Testing workflow
+- Define user-visible acceptance cases before implementing complex features.
+- Use unit tests for pure logic, integration tests for API/database, and Playwright E2E for critical user flows.
+- Run accessibility checks and responsive smoke tests before release.
+- For bug fixes add a regression test where feasible.
+- Never bypass or disable tests solely to make a build green. Explain missing coverage.

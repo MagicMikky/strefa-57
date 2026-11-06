@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
 
-export const metadata: Metadata = { title: "Polityka cookies", description: "Ustawienia cookies i podobnych technologii na stronie Paintball Strefa 29." };
+export const metadata: Metadata = { title: "Polityka cookies", description: "Ustawienia cookies i podobnych technologii na stronie Paintball Strefa 29.", alternates: { canonical: "/cookies" } };
 
 export default function CookiesPage() {
   return (

@@ -7,7 +7,7 @@ import { packages } from "@/data/site";
 export const metadata: Metadata = {
   title: "Zapytaj o wolny termin",
   description: "Wyślij niezobowiązujące zapytanie o termin gry w Paintball Strefa 29. Formularz nie blokuje ani nie potwierdza terminu.",
-  robots: { index: true, follow: true },
+  alternates: { canonical: "/zapytaj-o-termin" },
 };
 
 type InquiryPageProps = {

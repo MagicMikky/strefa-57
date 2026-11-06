@@ -1,0 +1,16 @@
+---
+description: Secure-by-default practices for any web app handling requests or user data
+alwaysApply: true
+---
+# Security baseline
+- Follow OWASP ASVS and OWASP Top 10 principles appropriate to the system's risk.
+- Validate input server-side with explicit schemas, lengths, allowed values, and content types. Encode output for its context.
+- Prefer parameterized SQL queries or proven ORMs; never concatenate untrusted input into SQL.
+- Use robust framework-level CSRF protection when applicable, secure SameSite/HttpOnly cookies, HTTPS, rate limiting and session rotation.
+- Passwords: use framework password hashing (Argon2id preferred where supported), never custom cryptography.
+- Authentication and authorization are different: verify access to every resource server-side, including tenant ownership.
+- Implement least-privilege DB users, minimal API scopes, and no public debug endpoints.
+- For uploads validate size/type server-side, store outside executable paths, generate safe names and use malware scanning where appropriate.
+- Log errors without secrets or personal data; avoid debug stack traces in production.
+- Before using third-party scripts or dependencies check maintainer, licence, updates and risk.
+- Never run destructive database commands or connect write-capable agent tools to production databases without explicit approval and backup.

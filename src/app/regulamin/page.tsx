@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
 
-export const metadata: Metadata = { title: "Regulamin", description: "Robocze zasady korzystania z pola Paintball Strefa 29 i wysyłania zapytań przez stronę." };
+export const metadata: Metadata = { title: "Regulamin", description: "Robocze zasady korzystania z pola Paintball Strefa 29 i wysyłania zapytań przez stronę.", alternates: { canonical: "/regulamin" } };
 
 export default function TermsPage() {
   return (
