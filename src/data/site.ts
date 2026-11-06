@@ -51,6 +51,7 @@ export const mainNavigation: NavigationItem[] = [
   { href: "/dla-kogo", label: "Dla kogo" },
   { href: "/faq", label: "FAQ" },
   { href: "/kontakt", label: "Kontakt" },
+  { href: "/rezerwacja", label: "Dostępność" },
 ];
 
 export const stats = [

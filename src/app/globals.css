@@ -154,6 +154,7 @@ h3 {
 .site-header__main {
   display: flex;
   align-items: center;
+  min-width: 0;
   min-height: 76px;
   gap: 28px;
 }
@@ -194,7 +195,9 @@ h3 {
   align-items: center;
   justify-content: center;
   flex: 1 1 auto;
-  gap: clamp(14px, 2vw, 28px);
+  flex-wrap: wrap;
+  min-width: 0;
+  gap: clamp(10px, 1.4vw, 22px);
 }
 
 .desktop-nav a {
@@ -2756,3 +2759,21 @@ h3 {
 
   .faq-item > div { padding-left: 47px; padding-right: 8px; }
 }
+
+.availability { display: grid; gap: 18px; min-width: 0; }
+.availability__notice { margin: 0; padding: 12px 14px; border: 1px solid var(--line); background: var(--paper); }
+.availability__filters, .availability__nav, .availability__legend { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.availability label, .availability fieldset { display: grid; gap: 6px; min-width: 0; }
+.availability input, .availability button, .availability a { min-height: 44px; }
+.availability__legend i { display: inline-block; width: 14px; height: 14px; margin-right: 6px; }
+.availability__weekdays, .availability__grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.availability__day { position: relative; display: grid; min-width: 0; min-height: 72px; padding: 8px; color: #fff; text-align: left; }
+.availability__day small { overflow-wrap: anywhere; }
+.availability__day.is-open, .availability__legend .is-open { background: #185338; }
+.availability__day.is-limited, .availability__legend .is-limited { background: #163B6D; }
+.availability__day.is-unavailable, .availability__legend .is-unavailable { background: #7A1E24; }
+.availability__day.is-undecided, .availability__legend .is-undecided { background: #3F3A34; }
+.availability__dialog { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 16px; background: rgba(20, 16, 12, .72); }
+.availability__sheet { width: min(560px, 100%); max-height: min(80vh, 720px); overflow: auto; padding: 20px; background: var(--paper); color: var(--ink); }
+.availability__sheet ul { display: grid; gap: 12px; padding: 0; list-style: none; }
+.availability__sheet li { display: grid; gap: 6px; padding-top: 12px; border-top: 1px solid var(--line); }

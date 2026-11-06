@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 type InquiryPageProps = {
-  searchParams: Promise<{ pakiet?: string; wydarzenie?: string }>;
+  searchParams: Promise<{ pakiet?: string; wydarzenie?: string; data?: string }>;
 };
 
 export default async function InquiryPage({ searchParams }: InquiryPageProps) {
@@ -43,6 +43,7 @@ export default async function InquiryPage({ searchParams }: InquiryPageProps) {
               packages={packages.map(({ id, name }) => ({ id, name }))}
               initialPackageId={params.pakiet}
               initialEventType={params.wydarzenie}
+              initialDate={/^\d{4}-\d{2}-\d{2}$/.test(params.data ?? "") ? params.data : undefined}
             />
           </div>
         </Container>

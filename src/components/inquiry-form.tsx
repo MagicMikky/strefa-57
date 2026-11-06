@@ -35,6 +35,7 @@ export interface InquiryFormProps {
   packages?: readonly InquiryPackageOption[];
   initialPackageId?: string;
   initialEventType?: string;
+  initialDate?: string;
 }
 
 type FormStatus =
@@ -151,6 +152,7 @@ export function InquiryForm({
   packages = [],
   initialPackageId,
   initialEventType,
+  initialDate,
 }: InquiryFormProps) {
   const packageOptions = useMemo(() => {
     const unique = new Map<string, InquiryPackageOption>();
@@ -373,6 +375,7 @@ export function InquiryForm({
               disabled={isSubmitting}
               id="inquiry-preferred-date"
               min={minimumPreferredDate}
+              defaultValue={initialDate}
               name="preferredDate"
               required
               suppressHydrationWarning
