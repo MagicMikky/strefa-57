@@ -60,13 +60,13 @@ describe("POST /api/staff/sign-in", () => {
     expect(missing.status).toBe(401);
     expect(findUnique).toHaveBeenCalledWith({
       where: { login: "kopik1230" },
-      select: { email: true },
+      select: { email: true, status: true },
     });
     expect(signInEmail).not.toHaveBeenCalled();
   });
 
   it("signs in through the stored staff email and does not echo the password", async () => {
-    findUnique.mockResolvedValue({ email: "kopik1230@staff.invalid" });
+    findUnique.mockResolvedValue({ email: "kopik1230@staff.invalid", status: "active" });
     signInEmail.mockResolvedValue(new Response(null, { status: 200 }));
     const response = await POST(request({ login: "Kopik1230", password: "longpassword1" }));
     expect(response.status).toBe(200);
@@ -75,6 +75,14 @@ describe("POST /api/staff/sign-in", () => {
         body: { email: "kopik1230@staff.invalid", password: "longpassword1" },
       }),
     );
+    expect(await response.text()).not.toContain("longpassword1");
+  });
+
+  it("rejects a disabled account before a session is created", async () => {
+    findUnique.mockResolvedValue({ email: "kopik1230@staff.invalid", status: "disabled" });
+    const response = await POST(request({ login: "Kopik1230", password: "longpassword1" }));
+    expect(response.status).toBe(401);
+    expect(signInEmail).not.toHaveBeenCalled();
     expect(await response.text()).not.toContain("longpassword1");
   });
 });

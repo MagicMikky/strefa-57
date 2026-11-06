@@ -89,7 +89,7 @@ const original = {
 };
 
 afterEach(() => {
-  process.env.NODE_ENV = original.nodeEnv;
+  (process.env as Record<string, string | undefined>).NODE_ENV = original.nodeEnv;
   if (original.store === undefined) delete process.env.INQUIRY_STORE;
   else process.env.INQUIRY_STORE = original.store;
   if (original.databaseUrl === undefined) delete process.env.DATABASE_URL;
@@ -99,14 +99,14 @@ afterEach(() => {
 
 describe("getInquiryRepository", () => {
   it("keeps the memory store available outside production", () => {
-    process.env.NODE_ENV = "test";
+    (process.env as Record<string, string | undefined>).NODE_ENV = "test";
     process.env.INQUIRY_STORE = "memory";
     delete process.env.DATABASE_URL;
     expect(getInquiryRepository()).toBeInstanceOf(MemoryInquiryRepository);
   });
 
   it("does not keep inquiries in process memory during production", () => {
-    process.env.NODE_ENV = "production";
+    (process.env as Record<string, string | undefined>).NODE_ENV = "production";
     process.env.INQUIRY_STORE = "memory";
     delete process.env.DATABASE_URL;
     expect(getInquiryRepository()).toBeNull();

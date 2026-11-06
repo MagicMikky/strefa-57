@@ -35,25 +35,30 @@ export async function POST(request: Request) {
   if (!raw || !password) return denied();
 
   let email = "";
-  if (raw.includes("@")) {
-    if (emailProblem(raw)) return denied();
-    email = raw.toLowerCase();
-  } else {
-    if (loginProblem(raw)) return denied();
-    try {
+  try {
+    if (raw.includes("@")) {
+      if (emailProblem(raw)) return denied();
+      const user = await getPrisma().user.findUnique({
+        where: { email: raw.toLowerCase() },
+        select: { email: true, status: true },
+      });
+      if (!user || user.status !== "active") return denied();
+      email = user.email;
+    } else {
+      if (loginProblem(raw)) return denied();
       const user = await getPrisma().user.findUnique({
         where: { login: normalizeLogin(raw) },
-        select: { email: true },
+        select: { email: true, status: true },
       });
-      email = user?.email ?? "";
-    } catch {
-      return NextResponse.json(
-        { ok: false, message: "Logowanie jest chwilowo niedostępne." },
-        { status: 503, headers: { "Cache-Control": "no-store" } },
-      );
+      if (!user || user.status !== "active") return denied();
+      email = user.email;
     }
+  } catch {
+    return NextResponse.json(
+      { ok: false, message: "Logowanie jest chwilowo niedostępne." },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
   }
-  if (!email) return denied();
 
   return getAuth().api.signInEmail({
     body: { email, password },
