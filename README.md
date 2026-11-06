@@ -3,7 +3,7 @@
 Instrukcje uruchomienia projektu lokalnie i uruchomienia testów.
 
 Wymagania:
-- Node.js v20+ (zalecane 20.9+)
+- Node.js 22.12+ lokalnie. CI używa Node.js 24, bo lockfile powstał przy npm 11, a Vitest 5 i Lighthouse CLI nie działają na Node 20.
 
 Skrypty:
 - `npm run dev` — uruchamia Next.js w trybie deweloperskim

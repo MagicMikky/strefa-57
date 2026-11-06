@@ -35,6 +35,8 @@ Gałąź: `fix/audit-2026-11-06`. Wdrożenie produkcyjne i scalenie nie zostały
 
 `npm audit` bez `--omit=dev` nadal pokazuje 17 zgłoszeń w narzędziach deweloperskich: łańcuch `minimatch` przez ESLint oraz `basic-ftp` przez Lighthouse CLI. Jedyna automatyczna poprawka wymaga `--force` i obniżyłaby Next albo Lighthouse. Nie użyto `--force`.
 
+Pierwszy przebieg CI po tym commicie padł na `npm ci` przy Node 20: lockfile nie zgadzał się z npm 10, a Vitest 5 oraz Lighthouse CLI wymagają nowszego Node. CI zostało przestawione na Node 24.
+
 ## Czego nie ogłaszam
 
 Nie ogłaszam zgodności z WCAG 2.2 AA. Test axe objął pięć tras i tylko poziomy serious oraz critical. Nie wykonano audytu z czytnikiem ekranu.
