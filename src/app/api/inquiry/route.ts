@@ -7,6 +7,9 @@ import {
   type InquiryApiResponse,
   validateInquiry,
 } from "@/lib/inquiry";
+import { readPublicBusiness } from "@/lib/business/public";
+import { readPublished } from "@/lib/business/store";
+import { getPrisma } from "@/lib/prisma";
 import { dispatchInquiryNotification } from "@/lib/inquiries/dispatch";
 import { getRateLimitSalt } from "@/lib/inquiries/email";
 import {
@@ -246,7 +249,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const validation = validateInquiry(input);
+  const business = await readPublicBusiness(Boolean(process.env.DATABASE_URL), () => readPublished(getPrisma()));
+  const validation = validateInquiry(input, new Date(), business.settings.slotStartTimes);
   if (!validation.ok) {
     return jsonResponse(
       {

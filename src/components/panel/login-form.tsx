@@ -14,16 +14,16 @@ export function LoginForm({ disabled }: { disabled: boolean }) {
     setPending(true);
     const form = new FormData(event.currentTarget);
     try {
-      const response = await fetch("/api/auth/sign-in/email", {
+      const response = await fetch("/api/staff/sign-in", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          email: String(form.get("email") ?? ""),
+          login: String(form.get("login") ?? ""),
           password: String(form.get("password") ?? ""),
         }),
       });
       if (!response.ok) {
-        setError("Nieprawidłowy e-mail lub hasło.");
+        setError("Nieprawidłowy login lub hasło.");
         return;
       }
       router.push("/panel");
@@ -37,12 +37,12 @@ export function LoginForm({ disabled }: { disabled: boolean }) {
 
   return (
     <form className="grid max-w-md gap-4" onSubmit={onSubmit}>
-      <label className="grid gap-2 text-sm font-semibold" htmlFor="staff-email">
-        E-mail
+      <label className="grid gap-2 text-sm font-semibold" htmlFor="staff-login">
+        Login
         <input
-          id="staff-email"
-          name="email"
-          type="email"
+          id="staff-login"
+          name="login"
+          type="text"
           autoComplete="username"
           required
           disabled={disabled}

@@ -38,6 +38,7 @@ export async function POST(request: Request) {
     await createInitialOwner({
       name: String(source.name ?? ""),
       email: String(source.email ?? ""),
+      login: String(source.login ?? ""),
       password: String(source.password ?? ""),
     });
   } catch (error) {

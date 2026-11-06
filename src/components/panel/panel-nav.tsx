@@ -38,6 +38,16 @@ export function PanelNav({ staff }: { staff: StaffSession }) {
           Harmonogram
         </Link>
       ) : null}
+      {can(staff.role, "business.publish") ? (
+        <Link className="rounded-full border border-black/15 px-4 py-2" href="/panel/dostepnosc">
+          Dostępność
+        </Link>
+      ) : null}
+      {can(staff.role, "business.publish") ? (
+        <Link className="rounded-full border border-black/15 px-4 py-2" href="/panel/historia">
+          Historia
+        </Link>
+      ) : null}
       <Link className="rounded-full border border-black/15 px-4 py-2" href="/panel/ustawienia">
         Ustawienia
       </Link>

@@ -136,12 +136,12 @@ describe("validateInquiry", () => {
     }
   });
 
-  it("rejects a non-integer player count and a non-future preferred date", () => {
+  it("rejects a non-integer player count and a past preferred date", () => {
     const result = validateInquiry(
       {
         ...validPayload(),
         playerCount: 12.5,
-        preferredDate: "2026-09-22",
+        preferredDate: "2026-09-21",
       },
       now,
     );
@@ -151,6 +151,14 @@ describe("validateInquiry", () => {
       expect(result.fieldErrors.playerCount).toBeDefined();
       expect(result.fieldErrors.preferredDate).toBeDefined();
     }
+  });
+
+  it("allows today as the preferred date and rejects yesterday", () => {
+    const todayResult = validateInquiry({ ...validPayload(), preferredDate: "2026-09-22" }, now);
+    const pastResult = validateInquiry({ ...validPayload(), preferredDate: "2026-09-21" }, now);
+    expect(todayResult.ok).toBe(true);
+    expect(pastResult.ok).toBe(false);
+    if (!pastResult.ok) expect(pastResult.fieldErrors.preferredDate).toBe("Preferowana data nie może być datą z przeszłości.");
   });
 
   it("allows today as an alternate date but rejects a past date", () => {
@@ -168,6 +176,15 @@ describe("validateInquiry", () => {
     if (!pastResult.ok) {
       expect(pastResult.fieldErrors.alternateDate).toBeDefined();
     }
+  });
+
+  it("accepts a published slot start and still rejects an unlisted time", () => {
+    const starts = ["08:00", "11:00", "14:00"];
+    const accepted = validateInquiry({ ...validPayload(), preferredTime: "11:00" }, now, starts);
+    const rejected = validateInquiry({ ...validPayload(), preferredTime: "11:15" }, now, starts);
+    expect(accepted.ok).toBe(true);
+    if (accepted.ok) expect(accepted.data.preferredTime).toBe("11:00");
+    expect(rejected.ok).toBe(false);
   });
 
   it("rejects invalid enums, package identifiers and control characters", () => {

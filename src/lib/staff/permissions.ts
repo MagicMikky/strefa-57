@@ -71,6 +71,23 @@ export function passwordProblem(password: string): string | null {
   return null;
 }
 
+const loginPattern = /^[a-z0-9][a-z0-9._-]{2,39}$/;
+
+export function normalizeLogin(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+export function loginProblem(value: string): string | null {
+  if (!loginPattern.test(normalizeLogin(value))) {
+    return "Login może mieć od 3 do 40 znaków: litery, cyfry, kropkę albo myślnik.";
+  }
+  return null;
+}
+
+export function staffEmailForLogin(login: string): string {
+  return `${normalizeLogin(login)}@staff.invalid`;
+}
+
 export function emailProblem(email: string): string | null {
   const value = email.trim().toLowerCase();
   if (value.length < 6 || value.length > 160 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {

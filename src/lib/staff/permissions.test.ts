@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { applyInquiryCommand } from "@/lib/inquiries/policy";
-import { authorize, can, passwordProblem, secretsMatch } from "@/lib/staff/permissions";
+import { authorize, can, loginProblem, passwordProblem, secretsMatch, staffEmailForLogin } from "@/lib/staff/permissions";
 
 describe("staff permissions", () => {
   it("lets the owner manage staff and the employee only read and note", () => {
@@ -30,6 +30,13 @@ describe("staff permissions", () => {
     expect(secretsMatch("a".repeat(32), "a".repeat(32))).toBe(true);
     expect(secretsMatch("a".repeat(32), "b".repeat(32))).toBe(false);
     expect(secretsMatch("a".repeat(32), "a".repeat(31))).toBe(false);
+  });
+
+  it("accepts a staff login without treating it as an email address", () => {
+    expect(loginProblem("Kopik1230")).toBeNull();
+    expect(staffEmailForLogin("Kopik1230")).toBe("kopik1230@staff.invalid");
+    expect(loginProblem("a")).toBeTruthy();
+    expect(loginProblem("has space")).toBeTruthy();
   });
 
   it("requires a long password with a letter and a digit", () => {

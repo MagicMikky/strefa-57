@@ -55,7 +55,7 @@ export interface InquiryPayload {
 }
 
 export interface ValidInquiry extends InquiryPayload {
-  preferredTime: PreferredTime;
+  preferredTime: PreferredTime | string;
   eventType: EventType;
   preferredContact: PreferredContact;
 }
@@ -180,9 +180,12 @@ function isValidEmail(value: string): boolean {
   );
 }
 
+const slotStartPattern = /^\d{2}:\d{2}$/;
+
 export function validateInquiry(
   input: unknown,
   now = new Date(),
+  slotStarts: readonly string[] = [],
 ): InquiryValidationResult {
   if (
     typeof input !== "object" ||
@@ -235,11 +238,12 @@ export function validateInquiry(
     fieldErrors.preferredDate = "Wybierz preferowaną datę.";
   } else if (!isValidDateOnly(preferredDate)) {
     fieldErrors.preferredDate = "Podaj prawidłową datę.";
-  } else if (preferredDate <= today) {
-    fieldErrors.preferredDate = "Preferowana data musi być późniejsza niż dziś.";
+  } else if (preferredDate < today) {
+    fieldErrors.preferredDate = "Preferowana data nie może być datą z przeszłości.";
   }
 
-  if (!preferredTimes.has(preferredTime)) {
+  const publishedStarts = new Set(slotStarts.filter((start) => slotStartPattern.test(start)));
+  if (!preferredTimes.has(preferredTime) && !publishedStarts.has(preferredTime)) {
     fieldErrors.preferredTime = "Wybierz jedną z dostępnych pór.";
   }
 
@@ -315,7 +319,7 @@ export function validateInquiry(
     data: {
       playerCount,
       preferredDate,
-      preferredTime: preferredTime as PreferredTime,
+      preferredTime,
       alternateDate,
       packageId,
       eventType: eventType as EventType,

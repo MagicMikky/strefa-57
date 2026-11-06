@@ -36,6 +36,10 @@ export interface InquiryFormProps {
   initialPackageId?: string;
   initialEventType?: string;
   initialDate?: string;
+  initialPlayers?: number;
+  initialMessage?: string;
+  initialPreferredTime?: string;
+  slotStarts?: readonly string[];
 }
 
 type FormStatus =
@@ -47,13 +51,6 @@ const inputClassName =
 const labelClassName = "block text-sm font-semibold text-stone-900";
 const fieldsetClassName =
   "rounded-xl border border-stone-300 bg-white/80 p-5 sm:p-6";
-
-function tomorrowInWarsaw(): string {
-  const today = getWarsawDate();
-  const date = new Date(today + "T00:00:00.000Z");
-  date.setUTCDate(date.getUTCDate() + 1);
-  return date.toISOString().slice(0, 10);
-}
 
 function asString(value: FormDataEntryValue | null): string {
   return typeof value === "string" ? value : "";
@@ -153,6 +150,10 @@ export function InquiryForm({
   initialPackageId,
   initialEventType,
   initialDate,
+  initialPlayers,
+  initialMessage,
+  initialPreferredTime,
+  slotStarts = [],
 }: InquiryFormProps) {
   const packageOptions = useMemo(() => {
     const unique = new Map<string, InquiryPackageOption>();
@@ -181,6 +182,15 @@ export function InquiryForm({
   )
     ? normalizedEventType
     : "";
+  const timeOptions = [
+    ...preferredTimeOptions,
+    ...slotStarts
+      .filter((start) => /^\d{2}:\d{2}$/.test(start) && !preferredTimeOptions.some((option) => option.value === start))
+      .map((start) => ({ value: start, label: `Slot ${start}` })),
+  ];
+  const selectedInitialTime = timeOptions.some((option) => option.value === initialPreferredTime)
+    ? initialPreferredTime
+    : "";
 
   const [preferredContact, setPreferredContact] =
     useState<PreferredContact>("email");
@@ -199,7 +209,6 @@ export function InquiryForm({
   }
 
   const today = getWarsawDate();
-  const minimumPreferredDate = tomorrowInWarsaw();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -223,7 +232,7 @@ export function InquiryForm({
       website: asString(formData.get("website")),
     };
 
-    const clientValidation = validateInquiry(payload);
+    const clientValidation = validateInquiry(payload, new Date(), slotStarts);
     if (!clientValidation.ok) {
       trackEvent("inquiry_error", { stage: "validation" });
       setFieldErrors(clientValidation.fieldErrors);
@@ -327,6 +336,7 @@ export function InquiryForm({
               inputMode="numeric"
               max={MAX_PLAYER_COUNT}
               min={MIN_PLAYER_COUNT}
+              defaultValue={initialPlayers}
               name="playerCount"
               required
               step={1}
@@ -374,7 +384,7 @@ export function InquiryForm({
               className={inputClassName}
               disabled={isSubmitting}
               id="inquiry-preferred-date"
-              min={minimumPreferredDate}
+              min={today}
               defaultValue={initialDate}
               name="preferredDate"
               required
@@ -384,6 +394,7 @@ export function InquiryForm({
             <p className="mt-2 text-xs text-stone-600" id="inquiry-date-hint">
               Wskazanie daty nie oznacza jej dostępności.
             </p>
+            {initialMessage ? <p className="mt-2 text-xs text-stone-600">Wybrany slot jest preferencją. Wysłanie formularza nie rezerwuje terminu.</p> : null}
             <FieldError errors={fieldErrors} field="preferredDate" />
           </div>
 
@@ -395,12 +406,12 @@ export function InquiryForm({
               aria-describedby={describedBy("preferredTime", fieldErrors)}
               aria-invalid={Boolean(fieldErrors.preferredTime)}
               className={inputClassName}
-              defaultValue=""
+              defaultValue={selectedInitialTime}
               disabled={isSubmitting}
               id="inquiry-preferred-time"
               name="preferredTime"
             >
-              {preferredTimeOptions.map((option) => (
+              {timeOptions.map((option) => (
                 <option key={option.value || "empty"} value={option.value}>
                   {option.label}
                 </option>
@@ -574,6 +585,7 @@ export function InquiryForm({
               disabled={isSubmitting}
               id="inquiry-message"
               maxLength={MAX_MESSAGE_LENGTH}
+              defaultValue={initialMessage}
               name="message"
               rows={5}
             />

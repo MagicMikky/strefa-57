@@ -59,6 +59,64 @@ export function weekdayCode(date: string): string {
   return weekdayByIndex[new Date(Date.UTC(year, month - 1, day, 12)).getUTCDay()];
 }
 
+export function shiftDate(date: string, days: number): string {
+  const [year, month, day] = date.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days, 12)).toISOString().slice(0, 10);
+}
+
+export function weekDates(anchor: string): string[] {
+  const [year, month, day] = anchor.split("-").map(Number);
+  const noon = new Date(Date.UTC(year, month - 1, day, 12));
+  const monday = new Date(noon);
+  monday.setUTCDate(noon.getUTCDate() - ((noon.getUTCDay() + 6) % 7));
+  return Array.from({ length: 7 }, (_, index) => shiftDate(monday.toISOString().slice(0, 10), index));
+}
+
+export function closureReason(schedule: ScheduleCatalog, date: string, slot: string): string | null {
+  const match = schedule.blocks.find((block) => block.date === date && (block.slot === slot || block.slot === "day"));
+  return match?.reason ?? null;
+}
+
+export function holdSummary(hold: { slot: string; players: number; teams: number; privateSlot: boolean; expiresAt: string }): string {
+  const mode = hold.privateSlot ? "slot prywatny" : "gra wspólna";
+  return `${hold.slot}: ${hold.players} graczy, drużyny: ${hold.teams}, ${mode}, wygasa ${warsawStamp(hold.expiresAt)}`;
+}
+
+function warsawStamp(iso: string): string {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Warsaw",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(iso));
+  const pick = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
+  return `${pick("year")}-${pick("month")}-${pick("day")} ${pick("hour")}:${pick("minute")}`;
+}
+
+export function laterDatesInMonth(
+  date: string,
+  settings: Pick<BusinessSettingsInput, "maxPlayersPerTeam" | "maxTeamsPerMatch" | "maxPlayersPerSlot" | "slotStartTimes" | "slotDurationMinutes">,
+  schedule: ScheduleCatalog,
+  holds: readonly (SlotUse & { date: string })[],
+  request: AvailabilityRequest,
+  today: string,
+  limit = 3,
+): string[] {
+  const [year, month] = date.split("-").map(Number);
+  const found: string[] = [];
+  for (const cell of monthCells(year, month)) {
+    if (!cell.inMonth || cell.date <= date || cell.date < today) continue;
+    const uses = holds.filter((hold) => hold.date === cell.date).map(({ slot, players, teams, privateSlot }) => ({ slot, players, teams, privateSlot }));
+    const day = evaluateDay(cell.date, settings, schedule, uses, request, today);
+    if (day.tone !== "unavailable" && day.slots.some((slot) => slot.fitsRequest)) found.push(cell.date);
+    if (found.length >= limit) break;
+  }
+  return found;
+}
+
 export function monthCells(year: number, month: number): Array<{ date: string; inMonth: boolean }> {
   const first = (new Date(Date.UTC(year, month - 1, 1, 12)).getUTCDay() + 6) % 7;
   const days = new Date(Date.UTC(year, month, 0, 12)).getUTCDate();
@@ -114,6 +172,7 @@ export function evaluateDay(
   const active = slots.filter((slot) => !slot.closed);
   const activeCapacity = active.length * settings.maxPlayersPerSlot;
   const occupiedPlayers = active.reduce((sum, slot) => {
+    if (slot.privateReservation) return sum + settings.maxPlayersPerSlot;
     const used = reservations.filter((item) => item.slot === slot.start).reduce((total, item) => total + item.players, 0);
     return sum + used;
   }, 0);

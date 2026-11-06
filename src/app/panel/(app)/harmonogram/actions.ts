@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { fallbackBusiness } from "@/lib/business/model";
@@ -46,5 +47,6 @@ export async function publishScheduleAction() {
   const actor = await requireStaff("business.publish");
   const result = await publishScheduleDraft(getPrisma(), actor.id, await slotTimes());
   if (!result.ok) redirect(`/panel/harmonogram?error=${encodeURIComponent(result.error)}`);
+  revalidatePath("/rezerwacja");
   redirect("/panel/harmonogram?saved=published");
 }
