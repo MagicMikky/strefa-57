@@ -107,13 +107,13 @@ export default function HomePage() {
           <SectionHeading
             eyebrow="Wybierz poziom wejścia"
             title="Pakiet dopasowany do tempa ekipy."
-            body="Poniższe warianty pokazują planowaną strukturę oferty. Końcową zawartość, ceny i dostępność dodatków potwierdzi obsługa przed uzgodnieniem wizyty."
+            body="Warianty opisują charakter gry. Zawartość, cenę i dodatki potwierdzi obsługa przed wizytą."
             align="center"
           />
           <div className="package-grid">
             {packages.map((item) => <PackageCard key={item.id} item={item} />)}
           </div>
-          <p className="section-footnote">Cennik jest obecnie przygotowywany do zatwierdzenia. Strona nie pobiera płatności online.</p>
+          <p className="section-footnote">Cenę ustala obsługa po zapytaniu. Strona nie pobiera płatności online.</p>
         </Container>
       </section>
 

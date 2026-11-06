@@ -29,7 +29,7 @@ export const siteConfig = {
     city: "Czaple",
     region: "pomorskie",
     country: "PL",
-    directionsNote: "Dokładny wjazd i punkt na mapie wymagają potwierdzenia właściciela.",
+    directionsNote: "Dokładną instrukcję wjazdu otrzymasz po uzgodnieniu terminu.",
   },
   contact: {
     phoneDisplay: "Numer telefonu do potwierdzenia",
@@ -92,7 +92,7 @@ export const packages: OfferPackage[] = [
     id: "pierwsza-misja",
     name: "Pierwsza misja",
     eyebrow: "Dobry start",
-    price: "Cena do potwierdzenia",
+    price: "Wycena po zapytaniu",
     description:
       "Kompletny zestaw na pierwszą rozgrywkę — bez zgadywania, czego potrzebuje grupa.",
     features: [
@@ -106,7 +106,7 @@ export const packages: OfferPackage[] = [
     id: "pelne-natarcie",
     name: "Pełne natarcie",
     eyebrow: "Najczęstszy wybór",
-    price: "Cena do potwierdzenia",
+    price: "Wycena po zapytaniu",
     description:
       "Więcej amunicji i swobody dla ekip, które chcą rozegrać kilka intensywnych scenariuszy.",
     features: [
@@ -220,7 +220,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "Ile osób może zagrać?",
     answer:
-      "Dokładne minimum i maksimum są obecnie potwierdzane przez właściciela. Podaj liczbę uczestników w formularzu, a obsługa zaproponuje właściwy wariant i poinformuje o możliwościach połączenia lub wyłączności grupy.",
+      "Podaj liczbę uczestników w formularzu. Obsługa zaproponuje właściwy wariant i poinformuje, czy grupę można połączyć z inną albo zagrać samodzielnie.",
   },
   {
     question: "Ile trwa wizyta?",
@@ -240,7 +240,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "Czy osoby niepełnoletnie mogą zagrać?",
     answer:
-      "Minimalny wiek i forma zgody opiekuna wymagają potwierdzenia przed publikacją ostatecznego regulaminu. W zapytaniu zaznacz, że grupa obejmuje osoby niepełnoletnie — obsługa poda aktualne zasady.",
+      "Minimalny wiek i forma zgody opiekuna zależą od zasad obiektu. W zapytaniu zaznacz, że grupa obejmuje osoby niepełnoletnie — obsługa poda aktualne zasady.",
   },
   {
     question: "Czy na miejscu jest parking i zaplecze?",

@@ -7,7 +7,7 @@ const staffFields = {
   role: {
     type: "string" as const,
     required: false,
-    defaultValue: "employee",
+    defaultValue: "member",
     input: false,
   },
   status: {

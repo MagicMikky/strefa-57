@@ -38,9 +38,13 @@ export async function requireStaff(permission?: Permission): Promise<StaffSessio
     select: { id: true, name: true, email: true, role: true, status: true },
   });
 
-  if (!user || user.status !== "active" || !isStaffRole(user.role)) {
+  if (!user || user.status !== "active") {
     await getPrisma().session.deleteMany({ where: { userId: session.user.id } });
     redirect("/panel/logowanie?error=disabled");
+  }
+
+  if (!isStaffRole(user.role)) {
+    redirect("/panel/logowanie?error=staff");
   }
 
   if (permission && !can(user.role, permission)) {

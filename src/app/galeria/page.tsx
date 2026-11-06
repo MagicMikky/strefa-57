@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { InfoNotice } from "@/components/content";
 import { AnalyticsView } from "@/components/analytics-view";
 import { GalleryBrowser } from "@/components/gallery-browser";
 import { ButtonLink, Container, CtaBand, PageHero, SectionHeading } from "@/components/ui";
@@ -28,27 +27,10 @@ export default function GalleryPage() {
           <SectionHeading
             eyebrow="Autentyczny obraz pola"
             title="Miejsca, które tworzą scenariusz."
-            body="W siatce są kadry bez widocznych osób: okopy, osłona w lesie i rakieta V2. Zdjęcia z graczami czekają na zgodę na wizerunek i nie są publikowane."
+            body="Okopy, osłona w lesie i punkt przy rakiecie V2. Tak wygląda teren, na którym rozgrywa się scenariusz."
           />
           <GalleryBrowser photos={galleryPhotos} />
           <AnalyticsView event="gallery_view" />
-          <div className="gallery-notice">
-            <InfoNotice title="Zdjęcia do uzupełnienia przed publikacją">
-              Nie używamy fotografii innego operatora ani obrazów udających ten obiekt. Kadry z widocznymi osobami oraz filmy z folderu gallery pozostają poza stroną do czasu zgody właściciela.
-            </InfoNotice>
-          </div>
-        </Container>
-      </section>
-
-      <section className="section section--sand">
-        <Container>
-          <SectionHeading eyebrow="Standard materiałów" title="Każde zdjęcie ma wykonać konkretną pracę." />
-          <div className="standards-grid">
-            <div><span>01</span><h3>Wyraźny kadr</h3><p>Najlepsze ujęcia pokazują skalę terenu i prawdziwą dynamikę gry.</p></div>
-            <div><span>02</span><h3>Prawo do publikacji</h3><p>Każda rozpoznawalna osoba musi mieć potwierdzoną zgodę na wizerunek.</p></div>
-            <div><span>03</span><h3>Lekki plik</h3><p>Wersje responsywne WebP/AVIF chronią szybkość strony na telefonie.</p></div>
-            <div><span>04</span><h3>Dobry opis</h3><p>Tekst alternatywny opisuje informację, a zdjęcie dekoracyjne pozostaje neutralne.</p></div>
-          </div>
         </Container>
       </section>
       <CtaBand />

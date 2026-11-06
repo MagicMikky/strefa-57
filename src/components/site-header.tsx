@@ -28,11 +28,6 @@ export function SiteHeader() {
       <div className="site-header__main container">
         <div className="site-header__brand">
           <Logo />
-          <div className="coordinate-tag">
-            <span>54°N</span>
-            <span>18°E</span>
-            <strong>STREFA 29</strong>
-          </div>
         </div>
         <nav className="desktop-nav" aria-label="Główna nawigacja">
           {mainNavigation.map((item) => (

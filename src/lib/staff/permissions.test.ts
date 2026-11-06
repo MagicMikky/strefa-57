@@ -13,6 +13,13 @@ describe("staff permissions", () => {
     expect(can("guest", "inquiries.read")).toBe(false);
   });
 
+  it("keeps sports and customer roles out of the staff panel", () => {
+    for (const role of ["member", "customer", "player", "captain", "referee", "organizer"]) {
+      expect(can(role, "inquiries.read")).toBe(false);
+      expect(authorize(role, "staff.manage")).toBe("forbidden");
+    }
+  });
+
   it("rejects anonymous and cross-role access to staff data", () => {
     expect(authorize(null, "inquiries.read")).toBe("unauthenticated");
     expect(authorize("employee", "staff.manage")).toBe("forbidden");

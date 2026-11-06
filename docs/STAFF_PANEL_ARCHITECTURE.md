@@ -10,7 +10,7 @@ Praca jest na `feature/staff-panel`, odciętej od `release/v1-readiness` (`134a9
 
 Biblioteka: Better Auth 1.7.18. Zależności są zgodne z Next.js 16.4.5, React 19 i Prismą 6.19.3. Publiczna rejestracja jest wyłączona przez `emailAndPassword.disableSignUp`. Hasła hashuje wbudowany mechanizm biblioteki (`node:crypto` scrypt). Nie ma hasła domyślnego w kodzie.
 
-Role `owner`, `manager` i `employee` oraz status `active` / `disabled` są dodatkowymi polami użytkownika Better Auth. Klient nie może ich ustawić (`input: false`). To samo konto i ta sama sesja mogą w wersji 2.0 dostać rolę klienta bez wymiany biblioteki. Konta klientów pozostają poza tym etapem, zgodnie ze `strona2_0.md`.
+Role `owner`, `manager` i `employee` oraz status `active` / `disabled` są dodatkowymi polami użytkownika Better Auth. Klient nie może ich ustawić (`input: false`). Kolumna `User.role` jest wyłącznie bramką panelu pracowniczego. Domyślna wartość nowego wiersza to `member` i nie daje dostępu do panelu. Konta tworzone w panelu ustawiają rolę jawnie. Przyszłe role klienta, zawodnika, kapitana, sędziego i organizatora nie będą zapisywane w tej kolumnie. Tożsamość zostaje w `User`, a role sportowe dojdą jako osobne członkostwa. Opisuje to `docs/STREFA29_LEAGUE_ROADMAP.md`. Konta klientów i liga pozostają poza tym etapem. Wersja 2.0 nadal nie obejmuje kont klientów, zgodnie ze `strona2_0.md`.
 
 Sesje trwają 8 godzin, ciasteczko jest `HttpOnly` i `SameSite=Lax`, a w produkcji także `Secure`. Przed utworzeniem sesji sprawdzany jest status konta. Zablokowanie pracownika kasuje jego sesje. Pole `mfaEnrolled` jest przygotowaniem pod oficjalną wtyczkę MFA Better Auth. Samo MFA nie jest jeszcze włączone.
 

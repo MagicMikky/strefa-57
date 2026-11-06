@@ -17,6 +17,7 @@ Role są odrzucane po stronie serwera przy statusie, przypisaniu, notatce i zarz
 | Bruteforce logowania | limit Better Auth: 5 prób `/sign-in/email` na 10 minut, pamięć procesu |
 | Kradzież sesji | `HttpOnly`, `SameSite=Lax`, `Secure` w produkcji, sesja 8 godzin, bez cache ciasteczka |
 | Konto wyłączone | hook sesji i ponowny odczyt statusu; blokada kasuje sesje |
+| Rola spoza panelu | `requireStaff` wpuszcza tylko `owner`, `manager` i `employee`; inna rola nie kasuje sesji, żeby późniejsze logowanie ligi zostało |
 | CSRF | ciasteczko `Lax`, origin na formularzu publicznym, akcje serwera Next.js, `trustedOrigins` |
 | XSS | React escapuje treść; e-mail do obsługi escapuje HTML |
 | IDOR | wspólna skrzynka tylko dla ról z `inquiries.read`; pracownicy nie zarządzają kontami |

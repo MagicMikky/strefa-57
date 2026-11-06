@@ -14,6 +14,7 @@ export const dynamic = "force-dynamic";
 const errors: Record<string, string> = {
   config: "Panel nie jest jeszcze skonfigurowany. Brakuje bazy albo sekretu sesji.",
   disabled: "To konto jest zablokowane albo sesja wygasła.",
+  staff: "To konto nie ma dostępu do panelu pracowników.",
 };
 
 export default async function LoginPage({

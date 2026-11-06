@@ -11,7 +11,7 @@ import { addOns, packages } from "@/data/site";
 import { AnalyticsView } from "@/components/analytics-view";
 
 const metadataDescription =
-  "Planowane pakiety Paintball Strefa 29, wyposażenie i dodatki. Ceny nie są jeszcze zatwierdzone, a strona nie przyjmuje płatności ani nie tworzy rezerwacji.";
+  "Warianty gry na polu Paintball Strefa 29. Cenę potwierdza obsługa, a strona nie przyjmuje płatności ani nie tworzy rezerwacji.";
 
 export const metadata: Metadata = {
   title: "Cennik i pakiety",
@@ -71,7 +71,7 @@ export default function PricingPage() {
             Jasny punkt startu. <em>Końcowa cena po potwierdzeniu.</em>
           </>
         }
-        lead="Poniższe warianty pokazują planowaną strukturę oferty. Cennik oczekuje na zatwierdzenie właściciela, dlatego żadna widoczna tu propozycja nie jest jeszcze wiążącą ofertą."
+        lead="Warianty opisują charakter gry. Kwotę, wyposażenie i warunki dla grupy potwierdza obsługa. Nic na tej stronie nie jest wiążącą ofertą."
       >
         <ButtonLink href="/zapytaj-o-termin">Poproś o wycenę</ButtonLink>
         <ButtonLink href="/oferta" variant="ghost">
@@ -81,14 +81,9 @@ export default function PricingPage() {
 
       <section className="section section--cream pricing-packages">
         <Container>
-          <InfoNotice title="Ceny nie są jeszcze zatwierdzone" tone="sand">
-            Przed publikacją kwot właściciel musi potwierdzić ceny, liczbę kulek,
-            wyposażenie, minimalną wielkość grupy i dostępność dodatków. Do tego czasu
-            obowiązuje indywidualne potwierdzenie przez obsługę.
-          </InfoNotice>
           <SectionHeading
-            eyebrow="Planowane warianty"
-            title="Wybierz charakter gry, nie obietnicę bez pokrycia."
+            eyebrow="Warianty gry"
+            title="Wybierz charakter gry."
             body="Każdy wariant obejmuje organizację rozgrywki, ale jego ostateczna zawartość zależy od zatwierdzonego cennika i ustaleń dla konkretnej grupy."
             align="center"
           />
@@ -144,7 +139,7 @@ export default function PricingPage() {
           <SectionHeading
             eyebrow="Płatność"
             title="Ta strona nie pobiera pieniędzy."
-            body="Wersja 1.0 nie ma koszyka, płatności online ani automatycznych zadatków. Sposób płatności i ewentualny zadatek obsługa przekazuje dopiero po sprawdzeniu zapytania."
+            body="Nie ma tu koszyka, płatności online ani automatycznych zadatków. Sposób płatności i ewentualny zadatek obsługa przekazuje dopiero po sprawdzeniu zapytania."
             light
           />
           <InfoNotice title="Nie przesyłaj danych karty" tone="dark">

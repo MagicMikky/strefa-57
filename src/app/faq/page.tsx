@@ -70,7 +70,7 @@ export default function FaqPage() {
             Najpierw odpowiedzi. <em>Potem wejście do gry.</em>
           </>
         }
-        lead="Zebraliśmy najważniejsze informacje o zapytaniu, przebiegu wizyty, przygotowaniu i zasadach. Tam, gdzie właściciel musi jeszcze zatwierdzić szczegóły, mówimy o tym wprost."
+        lead="Zebraliśmy najważniejsze informacje o zapytaniu, przebiegu wizyty, przygotowaniu i zasadach. Szczegóły zależne od grupy potwierdza obsługa."
       >
         <ButtonLink href="/zapytaj-o-termin">Wyślij zapytanie</ButtonLink>
         <ButtonLink href="/kontakt" variant="ghost">

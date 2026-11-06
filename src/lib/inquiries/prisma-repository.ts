@@ -13,6 +13,7 @@ import {
   type InquiryStatus,
 } from "@/lib/inquiries/model";
 import type { InquiryRepository, NewInquiry } from "@/lib/inquiries/memory-repository";
+import { STAFF_ROLES } from "@/lib/staff/permissions";
 
 const include = {
   assignee: { select: { name: true } },
@@ -333,7 +334,7 @@ export function createPrismaInquiryRepository(
 
     async listStaff() {
       const users = await db.user.findMany({
-        where: { status: "active" },
+        where: { status: "active", role: { in: [...STAFF_ROLES] } },
         select: { id: true, name: true, role: true, status: true },
         orderBy: { name: "asc" },
       });
