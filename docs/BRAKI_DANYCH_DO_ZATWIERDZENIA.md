@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # Braki danych do zatwierdzenia
 
 Poniższe informacje nie zostały potwierdzone. Nie wolno ich uzupełniać przykładowymi wartościami.
@@ -20,3 +22,4 @@ Poniższe informacje nie zostały potwierdzone. Nie wolno ich uzupełniać przyk
 | CSP | Polityka jest tylko w `Content-Security-Policy-Report-Only`. Wymuszenie czeka na przegląd raportów ze stagingu | Zgoda na przejście z Report-Only do egzekwowanego CSP |
 
 Niepotwierdzone hasła marketingowe, takie jak wielkość terenu i odległość od centrum, pozostają na stronie z dotychczasowym opisem. Ich usunięcie albo zmiana wymaga decyzji właściciela, a nie zgadywania.
+

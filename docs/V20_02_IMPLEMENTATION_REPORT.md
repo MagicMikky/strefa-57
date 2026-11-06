@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # V2.0-2 — blokada pojemności bez sprzedaży
 
 Data: 2026-11-06. Gałąź: `feature/capacity-holds`, baza: `main`.
@@ -13,3 +15,4 @@ Kalendarz dolicza istniejące, niewygasłe blokady. Gdy baza jest skonfigurowana
 ## Czego nie uruchomiono
 
 Lokalnie nie ma `DATABASE_URL`, a Docker nie działa. Migracja i równoległy test na prawdziwym PostgreSQL nie zostały wykonane. Test kolejki w pamięci nie zastępuje blokady `pg_advisory_xact_lock`.
+

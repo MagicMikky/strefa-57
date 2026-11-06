@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # Uruchomienie panelu pracownika
 
 ## PostgreSQL
@@ -56,3 +58,4 @@ Kopia dotyczy bazy PostgreSQL, nie plików aplikacji. Przed pierwszym wdrożenie
 ## Czego ten etap nie robi
 
 Nie scala pull requestu, nie wdraża produkcji i nie włącza rezerwacji ani płatności.
+

@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # Selekcja galerii — 2026-11-06
 
 Źródło: folder `gallery`. Oryginały nie były edytowane. Na stronę weszły kopie trzech kadrów bez widocznych osób.
@@ -27,3 +29,4 @@ Galeria to siatka. Nie ma automatycznego slidera. Powiększenie otwiera lightbox
 | dwa pliki `.mp4` | To nie są zdjęcia do siatki, a treść i zgody nie są potwierdzone |
 
 Te pliki są najlepszymi kadrami z graczami, ale nie wolno ich pokazać przed zgodą. Po zgodzie można dodać je do `galleryPhotos` bez zmiany układu.
+

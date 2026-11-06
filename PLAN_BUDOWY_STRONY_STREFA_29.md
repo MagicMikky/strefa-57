@@ -1,5 +1,7 @@
 # Plan budowy strony internetowej Paintball Strefa 29
 
+> Historia pierwszego planu budowy. Bieżący plan jest w `docs/STREFA29_MASTER_PLAN.md`.
+
 ## 1. Cel projektu
 
 Celem jest stworzenie szybkiej, atrakcyjnej i bezpiecznej strony internetowej dla pola **Paintball Strefa 29**, która:

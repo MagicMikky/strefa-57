@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # V1.5B-3 — galeria właściciela
 
 Data: 2026-11-06. Gałąź: `feature/gallery-cms`, baza: `main`.
@@ -15,3 +17,4 @@ Zdjęcia z osobami i oba filmy zostają na liście „nie publikować”. Nie da
 Kadrowanie nie jest w tym etapie. Nowe pliki żyją na dysku serwera; efemeryczny hosting ich nie utrzyma, dopóki nie będzie magazynu obiektów (decyzja D-26). Zapis i publikacja wymagają `business.publish`, czyli roli właściciela.
 
 Następny etap planu to V1.5B-4: harmonogram, limity i blokowanie dni, nadal bez sprzedaży.
+

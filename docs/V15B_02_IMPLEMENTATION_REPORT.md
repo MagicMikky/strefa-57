@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # V1.5B-2 — edytor treści
 
 Data: 2026-11-06. Gałąź: `feature/content-cms`, baza: `main`.
@@ -21,3 +23,4 @@ Zapis i publikacja używają istniejącego `business.publish`. Ma je tylko `owne
 ## Migracja
 
 `prisma/migrations/20261106193000_site_content` tworzy `SiteContent`. Treść startowa nie jest kopiowana do bazy, dopóki właściciel jej nie zapisze. Do tego czasu strony używają kopii z kodu.
+

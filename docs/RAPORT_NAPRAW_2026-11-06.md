@@ -1,3 +1,5 @@
+> Historia. Bieżący plan: `docs/STREFA29_MASTER_PLAN.md`.
+
 # Raport napraw — 2026-11-06
 
 Gałąź: `fix/audit-2026-11-06`. Wdrożenie produkcyjne i scalenie nie zostały wykonane.
@@ -49,3 +51,4 @@ Nie ogłaszam, że limit działa między wieloma instancjami. Konto Upstash nie 
 - Formularz zwróci 503 bez sekretów Resend. Nie wysłano prawdziwej wiadomości.
 - Ochrona gałęzi `main` nie została włączona w ustawieniach GitHub. Workflow nie potrafi jej wymusić.
 - Wersja 2.0 nie została zaimplementowana.
+

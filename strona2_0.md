@@ -1,6 +1,8 @@
 # Paintball Strefa 29 — plan rozbudowy strony do wersji 2.0
 
-> **Zakres historyczny tego pliku.** Opisuje pierwotny silnik rezerwacji gościnnej. Od 6 listopada 2026 plan nadrzędny jest w `docs/STREFA29_NOWA_ROADMAPA_I_PLAN_WERSJI_2026-11-06.md`, a rejestr w `docs/STREFA29_REJESTR_DECYZJI_DO_USTALENIA.md`.
+> Historia architektury 2.0. Bieżący plan jest w `docs/STREFA29_MASTER_PLAN.md`. Kalendarz zapytań już istnieje. Płatność i checkout pozostają wyłączone.
+
+> **Zakres historyczny tego pliku.** Opisuje pierwotny silnik rezerwacji gościnnej. Bieżący plan jest w `docs/STREFA29_MASTER_PLAN.md`, a rejestr w `docs/STREFA29_DECYZJE_DO_USTALENIA.md`.
 >
 > Bez zmian zostaje samo v2.0: rezerwacja gościnna, kalendarz i płatność, bez konta klienta. Konta klientów, wcześniej opisane jako funkcja poza produktem, są teraz wersją 2.1. Rozbudowany CMS, wcześniej poza v2.0, jest wersją 1.5B i powstaje przed rezerwacjami. Drużyny, rankingi i liga są wersjami 2.2, 2.3 i 3.0.
 >
