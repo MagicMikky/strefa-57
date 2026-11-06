@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Icon } from "@/components/icons";
@@ -76,11 +77,7 @@ export function MissionPanel() {
       </div>
       <div className="mission-panel__body">
         <div className="rocket" aria-hidden="true">
-          <span className="rocket__tip" />
-          <span className="rocket__body">V2</span>
-          <span className="rocket__fin rocket__fin--left" />
-          <span className="rocket__fin rocket__fin--right" />
-          <span className="rocket__smoke" />
+          <Image src="/rakieta.jpg" alt="" width={1024} height={1536} />
         </div>
         <div className="mission-panel__timer">
           <small>CZAS DO FINAŁU</small>

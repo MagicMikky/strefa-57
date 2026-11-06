@@ -26,7 +26,14 @@ export function SiteHeader() {
         <Link href="/dojazd">Żurawia 29, Czaple <Icon name="arrow" width={15} height={15} /></Link>
       </div>
       <div className="site-header__main container">
-        <Logo />
+        <div className="site-header__brand">
+          <Logo />
+          <div className="coordinate-tag">
+            <span>54°N</span>
+            <span>18°E</span>
+            <strong>STREFA 29</strong>
+          </div>
+        </div>
         <nav className="desktop-nav" aria-label="Główna nawigacja">
           {mainNavigation.map((item) => (
             <Link key={item.href} href={item.href} aria-current={pathname === item.href ? "page" : undefined}>
