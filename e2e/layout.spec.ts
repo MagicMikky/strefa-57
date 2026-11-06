@@ -9,10 +9,25 @@ test.describe("horizontal layout", () => {
       await page.setViewportSize({ width, height: 900 });
       for (const route of routes) {
         await page.goto(route);
-        const overflow = await page.evaluate(
-          () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-        );
-        expect(overflow, route).toBeLessThanOrEqual(1);
+        const details = await page.evaluate(() => {
+          const viewport = document.documentElement.clientWidth;
+          const offenders = [...document.querySelectorAll("body *")]
+            .map((element) => {
+              const rect = element.getBoundingClientRect();
+              return {
+                name: `${element.tagName.toLowerCase()}${element.className ? `.${String(element.className).trim().split(/\s+/).slice(0, 2).join(".")}` : ""}`,
+                right: Math.round(rect.right),
+              };
+            })
+            .filter((item) => item.right > viewport + 1)
+            .sort((a, b) => b.right - a.right)
+            .slice(0, 5);
+          return {
+            overflow: document.documentElement.scrollWidth - viewport,
+            offenders,
+          };
+        });
+        expect(details.overflow, `${route} ${JSON.stringify(details.offenders)}`).toBeLessThanOrEqual(1);
       }
     });
   }
