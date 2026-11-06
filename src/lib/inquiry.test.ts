@@ -1,5 +1,10 @@
-import { describe, it, expect } from "vitest";
-import { validateInquiry, getWarsawDate } from "./inquiry";
+import { describe, expect, it } from "vitest";
+import {
+  INQUIRY_SUCCESS_MESSAGE,
+  MAX_MESSAGE_LENGTH,
+  getWarsawDate,
+  validateInquiry,
+} from "./inquiry";
 
 describe("validateInquiry", () => {
   it("accepts a minimal valid inquiry", () => {
@@ -60,14 +65,6 @@ describe("validateInquiry", () => {
     }
   });
 });
-import { describe, expect, it } from "vitest";
-
-import {
-  INQUIRY_SUCCESS_MESSAGE,
-  MAX_MESSAGE_LENGTH,
-  getWarsawDate,
-  validateInquiry,
-} from "./inquiry";
 
 const now = new Date("2026-09-22T10:00:00.000Z");
 
