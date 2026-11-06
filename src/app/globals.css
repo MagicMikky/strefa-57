@@ -687,7 +687,7 @@ h3 {
 
   .mobile-menu {
     position: fixed;
-    top: 107px;
+    top: 170px;
     right: 0;
     bottom: 0;
     left: 0;
@@ -784,7 +784,7 @@ h3 {
   }
 
   .mobile-menu {
-    top: 94px;
+    top: 152px;
   }
 
   .page-hero__inner {
