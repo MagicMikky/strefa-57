@@ -57,7 +57,7 @@ jobs:
 
       - name: Setup Chrome for Lighthouse
         id: chrome
-        uses: browser-actions/setup-chrome@v1
+        uses: browser-actions/setup-chrome@v2
 
       - name: Build
         run: npm run build
