@@ -1,0 +1,209 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { POST } from "./route";
+import { getWarsawDate } from "@/lib/inquiry";
+import { resetRateLimitForTests } from "@/lib/rate-limit";
+
+const mutableEnv = [
+  "RESEND_API_KEY",
+  "INQUIRY_TO_EMAIL",
+  "INQUIRY_FROM_EMAIL",
+  "RATE_LIMIT_SALT",
+  "RATE_LIMIT_MAX_REQUESTS",
+  "INQUIRY_DELIVERY_TIMEOUT_MS",
+  "UPSTASH_REDIS_REST_URL",
+  "UPSTASH_REDIS_REST_TOKEN",
+  "NEXT_PUBLIC_SITE_URL",
+] as const;
+
+const originalEnv = Object.fromEntries(
+  mutableEnv.map((key) => [key, process.env[key]]),
+);
+
+function restoreEnv(): void {
+  for (const key of mutableEnv) {
+    const value = originalEnv[key];
+    if (value === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = value;
+    }
+  }
+}
+
+function enableDelivery(): void {
+  process.env.RESEND_API_KEY = "re_test_key_value";
+  process.env.INQUIRY_TO_EMAIL = "inbox@example.com";
+  process.env.INQUIRY_FROM_EMAIL = "Strefa 29 <form@example.com>";
+  process.env.RATE_LIMIT_SALT = "0123456789abcdef";
+  process.env.NEXT_PUBLIC_SITE_URL = "http://localhost:3000";
+  delete process.env.UPSTASH_REDIS_REST_URL;
+  delete process.env.UPSTASH_REDIS_REST_TOKEN;
+}
+
+function validBody(overrides: Record<string, unknown> = {}) {
+  const tomorrow = new Date();
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 2);
+  return {
+    playerCount: 8,
+    preferredDate: getWarsawDate(tomorrow),
+    preferredTime: "12:00",
+    alternateDate: "",
+    packageId: "pierwsza-misja",
+    eventType: "znajomi",
+    name: "Anna",
+    preferredContact: "email",
+    phone: "",
+    email: "anna@example.com",
+    message: "Proszę o kontakt <b>",
+    privacyAccepted: true,
+    website: "",
+    ...overrides,
+  };
+}
+
+function inquiryRequest(
+  body: unknown,
+  headers: Record<string, string> = {},
+): Request {
+  const payload = typeof body === "string" ? body : JSON.stringify(body);
+  return new Request("http://localhost:3000/api/inquiry", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "http://localhost:3000",
+      ...headers,
+    },
+    body: payload,
+  });
+}
+
+describe("POST /api/inquiry", () => {
+  beforeEach(() => {
+    restoreEnv();
+    enableDelivery();
+    resetRateLimitForTests();
+    vi.unstubAllGlobals();
+  });
+
+  afterEach(() => {
+    restoreEnv();
+    vi.unstubAllGlobals();
+  });
+
+  it("returns 503 when email delivery is not configured", async () => {
+    delete process.env.RESEND_API_KEY;
+    const response = await POST(inquiryRequest(validBody()));
+    expect(response.status).toBe(503);
+    expect(response.headers.get("cache-control")).toContain("no-store");
+  });
+
+  it("returns 403 for a cross-site request", async () => {
+    const response = await POST(
+      inquiryRequest(validBody(), {
+        origin: "https://evil.example",
+        "sec-fetch-site": "cross-site",
+      }),
+    );
+    expect(response.status).toBe(403);
+  });
+
+  it("returns 415 for a non-JSON body", async () => {
+    const response = await POST(
+      inquiryRequest("name=Anna", { "content-type": "text/plain" }),
+    );
+    expect(response.status).toBe(415);
+  });
+
+  it("returns 413 when the declared body is too large", async () => {
+    const response = await POST(
+      inquiryRequest(validBody(), { "content-length": "20000" }),
+    );
+    expect(response.status).toBe(413);
+  });
+
+  it("returns 400 for malformed JSON", async () => {
+    const response = await POST(inquiryRequest("{"));
+    expect(response.status).toBe(400);
+  });
+
+  it("returns 422 for an invalid inquiry and does not include the address in the response", async () => {
+    const response = await POST(
+      inquiryRequest(validBody({ email: "not-an-email", playerCount: 0 })),
+    );
+    expect(response.status).toBe(422);
+    const payload = (await response.json()) as { ok: boolean; fieldErrors?: { email?: string } };
+    expect(payload.ok).toBe(false);
+    expect(payload.fieldErrors?.email).toBeDefined();
+    expect(JSON.stringify(payload)).not.toContain("anna@example.com");
+  });
+
+  it("accepts a honeypot submission without calling the email provider", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const response = await POST(inquiryRequest(validBody({ website: "https://spam.example" })));
+    expect(response.status).toBe(200);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("sends a successful inquiry and escapes HTML in the operator email", async () => {
+    const fetchMock = vi.fn(async () => new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const response = await POST(inquiryRequest(validBody()));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("x-ratelimit-limit")).toBe("5");
+    expect(response.headers.get("x-ratelimit-store")).toBe("memory");
+
+    const calls = fetchMock.mock.calls as unknown as Array<[string, RequestInit?]>;
+    const email = JSON.parse(String(calls[0]?.[1]?.body)) as { html: string; reply_to?: string };
+    expect(email.reply_to).toBe("anna@example.com");
+    expect(email.html).toContain("&lt;b&gt;");
+    expect(email.html).not.toContain("<b>");
+  });
+
+  it("returns 502 when the email provider rejects delivery", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("no", { status: 500 })));
+    const response = await POST(inquiryRequest(validBody()));
+    expect(response.status).toBe(502);
+  });
+
+  it("returns 502 when the email provider times out", async () => {
+    process.env.INQUIRY_DELIVERY_TIMEOUT_MS = "30";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((_url: string, init?: RequestInit) => new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => reject(new Error("aborted")));
+      })),
+    );
+    const response = await POST(inquiryRequest(validBody()));
+    expect(response.status).toBe(502);
+  });
+
+  it("returns 429 after the configured number of requests", async () => {
+    process.env.RATE_LIMIT_MAX_REQUESTS = "2";
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 200 })));
+    const headers = { "x-vercel-forwarded-for": "203.0.113.10" };
+
+    expect((await POST(inquiryRequest(validBody(), headers))).status).toBe(200);
+    expect((await POST(inquiryRequest(validBody(), headers))).status).toBe(200);
+    const limited = await POST(inquiryRequest(validBody(), headers));
+    expect(limited.status).toBe(429);
+    expect(limited.headers.get("retry-after")).toBeTruthy();
+  });
+
+  it("allows two distinct submissions under the limit", async () => {
+    const fetchMock = vi.fn(async () => new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    expect((await POST(inquiryRequest(validBody()))).status).toBe(200);
+    expect((await POST(inquiryRequest(validBody()))).status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns 503 when the shared rate limit store is unavailable", async () => {
+    process.env.UPSTASH_REDIS_REST_URL = "https://example.upstash.io";
+    process.env.UPSTASH_REDIS_REST_TOKEN = "0123456789abcdef";
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("no", { status: 500 })));
+    const response = await POST(inquiryRequest(validBody()));
+    expect(response.status).toBe(503);
+  });
+});

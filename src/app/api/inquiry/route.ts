@@ -13,19 +13,13 @@ import {
   type ValidInquiry,
   validateInquiry,
 } from "@/lib/inquiry";
+import { consumeInquiryRateLimit, rateLimitSettings } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const MAX_BODY_BYTES = 16_384;
-const DELIVERY_TIMEOUT_MS = 10_000;
-
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1_000;
-const RATE_LIMIT_MAX_REQUESTS = 5;
-const GLOBAL_RATE_LIMIT_WINDOW_MS = 60 * 1_000;
-const GLOBAL_RATE_LIMIT_MAX_REQUESTS = 100;
-const MAX_RATE_LIMIT_BUCKETS = 10_000;
 
 interface EmailConfig {
   apiKey: string;
@@ -33,21 +27,6 @@ interface EmailConfig {
   from: string;
   rateLimitSalt: string;
 }
-
-interface RateLimitResult {
-  allowed: boolean;
-  remaining: number;
-  retryAfterSeconds: number;
-}
-
-interface RateLimitBucket {
-  timestamps: number[];
-  lastSeenAt: number;
-}
-
-const rateLimitBuckets = new Map<string, RateLimitBucket>();
-let globalRequestTimestamps: number[] = [];
-let rateLimitChecks = 0;
 
 class BodyReadError extends Error {
   constructor(
@@ -96,19 +75,40 @@ function getEmailConfig(): EmailConfig | null {
   return { apiKey, to, from, rateLimitSalt };
 }
 
-function getForwardedAddress(headers: Headers): string {
-  const platformAddress =
-    headers.get("x-vercel-forwarded-for") ??
-    headers.get("cf-connecting-ip") ??
-    headers.get("x-real-ip");
-  const fallbackAddress = headers.get("x-forwarded-for");
-  const candidate = platformAddress ?? fallbackAddress ?? "unknown";
+function firstAddress(value: string | null): string {
+  return value?.split(",")[0]?.trim().slice(0, 128) || "";
+}
 
-  return candidate.split(",")[0]?.trim().slice(0, 128) || "unknown";
+function getClientAddress(headers: Headers): string {
+  const platformAddress =
+    firstAddress(headers.get("x-vercel-forwarded-for")) ||
+    firstAddress(headers.get("cf-connecting-ip"));
+  if (platformAddress) {
+    return platformAddress;
+  }
+
+  if (process.env.RATE_LIMIT_TRUST_PROXY === "true") {
+    const proxyAddress =
+      firstAddress(headers.get("x-real-ip")) ||
+      firstAddress(headers.get("x-forwarded-for"));
+    if (proxyAddress) {
+      return proxyAddress;
+    }
+  }
+
+  return "unknown";
+}
+
+function deliveryTimeoutMs(): number {
+  const parsed = Number(process.env.INQUIRY_DELIVERY_TIMEOUT_MS ?? "10000");
+  if (!Number.isFinite(parsed) || parsed < 10) {
+    return 10_000;
+  }
+  return parsed;
 }
 
 function hashRateLimitKey(request: Request, salt: string): string {
-  const address = getForwardedAddress(request.headers);
+  const address = getClientAddress(request.headers);
   const userAgent =
     address === "unknown"
       ? (request.headers.get("user-agent") ?? "unknown").slice(0, 256)
@@ -116,89 +116,6 @@ function hashRateLimitKey(request: Request, salt: string): string {
   const identity = address + "|" + userAgent;
 
   return createHmac("sha256", salt).update(identity).digest("hex");
-}
-
-function pruneRateLimitBuckets(now: number): void {
-  for (const [key, bucket] of rateLimitBuckets) {
-    const timestamps = bucket.timestamps.filter(
-      (timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS,
-    );
-
-    if (
-      timestamps.length === 0 &&
-      now - bucket.lastSeenAt >= RATE_LIMIT_WINDOW_MS
-    ) {
-      rateLimitBuckets.delete(key);
-    } else {
-      bucket.timestamps = timestamps;
-    }
-  }
-}
-
-function consumeRateLimit(key: string, now = Date.now()): RateLimitResult {
-  rateLimitChecks += 1;
-  if (
-    rateLimitChecks % 64 === 0 ||
-    rateLimitBuckets.size >= MAX_RATE_LIMIT_BUCKETS
-  ) {
-    pruneRateLimitBuckets(now);
-  }
-
-  globalRequestTimestamps = globalRequestTimestamps.filter(
-    (timestamp) => now - timestamp < GLOBAL_RATE_LIMIT_WINDOW_MS,
-  );
-
-  if (globalRequestTimestamps.length >= GLOBAL_RATE_LIMIT_MAX_REQUESTS) {
-    const retryAfterMs =
-      GLOBAL_RATE_LIMIT_WINDOW_MS -
-      (now - (globalRequestTimestamps[0] ?? now));
-    return {
-      allowed: false,
-      remaining: 0,
-      retryAfterSeconds: Math.max(1, Math.ceil(retryAfterMs / 1_000)),
-    };
-  }
-
-  if (
-    rateLimitBuckets.size >= MAX_RATE_LIMIT_BUCKETS &&
-    !rateLimitBuckets.has(key)
-  ) {
-    return {
-      allowed: false,
-      remaining: 0,
-      retryAfterSeconds: Math.ceil(RATE_LIMIT_WINDOW_MS / 1_000),
-    };
-  }
-
-  const bucket = rateLimitBuckets.get(key) ?? {
-    timestamps: [],
-    lastSeenAt: now,
-  };
-  bucket.timestamps = bucket.timestamps.filter(
-    (timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS,
-  );
-  bucket.lastSeenAt = now;
-
-  if (bucket.timestamps.length >= RATE_LIMIT_MAX_REQUESTS) {
-    rateLimitBuckets.set(key, bucket);
-    const retryAfterMs =
-      RATE_LIMIT_WINDOW_MS - (now - (bucket.timestamps[0] ?? now));
-    return {
-      allowed: false,
-      remaining: 0,
-      retryAfterSeconds: Math.max(1, Math.ceil(retryAfterMs / 1_000)),
-    };
-  }
-
-  bucket.timestamps.push(now);
-  rateLimitBuckets.set(key, bucket);
-  globalRequestTimestamps.push(now);
-
-  return {
-    allowed: true,
-    remaining: RATE_LIMIT_MAX_REQUESTS - bucket.timestamps.length,
-    retryAfterSeconds: 0,
-  };
 }
 
 function isAllowedOrigin(request: Request): boolean {
@@ -375,7 +292,7 @@ async function sendInquiryEmail(
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), DELIVERY_TIMEOUT_MS);
+  const timeout = setTimeout(() => controller.abort(), deliveryTimeoutMs());
 
   try {
     const response = await fetch(RESEND_ENDPOINT, {
@@ -430,12 +347,26 @@ export async function POST(request: Request) {
     );
   }
 
-  const rateLimit = consumeRateLimit(
-    hashRateLimitKey(request, config.rateLimitSalt),
-  );
+  let rateLimit;
+  try {
+    rateLimit = await consumeInquiryRateLimit(
+      hashRateLimitKey(request, config.rateLimitSalt),
+    );
+  } catch {
+    return jsonResponse(
+      {
+        ok: false,
+        message:
+          "Formularz jest chwilowo niedostępny. Spróbuj ponownie później lub skontaktuj się z obsługą bezpośrednio.",
+      },
+      503,
+    );
+  }
+
   const rateLimitHeaders = {
-    "X-RateLimit-Limit": String(RATE_LIMIT_MAX_REQUESTS),
+    "X-RateLimit-Limit": String(rateLimitSettings().maxRequests),
     "X-RateLimit-Remaining": String(rateLimit.remaining),
+    "X-RateLimit-Store": rateLimit.store,
   };
 
   if (!rateLimit.allowed) {

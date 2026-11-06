@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
 
-export const metadata: Metadata = { title: "Polityka prywatności", description: "Informacje o przetwarzaniu danych na stronie Paintball Strefa 29." };
+export const metadata: Metadata = { title: "Polityka prywatności", description: "Informacje o przetwarzaniu danych na stronie Paintball Strefa 29.", alternates: { canonical: "/polityka-prywatnosci" } };
 
 export default function PrivacyPage() {
   return (

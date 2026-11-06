@@ -7,6 +7,7 @@ import { galleryItems } from "@/data/site";
 export const metadata: Metadata = {
   title: "Galeria pola",
   description: "Poznaj strefy i charakter terenowego pola Paintball Strefa 29 w Czaplach.",
+  alternates: { canonical: "/galeria" },
 };
 
 export default function GalleryPage() {

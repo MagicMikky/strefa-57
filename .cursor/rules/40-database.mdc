@@ -1,0 +1,13 @@
+---
+description: MySQL and PostgreSQL schema changes and performance
+globs: '**/*.{sql,prisma}'
+alwaysApply: false
+---
+# Data architecture
+- Identify engine and version first; do not assume PostgreSQL and MySQL share syntax or features.
+- Design primary keys, unique constraints, foreign keys, ON DELETE behavior, nullability, checks and indexes deliberately.
+- Always use version-controlled, forward-only migrations with a rollback/recovery plan.
+- Apply least-privilege users; avoid using superuser/root for application connections.
+- Treat migrations that alter/drop data or change constraints as high risk: propose backup and ask approval before execution.
+- Diagnose slow queries with EXPLAIN/EXPLAIN ANALYZE in a safe environment; do not index every column.
+- Prefer safe seeds and synthetic fixtures over copying production customer data into development.

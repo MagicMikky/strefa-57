@@ -1,0 +1,5 @@
+---
+description: Autonomous development workflow for Strefa29
+alwaysApply: true
+---
+Read plans and code before edits. Maintain docs/open-decisions.md with unapproved values. Plan a testable increment and implement only that slice. Delegate specialist reviews when needed; do not call all tools automatically. For UI changes verify responsive layout with browser testing. For backend run unit and integration checks, lint, typecheck, build. Record actual executed commands and outcomes. Never invent company data, use live payment keys, change production DB or deploy without explicit approval.

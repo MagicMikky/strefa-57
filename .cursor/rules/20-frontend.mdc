@@ -1,0 +1,13 @@
+---
+description: Accessible polished responsive UI rules
+globs: '**/*.{html,css,scss,js,jsx,ts,tsx,vue,astro,blade.php}'
+alwaysApply: false
+---
+# Frontend quality
+- Design mobile-first with clear typographic hierarchy, intentional spacing, consistent design tokens, and meaningful focus states.
+- Respect the visual direction of existing product and brand; avoid arbitrary gradients, decorative effects or generic templates.
+- Use semantic HTML, landmarks, accessible labels, alt text and keyboard navigation; target WCAG 2.2 AA where applicable.
+- Honor reduced motion preferences. Avoid layout shift and unnecessary animations.
+- Prefer reusable components; keep state minimal. Show loading, empty, error and success states.
+- Optimize image sizes, responsive srcsets, modern formats, lazy-loading and font loading.
+- Check browser console, form validation, broken links and responsive layout using Playwright when available.

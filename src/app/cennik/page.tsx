@@ -36,10 +36,6 @@ export const metadata: Metadata = {
     title: "Cennik i pakiety — Paintball Strefa 29",
     description: metadataDescription,
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
 };
 
 const priceConfirmationSteps = [

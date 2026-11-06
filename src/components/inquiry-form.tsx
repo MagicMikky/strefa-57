@@ -7,6 +7,8 @@ import {
   type ReactNode,
 } from "react";
 
+import { eventTypeForAudience } from "@/data/site";
+import { trackEvent } from "@/lib/consent";
 import {
   MAX_MESSAGE_LENGTH,
   MAX_PLAYER_COUNT,
@@ -170,10 +172,11 @@ export function InquiryForm({
   )
     ? initialPackageId
     : "nie-wiem";
+  const normalizedEventType = eventTypeForAudience(initialEventType);
   const selectedInitialEventType = eventTypeOptions.some(
-    (item) => item.value === initialEventType,
+    (item) => item.value === normalizedEventType,
   )
-    ? initialEventType
+    ? normalizedEventType
     : "";
 
   const [preferredContact, setPreferredContact] =
@@ -212,6 +215,7 @@ export function InquiryForm({
 
     const clientValidation = validateInquiry(payload);
     if (!clientValidation.ok) {
+      trackEvent("inquiry_submit_error", { stage: "validation" });
       setFieldErrors(clientValidation.fieldErrors);
       setStatus({ kind: "error", message: clientValidation.message });
       requestAnimationFrame(() =>
@@ -235,6 +239,7 @@ export function InquiryForm({
       const rawResponse: unknown = await response.json().catch(() => null);
 
       if (!isInquiryApiResponse(rawResponse)) {
+        trackEvent("inquiry_submit_error", { stage: "response", status: response.status });
         setStatus({
           kind: "error",
           message:
@@ -248,6 +253,7 @@ export function InquiryForm({
           "fieldErrors" in rawResponse && rawResponse.fieldErrors
             ? rawResponse.fieldErrors
             : {};
+        trackEvent("inquiry_submit_error", { stage: "server", status: response.status });
         setFieldErrors(serverErrors);
         setStatus({ kind: "error", message: rawResponse.message });
         requestAnimationFrame(() =>
@@ -256,11 +262,13 @@ export function InquiryForm({
         return;
       }
 
+      trackEvent("inquiry_submit_success", { status: response.status });
       form.reset();
       setPreferredContact("email");
       setFieldErrors({});
       setStatus({ kind: "success", message: rawResponse.message });
     } catch {
+      trackEvent("inquiry_submit_error", { stage: "network" });
       setStatus({
         kind: "error",
         message:

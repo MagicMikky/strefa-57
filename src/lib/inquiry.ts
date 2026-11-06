@@ -1,5 +1,9 @@
+import { packages } from "@/data/site";
+
+// Technical bounds until the owner approves a business minimum and maximum.
 export const MIN_PLAYER_COUNT = 1;
 export const MAX_PLAYER_COUNT = 200;
+export const UNKNOWN_PACKAGE_ID = "nie-wiem";
 export const MAX_MESSAGE_LENGTH = 2_000;
 export const PRIVACY_NOTICE_VERSION = "1.0";
 
@@ -76,6 +80,10 @@ export type InquiryApiResponse =
     };
 
 const packageIdPattern = /^[a-z0-9][a-z0-9_-]{0,63}$/;
+const allowedPackageIds = new Set<string>([
+  UNKNOWN_PACKAGE_ID,
+  ...packages.map((item) => item.id),
+]);
 const dateOnlyPattern = /^(\d{4})-(\d{2})-(\d{2})$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const allowedPhoneCharactersPattern = /^\+?[0-9 ()-]+$/;
@@ -246,8 +254,8 @@ export function validateInquiry(
 
   if (!packageId) {
     fieldErrors.packageId = "Wybierz pakiet albo opcję „Nie wiem”.";
-  } else if (!packageIdPattern.test(packageId)) {
-    fieldErrors.packageId = "Wybrany pakiet ma nieprawidłowy identyfikator.";
+  } else if (!packageIdPattern.test(packageId) || !allowedPackageIds.has(packageId)) {
+    fieldErrors.packageId = "Wybierz jeden z dostępnych pakietów.";
   }
 
   if (!eventTypes.has(eventType)) {

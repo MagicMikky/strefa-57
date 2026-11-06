@@ -7,7 +7,7 @@ import {
   PageHero,
   SectionHeading,
 } from "@/components/ui";
-import { audiences } from "@/data/site";
+import { audiences, eventTypeForAudience } from "@/data/site";
 
 const metadataDescription =
   "Paintball Strefa 29 dla znajomych, na urodziny, kawalerskie i panieńskie, integracje firmowe, szkoły oraz grupy zorganizowane.";
@@ -36,10 +36,6 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Dla kogo jest Strefa 29",
     description: metadataDescription,
-  },
-  robots: {
-    index: true,
-    follow: true,
   },
 };
 
@@ -152,7 +148,7 @@ export default function AudiencesPage() {
                   ))}
                 </ul>
                 <ButtonLink
-                  href={"/zapytaj-o-termin?wydarzenie=" + audience.slug}
+                  href={"/zapytaj-o-termin?wydarzenie=" + eventTypeForAudience(audience.slug)}
                   variant="secondary"
                 >
                   {audience.prompt}

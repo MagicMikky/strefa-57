@@ -1,0 +1,16 @@
+---
+description: Production-quality software engineering standards for all web projects
+alwaysApply: true
+---
+# Engineering standards
+- Inspect the existing repository, package files, scripts, tests, README, and architecture before making changes. Do not assume a framework.
+- For changes spanning more than one file, summarize a short plan and acceptance criteria, then implement the smallest coherent solution.
+- Never claim a feature, check, deployment or test succeeded without executing it and observing success.
+- Prefer readable, typed, maintainable code, consistent naming, small modules, and clear boundaries.
+- Do not install dependencies without checking what is already present; explain major additions.
+- Use environment variables for credentials. Never commit .env, access tokens, private keys, database credentials or personal data.
+- Avoid destructive actions (delete data, drop tables, force push, production deploy) without explicit user approval.
+- Do not automatically edit deployment infrastructure or production environment secrets.
+- Before completion run relevant linters, tests, type checks and builds; report command, result and any blockers.
+- For frontend work verify mobile (375px), tablet (768px), laptop (1280px), and desktop (1440px) behavior.
+- Use current documentation for framework-specific APIs rather than guessing.

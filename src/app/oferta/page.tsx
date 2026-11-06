@@ -37,10 +37,6 @@ export const metadata: Metadata = {
     title: "Oferta i teren gry — Paintball Strefa 29",
     description: metadataDescription,
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
 };
 
 const v2Sequence = [

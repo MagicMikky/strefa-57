@@ -263,6 +263,26 @@ export const galleryItems = [
   { title: "Zaplecze", label: "Start i odprawa", tone: "sand" },
 ] as const;
 
+const audienceEventTypes = {
+  znajomi: "znajomi",
+  urodziny: "urodziny",
+  kawalerskie: "kawalerskie-panienskie",
+  firmy: "firma",
+  szkoly: "szkola",
+} as const;
+
+export function eventTypeForAudience(slug: string | undefined): string {
+  if (!slug) {
+    return "";
+  }
+
+  if (slug in audienceEventTypes) {
+    return audienceEventTypes[slug as keyof typeof audienceEventTypes];
+  }
+
+  return slug;
+}
+
 export function getSiteUrl() {
   return process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
 }

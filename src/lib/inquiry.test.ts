@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { eventTypeForAudience } from "@/data/site";
 import {
   INQUIRY_SUCCESS_MESSAGE,
   MAX_MESSAGE_LENGTH,
@@ -17,7 +18,7 @@ describe("validateInquiry", () => {
       preferredDate,
       preferredTime: "12:00",
       alternateDate: "",
-      packageId: "pakiet1",
+      packageId: "pierwsza-misja",
       eventType: "znajomi",
       name: "Jan",
       preferredContact: "email",
@@ -74,7 +75,7 @@ function validPayload() {
     preferredDate: "2026-09-23",
     preferredTime: "12:00",
     alternateDate: "2026-09-24",
-    packageId: "pakiet-500",
+    packageId: "pelne-natarcie",
     eventType: "znajomi",
     name: "  Anna Kowalska  ",
     preferredContact: "email",
@@ -225,5 +226,30 @@ describe("date and copy contracts", () => {
     expect(INQUIRY_SUCCESS_MESSAGE).toContain(
       "nie jest jeszcze zarezerwowany ani zablokowany",
     );
+  });
+});
+
+describe("package and audience contracts", () => {
+  it("accepts published package ids and the unknown option", () => {
+    for (const packageId of ["pierwsza-misja", "pelne-natarcie", "wydarzenie", "nie-wiem"]) {
+      const result = validateInquiry({ ...validPayload(), packageId }, now);
+      expect(result.ok).toBe(true);
+    }
+  });
+
+  it("rejects a package id that only matches the old format pattern", () => {
+    const result = validateInquiry({ ...validPayload(), packageId: "pakiet-500" }, now);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.fieldErrors.packageId).toBeDefined();
+    }
+  });
+
+  it("maps audience slugs onto inquiry event types", () => {
+    expect(eventTypeForAudience("kawalerskie")).toBe("kawalerskie-panienskie");
+    expect(eventTypeForAudience("firmy")).toBe("firma");
+    expect(eventTypeForAudience("szkoly")).toBe("szkola");
+    expect(eventTypeForAudience("znajomi")).toBe("znajomi");
+    expect(eventTypeForAudience("firma")).toBe("firma");
   });
 });

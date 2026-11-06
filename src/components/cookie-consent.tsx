@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { CONSENT_STORAGE_KEY, saveConsent, type ConsentPreferences } from "@/lib/consent";
@@ -17,7 +17,11 @@ function subscribe(callback: () => void) {
 }
 
 function getSnapshot() {
-  return window.localStorage.getItem(CONSENT_STORAGE_KEY) ?? "";
+  try {
+    return window.localStorage.getItem(CONSENT_STORAGE_KEY) ?? "";
+  } catch {
+    return "";
+  }
 }
 
 function parseSnapshot(snapshot: string): ConsentPreferences | null {
@@ -35,28 +39,91 @@ function parseSnapshot(snapshot: string): ConsentPreferences | null {
   }
 }
 
+function focusableElements(dialog: HTMLElement): HTMLElement[] {
+  return Array.from(
+    dialog.querySelectorAll<HTMLElement>("a[href], button:not([disabled]), input:not([disabled])"),
+  );
+}
+
 export function CookieConsent() {
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, () => serverSnapshot);
   const preferences = useMemo(() => parseSnapshot(snapshot), [snapshot]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [analytics, setAnalytics] = useState(false);
+  const [storageError, setStorageError] = useState("");
+  const dialogRef = useRef<HTMLElement>(null);
 
   function commit(nextAnalytics: boolean) {
-    const next = saveConsent(nextAnalytics);
-    setAnalytics(nextAnalytics);
-    setSettingsOpen(false);
-    return next;
+    try {
+      const next = saveConsent(nextAnalytics);
+      setAnalytics(nextAnalytics);
+      setSettingsOpen(false);
+      setStorageError("");
+      return next;
+    } catch {
+      setStorageError("Przeglądarka zablokowała zapis wyboru. Możesz nadal korzystać ze strony bez analityki.");
+      return null;
+    }
   }
 
-  if (snapshot === serverSnapshot) return null;
-
   const firstVisit = preferences === null;
-  const visible = firstVisit || settingsOpen;
+  const visible = snapshot !== serverSnapshot && (firstVisit || settingsOpen);
+
+  useEffect(() => {
+    if (!visible) {
+      return;
+    }
+
+    const dialog = dialogRef.current;
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const initialFocus = dialog?.querySelector<HTMLElement>(".button--primary")
+      ?? (dialog ? focusableElements(dialog)[0] : undefined);
+    initialFocus?.focus();
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (!dialog) {
+        return;
+      }
+
+      if (event.key === "Escape" && settingsOpen && !firstVisit) {
+        event.preventDefault();
+        setSettingsOpen(false);
+        return;
+      }
+
+      if (event.key !== "Tab") {
+        return;
+      }
+
+      const items = focusableElements(dialog);
+      if (items.length === 0) {
+        return;
+      }
+
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      previouslyFocused?.focus();
+    };
+  }, [visible, settingsOpen, firstVisit]);
+
+  if (snapshot === serverSnapshot) return null;
 
   return (
     <>
       {visible ? (
-        <section className="consent-panel" role="dialog" aria-modal="true" aria-labelledby="consent-title">
+        <section ref={dialogRef} className="consent-panel" role="dialog" aria-modal="true" aria-labelledby="consent-title">
           <div className="consent-panel__icon"><Icon name="shield" width={24} height={24} /></div>
           <div className="consent-panel__copy">
             <p className="consent-panel__eyebrow">Twoja prywatność</p>
@@ -71,6 +138,7 @@ export function CookieConsent() {
                 <label><input type="checkbox" checked={analytics} onChange={(event) => setAnalytics(event.target.checked)} /> <span><strong>Analityczne</strong><small>Pomiar anonimowych zdarzeń</small></span></label>
               </div>
             ) : null}
+            {storageError ? <p role="alert">{storageError}</p> : null}
           </div>
           <div className="consent-panel__actions">
             {settingsOpen ? (

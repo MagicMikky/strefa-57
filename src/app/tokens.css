@@ -1,0 +1,21 @@
+:root {
+  --ink: #111510;
+  --ink-soft: #1a211a;
+  --forest: #234c36;
+  --forest-deep: #173326;
+  --paint: #dfff3f;
+  --paint-deep: #bddc2b;
+  --orange: #ff6a36;
+  --sand: #ded0af;
+  --cream: #f4f0e5;
+  --paper: #fbfaf5;
+  --white: #ffffff;
+  --muted: #4a5246;
+  --line: rgba(17, 21, 16, 0.14);
+  --line-light: rgba(255, 255, 255, 0.16);
+  --shadow: 0 24px 70px rgba(17, 21, 16, 0.14);
+  --radius-sm: 10px;
+  --radius: 18px;
+  --radius-lg: 30px;
+  --content: 1180px;
+}

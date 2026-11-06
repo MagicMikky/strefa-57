@@ -1,0 +1,15 @@
+---
+description: PHP, Node.js and API implementation conventions
+globs: '**/*.{php,js,mjs,cjs,ts}'
+alwaysApply: false
+---
+# Backend quality
+- Determine framework and runtime versions from project files before writing code.
+- Separate routing, request validation, application services, persistence and transport representations.
+- Return deliberate status codes, safe error messages, structured logs and consistent API response shapes.
+- Enforce authorization at the service/resource level, not only by hiding UI controls.
+- Use database transactions for atomic multi-step writes and define concurrency/idempotency behavior.
+- Avoid N+1 queries; use bounded pagination and appropriate indexes.
+- For Laravel use migrations, FormRequest, policies/gates, queues/events where appropriate and PHPUnit/Pest.
+- For Node prefer TypeScript, explicit schemas (e.g. Zod) and controlled async error propagation.
+- Write unit and integration tests for happy path, invalid inputs, unauthorized requests and conflicts.

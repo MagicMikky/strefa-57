@@ -8,12 +8,24 @@ export type ConsentPreferences = {
 
 export type AnalyticsEventName =
   | "inquiry_start"
+  | "inquiry_submit_success"
+  | "inquiry_submit_error"
   | "contact_phone_click"
   | "contact_email_click"
   | "directions_click"
   | "pricing_view"
   | "package_inquiry_click"
   | "gallery_view";
+
+const sensitiveAnalyticsKeys = new Set(["email", "phone", "name", "message"]);
+
+export function publicAnalyticsProperties(
+  properties: Record<string, string | number | boolean>,
+): Record<string, string | number | boolean> {
+  return Object.fromEntries(
+    Object.entries(properties).filter(([key]) => !sensitiveAnalyticsKeys.has(key.toLowerCase())),
+  );
+}
 
 declare global {
   interface Window {
@@ -54,7 +66,7 @@ export function saveConsent(analytics: boolean): ConsentPreferences {
 export function trackEvent(event: AnalyticsEventName, properties: Record<string, string | number | boolean> = {}) {
   if (typeof window === "undefined" || readConsent()?.analytics !== true) return;
 
-  const payload = { event, ...properties };
+  const payload = { event, ...publicAnalyticsProperties(properties) };
   window.dataLayer = window.dataLayer ?? [];
   window.dataLayer.push(payload);
   window.dispatchEvent(new CustomEvent("strefa29:analytics", { detail: payload }));
