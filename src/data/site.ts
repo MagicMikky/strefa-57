@@ -49,9 +49,15 @@ export const mainNavigation: NavigationItem[] = [
   { href: "/cennik", label: "Cennik" },
   { href: "/galeria", label: "Galeria" },
   { href: "/dla-kogo", label: "Dla kogo" },
-  { href: "/faq", label: "FAQ" },
   { href: "/kontakt", label: "Kontakt" },
-  { href: "/rezerwacja", label: "Dostępność" },
+];
+
+export const visitNavigation: NavigationItem[] = [
+  { href: "/zapytaj-o-termin", label: "Zapytaj o termin" },
+  { href: "/dojazd", label: "Dojazd" },
+  { href: "/faq", label: "Najczęstsze pytania" },
+  { href: "/rezerwacja", label: "Orientacyjna dostępność" },
+  { href: "/regulamin", label: "Regulamin" },
 ];
 
 export const stats = [

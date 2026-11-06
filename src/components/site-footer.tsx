@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { Logo } from "@/components/logo";
-import { mainNavigation } from "@/data/site";
+import { mainNavigation, visitNavigation } from "@/data/site";
 import { formatBusinessAddress, type BusinessBundle } from "@/lib/business/model";
 
 export function SiteFooter({ business }: { business: BusinessBundle }) {
@@ -19,7 +19,7 @@ export function SiteFooter({ business }: { business: BusinessBundle }) {
         <div>
           <p className="footer-title">Odkrywaj</p>
           <ul className="footer-links">
-            {mainNavigation.slice(0, 5).map((item) => (
+            {mainNavigation.map((item) => (
               <li key={item.href}><Link href={item.href}>{item.label}</Link></li>
             ))}
           </ul>
@@ -27,10 +27,9 @@ export function SiteFooter({ business }: { business: BusinessBundle }) {
         <div>
           <p className="footer-title">Przygotuj wizytę</p>
           <ul className="footer-links">
-            <li><Link href="/zapytaj-o-termin">Zapytaj o termin</Link></li>
-            <li><Link href="/dojazd">Dojazd</Link></li>
-            <li><Link href="/faq">Najczęstsze pytania</Link></li>
-            <li><Link href="/regulamin">Regulamin</Link></li>
+            {visitNavigation.map((item) => (
+              <li key={item.href}><Link href={item.href}>{item.label}</Link></li>
+            ))}
           </ul>
         </div>
         <div className="site-footer__contact">

@@ -21,10 +21,6 @@ export function SiteHeader({ addressLabel }: { addressLabel: string }) {
 
   return (
     <header className="site-header">
-      <div className="site-header__bar">
-        <p><span aria-hidden="true" /> Terenowa rozgrywka pod Gdańskiem</p>
-        <Link href="/dojazd">{addressLabel} <Icon name="arrow" width={15} height={15} /></Link>
-      </div>
       <div className="site-header__main container">
         <div className="site-header__brand">
           <Logo />
@@ -35,10 +31,10 @@ export function SiteHeader({ addressLabel }: { addressLabel: string }) {
               {item.label}
             </Link>
           ))}
-          <Link href="/panel/logowanie" aria-current={pathname === "/panel/logowanie" ? "page" : undefined}>
-            Logowanie
-          </Link>
         </nav>
+        <Link className="site-header__address" href="/dojazd">
+          {addressLabel}
+        </Link>
         <Link className="button button--header" href="/zapytaj-o-termin">
           <span>Zapytaj o termin</span><Icon name="arrow" width={18} height={18} />
         </Link>
@@ -55,14 +51,13 @@ export function SiteHeader({ addressLabel }: { addressLabel: string }) {
       </div>
       <div className={`mobile-menu${open ? " mobile-menu--open" : ""}`} id="mobile-menu">
         <nav aria-label="Nawigacja mobilna">
-          {mainNavigation.map((item, index) => (
+          {mainNavigation.map((item) => (
             <Link key={item.href} href={item.href} aria-current={pathname === item.href ? "page" : undefined}>
-              <span>0{index + 1}</span>{item.label}<Icon name="arrow" width={20} height={20} />
+              {item.label}<Icon name="arrow" width={20} height={20} />
             </Link>
           ))}
-          <Link href="/panel/logowanie" aria-current={pathname === "/panel/logowanie" ? "page" : undefined}>
-            <span>0{mainNavigation.length + 1}</span>Logowanie<Icon name="arrow" width={20} height={20} />
-          </Link>
+          <Link href="/dojazd">Dojazd · {addressLabel}<Icon name="arrow" width={20} height={20} /></Link>
+          <Link href="/faq">FAQ<Icon name="arrow" width={20} height={20} /></Link>
           <Link className="mobile-menu__cta" href="/zapytaj-o-termin">
             Zapytaj o wolny termin <Icon name="arrow" width={20} height={20} />
           </Link>

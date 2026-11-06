@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Barlow_Condensed, Source_Sans_3 } from "next/font/google";
 import type { ReactNode } from "react";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -8,6 +9,20 @@ import { getPublicBusiness } from "@/lib/business/public";
 import { getPublishedSiteCopy } from "@/lib/content/public";
 import { searchRobots } from "@/lib/seo";
 import "./globals.css";
+
+const display = Barlow_Condensed({
+  subsets: ["latin", "latin-ext"],
+  weight: ["500", "600", "700"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const sans = Source_Sans_3({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "600", "700"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 const siteUrl = getSiteUrl();
 
@@ -69,7 +84,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   };
 
   return (
-    <html lang="pl">
+    <html lang="pl" className={`${display.variable} ${sans.variable}`}>
       <body>
         <a className="skip-link" href="#main-content">Przejdź do treści</a>
         <SiteHeader addressLabel={`${business.profile.street}, ${business.profile.city}`} />

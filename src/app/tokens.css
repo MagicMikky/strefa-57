@@ -18,4 +18,6 @@
   --radius: 18px;
   --radius-lg: 30px;
   --content: 1180px;
+  --header-offset: 76px;
+  --measure: 68ch;
 }
