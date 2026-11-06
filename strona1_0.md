@@ -206,7 +206,7 @@ W przypadku błędu:
 ### 5.5. Dostarczanie i retencja
 
 - formularz korzysta z funkcji serwerowej lub trasy API i transakcyjnego dostawcy e-mail;
-- dane nie są zapisywane w bazie strony;
+- zgłoszenie jest zapisywane w PostgreSQL; okres retencji nie jest zatwierdzony i automatyczne usuwanie pozostaje wyłączone;
 - treść formularza nie trafia do analityki ani standardowych logów aplikacji;
 - retencja wiadomości wynika z polityki firmowej skrzynki pocztowej;
 - nieudane wysłanie jest rejestrowane bez danych osobowych i widoczne w monitoringu;

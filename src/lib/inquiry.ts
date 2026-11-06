@@ -5,7 +5,7 @@ export const MIN_PLAYER_COUNT = 1;
 export const MAX_PLAYER_COUNT = 200;
 export const UNKNOWN_PACKAGE_ID = "nie-wiem";
 export const MAX_MESSAGE_LENGTH = 2_000;
-export const PRIVACY_NOTICE_VERSION = "1.0";
+export const PRIVACY_NOTICE_VERSION = "1.1";
 
 export const INQUIRY_SUCCESS_MESSAGE =
   "Zapytanie zostało wysłane. Termin nie jest jeszcze zarezerwowany ani zablokowany. Obsługa skontaktuje się z Tobą, aby potwierdzić dostępność, cenę i dalsze kroki.";
