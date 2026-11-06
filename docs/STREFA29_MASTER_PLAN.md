@@ -60,7 +60,7 @@
 | `docs/V1_DEPLOYMENT_RUNBOOK.md` | „Brak bazy danych” | Zostaje historią z odnośnikiem |
 | `docs/open-decisions.md`, `docs/STREFA29_REJESTR_DECYZJI_DO_USTALENIA.md` | Starsze rejestry | Odsyłają do `docs/STREFA29_DECYZJE_DO_USTALENIA.md` |
 | `docs/STREFA29_MASTER_PLAN_2026-11-06.md` | CI #36 opisane jako w toku | Snapshot. Ten plik jest planem bieżącym |
-| Polityka publiczna | „Brak bazy zapytań” | Strona bez zmian do zgody właściciela |
+| Polityka publiczna | „Brak bazy zapytań” na `14e082d` | Właściciel zgodził się na opis techniczny. PR #39 publikuje zapis w PostgreSQL. Podstawa, odbiorcy i retencja zostają niezatwierdzone |
 | `docs/gallery-review/*.png` | Duże zrzuty w gicie od `14e082d` | Odnotowane, nieusuwane |
 4. Decyzje otwarte mają źródło w `docs/STREFA29_REJESTR_DECYZJI_DO_USTALENIA.md`; nie wymyślać wartości.
 5. `strona1_0.md`, `strona2_0.md`, `PLAN_BUDOWY_STRONY_STREFA_29.md` pozostają **specyfikacjami historycznymi / domenowymi**, nie bieżącą checklistą ukończenia.
@@ -83,7 +83,7 @@
 | `/zapytaj-o-termin` | Formularz kontaktowy z liczbą graczy, pakietem, datą, opublikowaną godziną slotu, trybem prywatnym, danymi i wiadomością | To **zapytanie**, nie rezerwacja; wymaga działającego backendu/maili i zgodnej polityki prywatności |
 | `/rezerwacja` | **Informacyjny kalendarz** dzień/tydzień/miesiąc; zielony, niebieski, czerwony, nieustalony; kliknięcie dnia → sloty; link → zapytanie | Nie tworzy rezerwacji/hold dla klienta, nie pobiera wpłaty; niezdefiniowane dni tygodnia powodują „nieustalony” |
 | `/regulamin` | Zasady obiektu i organizacji wizyty | Tekst roboczy; wiek, pogoda, anulowania/zwroty wymagają decyzji i przeglądu prawnego |
-| `/polityka-prywatnosci` | RODO, przechowywanie zapytań, dostawcy, prawa osób | **BŁĄD FAKTYCZNY nadal na stronie**: sekcja „Brak bazy zapytań”. Projekt technicznie prawdziwego tekstu jest w `docs/STREFA29_POLITYKA_PRYWATNOSCI_PROJEKT.md` i nie został opublikowany, bo retencja i podstawa prawna nie są zatwierdzone |
+| `/polityka-prywatnosci` | RODO, przechowywanie zapytań, dostawcy, prawa osób | Na `14e082d` sekcja „Brak bazy zapytań”. PR #39 zastępuje ją zapisem w PostgreSQL. Podstawa prawna, odbiorcy i retencja nadal niezatwierdzone |
 | `/cookies` | Wybór i zmiana zgód; pomiar warunkowy | Brak faktycznie zatwierdzonego dostawcy analityki; nie uruchamiać go bez zgody |
 | `404`, sitemap, robots, manifest | SEO, nawigacja, metadane i noindex do zatwierdzenia | Przed startem zweryfikować komplet metadanych i publiczną indeksację |
 

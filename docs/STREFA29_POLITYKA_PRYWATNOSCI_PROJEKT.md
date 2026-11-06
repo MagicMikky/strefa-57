@@ -1,8 +1,6 @@
 # Projekt polityki prywatności — niezatwierdzony
 
-**Status:** projekt techniczny. Nie jest poradą prawną i nie zastępuje strony `/polityka-prywatnosci`.  
-**Nie publikować**, dopóki właściciel nie zatwierdzi brzmienia, podstawy prawnej, odbiorców i okresu retencji.  
-**Powód:** publiczna sekcja „3. Brak bazy zapytań” jest nieprawdziwa wobec kodu `main@14e082d`.
+**Status:** właściciel 6 listopada 2026 zgodził się opublikować opis techniczny. Podstawa prawna, wskazani odbiorcy i okres retencji nadal nie są zatwierdzone. Publikacja tego opisu jest w PR #39. Ten plik nie jest poradą prawną.
 
 ## Co kod robi dzisiaj
 
