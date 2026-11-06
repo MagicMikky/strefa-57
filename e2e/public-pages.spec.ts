@@ -11,4 +11,17 @@ test.describe("public pages", () => {
       await expect(page.locator("h1").first()).toBeVisible();
     });
   }
+
+  test("moves from the homepage to pricing and the inquiry form", async ({ page, isMobile }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Tylko niezbędne" }).click();
+    if (isMobile) {
+      await page.getByRole("button", { name: "Otwórz menu" }).click();
+    }
+    const nav = page.getByRole("navigation", { name: isMobile ? "Nawigacja mobilna" : "Główna nawigacja" });
+    await nav.getByRole("link", { name: "Cennik" }).click();
+    await expect(page).toHaveURL(/\/cennik$/);
+    await page.getByRole("link", { name: "Poproś o wycenę" }).click();
+    await expect(page).toHaveURL(/\/zapytaj-o-termin/);
+  });
 });

@@ -8,6 +8,7 @@ import {
   SectionHeading,
 } from "@/components/ui";
 import { addOns, packages } from "@/data/site";
+import { AnalyticsView } from "@/components/analytics-view";
 
 const metadataDescription =
   "Planowane pakiety Paintball Strefa 29, wyposażenie i dodatki. Ceny nie są jeszcze zatwierdzone, a strona nie przyjmuje płatności ani nie tworzy rezerwacji.";
@@ -62,6 +63,7 @@ const priceConfirmationSteps = [
 export default function PricingPage() {
   return (
     <div className="pricing-page">
+      <AnalyticsView event="pricing_view" />
       <PageHero
         eyebrow="Pakiety · wyposażenie · dodatki"
         title={

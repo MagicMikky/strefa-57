@@ -1,7 +1,7 @@
 import Image from "next/image";
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { Icon } from "@/components/icons";
+import { TrackedLink } from "@/components/tracked-link";
 import type { FaqItem, OfferPackage } from "@/data/site";
 
 export function PackageCard({ item }: { item: OfferPackage }) {
@@ -17,9 +17,9 @@ export function PackageCard({ item }: { item: OfferPackage }) {
           <li key={feature}><Icon name="check" width={17} height={17} /> {feature}</li>
         ))}
       </ul>
-      <Link className="package-card__link" href={`/zapytaj-o-termin?pakiet=${item.id}`}>
+      <TrackedLink className="package-card__link" eventName="package_inquiry_click" eventProperties={{ packageId: item.id }} href={`/zapytaj-o-termin?pakiet=${item.id}`}>
         Zapytaj o ten pakiet <Icon name="arrow" width={18} height={18} />
-      </Link>
+      </TrackedLink>
     </article>
   );
 }

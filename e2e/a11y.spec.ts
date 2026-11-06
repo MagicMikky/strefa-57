@@ -1,7 +1,20 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-const routes = ["/", "/oferta", "/cennik", "/zapytaj-o-termin", "/kontakt"];
+const routes = [
+  "/",
+  "/oferta",
+  "/cennik",
+  "/galeria",
+  "/dla-kogo",
+  "/faq",
+  "/kontakt",
+  "/dojazd",
+  "/zapytaj-o-termin",
+  "/regulamin",
+  "/polityka-prywatnosci",
+  "/cookies",
+];
 
 test.describe("accessibility smoke", () => {
   for (const route of routes) {
