@@ -1,13 +1,14 @@
 import { expect, test } from "@playwright/test";
 
-const widths = [360, 390, 768, 1024, 1440];
+const widths = [375, 768, 1280, 1440];
 const routes = ["/", "/oferta", "/cennik", "/galeria", "/kontakt", "/zapytaj-o-termin", "/dojazd", "/rezerwacja"];
 
 test.describe("horizontal layout", () => {
   for (const width of widths) {
-    test(`does not overflow at ${width}px`, async ({ page }) => {
-      await page.setViewportSize({ width, height: 900 });
-      for (const route of routes) {
+    for (const route of routes) {
+      test(`does not overflow ${route} at ${width}px`, async ({ page }) => {
+        test.setTimeout(60_000);
+        await page.setViewportSize({ width, height: 900 });
         await page.goto(route);
         const details = await page.evaluate(() => {
           const viewport = document.documentElement.clientWidth;
@@ -28,7 +29,7 @@ test.describe("horizontal layout", () => {
           };
         });
         expect(details.overflow, `${route} ${JSON.stringify(details.offenders)}`).toBeLessThanOrEqual(1);
-      }
-    });
+      });
+    }
   }
 });

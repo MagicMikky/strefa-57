@@ -7,8 +7,9 @@ export function Logo({ light = false }: { light?: boolean }) {
       <Image
         src="/logo.png"
         alt="Paintball Strefa 29"
-        width={1254}
-        height={1254}
+        width={900}
+        height={900}
+        sizes="(max-width: 720px) 46vw, 280px"
         priority={!light}
       />
     </Link>

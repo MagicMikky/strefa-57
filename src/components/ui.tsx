@@ -107,7 +107,14 @@ export function PageHero({
 export function TacticalMark({ compact = false }: { compact?: boolean }) {
   return (
     <div className={`tactical-mark${compact ? " tactical-mark--compact" : ""}`} aria-hidden="true">
-      <Image src="/logo.png" alt="" width={1254} height={1254} />
+      <Image
+        src="/logo.png"
+        alt=""
+        width={900}
+        height={900}
+        sizes={compact ? "(max-width: 768px) 45vw, 450px" : "(max-width: 768px) 35vw, 410px"}
+        priority
+      />
     </div>
   );
 }
