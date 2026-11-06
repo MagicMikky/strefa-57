@@ -49,6 +49,7 @@ export function SiteFooter({ business }: { business: BusinessBundle }) {
         <div>
           <Link href="/polityka-prywatnosci">Prywatność</Link>
           <Link href="/cookies">Cookies</Link>
+          <Link href="/panel/logowanie">Logowanie</Link>
         </div>
       </div>
     </footer>

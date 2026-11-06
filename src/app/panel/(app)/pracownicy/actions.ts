@@ -42,7 +42,7 @@ export async function setStaffStatusAction(formData: FormData) {
 export async function listStaffForOwner() {
   await requireStaff("staff.manage");
   return getPrisma().user.findMany({
-    select: { id: true, name: true, email: true, role: true, status: true },
+    select: { id: true, name: true, email: true, login: true, role: true, status: true },
     orderBy: { createdAt: "asc" },
   });
 }

@@ -6,8 +6,11 @@ import { getPrisma } from "@/lib/prisma";
 import {
   emailProblem,
   isStaffRole,
+  loginProblem,
+  normalizeLogin,
   passwordProblem,
   secretsMatch,
+  staffEmailForLogin,
   type StaffRole,
 } from "@/lib/staff/permissions";
 
@@ -40,14 +43,21 @@ export function assertBearer(request: Request, secretName: string): void {
 
 export async function createInitialOwner(input: {
   name: string;
-  email: string;
+  email?: string;
+  login?: string;
   password: string;
 }): Promise<{ id: string }> {
   const name = input.name.trim();
   if (name.length < 2 || name.length > 100) {
     throw new StaffAccessError(422, "Podaj imię i nazwisko.");
   }
-  const emailError = emailProblem(input.email);
+  const login = input.login?.trim() ? normalizeLogin(input.login) : "";
+  if (login) {
+    const loginError = loginProblem(login);
+    if (loginError) throw new StaffAccessError(422, loginError);
+  }
+  const email = (input.email?.trim() ? input.email : login ? staffEmailForLogin(login) : "").toLowerCase();
+  const emailError = emailProblem(email);
   if (emailError) {
     throw new StaffAccessError(422, emailError);
   }
@@ -62,7 +72,6 @@ export async function createInitialOwner(input: {
     throw new StaffAccessError(409, "Konto właściciela już istnieje.");
   }
 
-  const email = input.email.trim().toLowerCase();
   const id = randomUUID();
   const password = await hashPassword(input.password);
   await prisma.user.create({
@@ -70,6 +79,7 @@ export async function createInitialOwner(input: {
       id,
       name,
       email,
+      login: login || null,
       emailVerified: true,
       role: "owner",
       status: "active",

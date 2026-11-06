@@ -13,6 +13,7 @@ model User {
   id            String    @id
   name          String
   email         String    @unique
+  login         String?   @unique
   emailVerified Boolean   @default(false)
   image         String?
   // Staff gate only: owner, manager, or employee. Sports and customer roles
