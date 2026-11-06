@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import type { BusinessSettingsInput } from "@/lib/business/model";
 import type { ScheduleCatalog } from "@/lib/schedule/model";
-import { evaluateDay, monthCells, type DayTone } from "@/lib/availability/model";
+import { evaluateDay, monthCells, type DayTone, type SlotUse } from "@/lib/availability/model";
 
 type CalendarSettings = Pick<
   BusinessSettingsInput,
@@ -15,10 +15,14 @@ export function AvailabilityCalendar({
   settings,
   schedule,
   today,
+  holds = [],
+  capacityKnown = true,
 }: {
   settings: CalendarSettings;
   schedule: ScheduleCatalog;
   today: string;
+  holds?: ReadonlyArray<SlotUse & { date: string }>;
+  capacityKnown?: boolean;
 }) {
   const [cursor, setCursor] = useState(today.slice(0, 7));
   const [players, setPlayers] = useState(4);
@@ -28,7 +32,7 @@ export function AvailabilityCalendar({
   const [year, month] = cursor.split("-").map(Number);
   const cells = monthCells(year, month);
   const selectedDay = selected
-    ? evaluateDay(selected, settings, schedule, [], { players, privateSlot }, today)
+    ? evaluateDay(selected, settings, schedule, usesOn(holds, selected), { players, privateSlot }, today)
     : null;
 
   useEffect(() => {
@@ -44,6 +48,7 @@ export function AvailabilityCalendar({
   return (
     <div className="availability">
       <p className="availability__notice">Ten widok nie tworzy rezerwacji, blokady terminu ani płatności. Wybrany slot otwiera zwykłe zapytanie.</p>
+      {capacityKnown ? null : <p className="availability__notice">Nie udało się odczytać blokad pojemności. Kolory nie potwierdzają wolnych miejsc.</p>}
       {schedule.weekdays.length === 0 ? (
         <p className="availability__notice">Dni tygodnia nie zostały jeszcze opublikowane, więc kalendarz nie oznacza ich jako otwarte.</p>
       ) : null}
@@ -75,7 +80,7 @@ export function AvailabilityCalendar({
       </div>
       <div className="availability__grid">
         {cells.map((cell, index) => cell.inMonth ? (
-          <DayButton key={cell.date} date={cell.date} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} today={today} onSelect={setSelected} />
+          <DayButton key={cell.date} date={cell.date} holds={holds} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} today={today} onSelect={setSelected} />
         ) : <span key={`empty-${index}`} />)}
       </div>
       {selectedDay ? (
@@ -106,6 +111,7 @@ function DayButton({
   date,
   settings,
   schedule,
+  holds,
   players,
   privateSlot,
   today,
@@ -114,12 +120,13 @@ function DayButton({
   date: string;
   settings: CalendarSettings;
   schedule: ScheduleCatalog;
+  holds: ReadonlyArray<SlotUse & { date: string }>;
   players: number;
   privateSlot: boolean;
   today: string;
   onSelect: (date: string) => void;
 }) {
-  const day = evaluateDay(date, settings, schedule, [], { players, privateSlot }, today);
+  const day = evaluateDay(date, settings, schedule, usesOn(holds, date), { players, privateSlot }, today);
   const dayNumber = String(Number(date.slice(-2)));
   return (
     <button className={toneClass(day.tone)} type="button" onClick={() => onSelect(date)}>
@@ -128,6 +135,10 @@ function DayButton({
       <span className="sr-only">{date}, {day.statusLabel}</span>
     </button>
   );
+}
+
+function usesOn(holds: ReadonlyArray<SlotUse & { date: string }>, date: string): SlotUse[] {
+  return holds.filter((hold) => hold.date === date).map(({ slot, players, teams, privateSlot }) => ({ slot, players, teams, privateSlot }));
 }
 
 function toneClass(tone: DayTone): string {
