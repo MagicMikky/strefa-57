@@ -1,9 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import type { ValidInquiry } from "@/lib/inquiry";
 import { MemoryInquiryRepository } from "@/lib/inquiries/memory-repository";
-import { inquiryContentHash, inquiryFromPayload } from "@/lib/inquiries/model";
 import { purgeExpiredInquiries } from "@/lib/inquiries/maintenance";
+import { inquiryContentHash, inquiryFromPayload } from "@/lib/inquiries/model";
+import { getInquiryRepository, resetInquiryRepositoryForTests } from "@/lib/inquiries/repository";
 import { retentionCutoff } from "@/lib/inquiries/retention";
 
 const inquiry = {
@@ -78,5 +79,36 @@ describe("inquiry repository", () => {
     } else {
       process.env.DATA_RETENTION_DAYS = previous;
     }
+  });
+});
+
+const original = {
+  nodeEnv: process.env.NODE_ENV,
+  store: process.env.INQUIRY_STORE,
+  databaseUrl: process.env.DATABASE_URL,
+};
+
+afterEach(() => {
+  process.env.NODE_ENV = original.nodeEnv;
+  if (original.store === undefined) delete process.env.INQUIRY_STORE;
+  else process.env.INQUIRY_STORE = original.store;
+  if (original.databaseUrl === undefined) delete process.env.DATABASE_URL;
+  else process.env.DATABASE_URL = original.databaseUrl;
+  resetInquiryRepositoryForTests();
+});
+
+describe("getInquiryRepository", () => {
+  it("keeps the memory store available outside production", () => {
+    process.env.NODE_ENV = "test";
+    process.env.INQUIRY_STORE = "memory";
+    delete process.env.DATABASE_URL;
+    expect(getInquiryRepository()).toBeInstanceOf(MemoryInquiryRepository);
+  });
+
+  it("does not keep inquiries in process memory during production", () => {
+    process.env.NODE_ENV = "production";
+    process.env.INQUIRY_STORE = "memory";
+    delete process.env.DATABASE_URL;
+    expect(getInquiryRepository()).toBeNull();
   });
 });
