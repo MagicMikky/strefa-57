@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import type { BusinessSettingsInput } from "@/lib/business/model";
 import type { ScheduleCatalog } from "@/lib/schedule/model";
-import { evaluateDay, monthCells, shiftDate, weekDates, type DayTone, type SlotUse } from "@/lib/availability/model";
+import { evaluateDay, laterDatesInMonth, monthCells, shiftDate, weekDates, type DayTone, type SlotUse } from "@/lib/availability/model";
 
 type CalendarSettings = Pick<
   BusinessSettingsInput,
@@ -17,12 +17,14 @@ export function AvailabilityCalendar({
   today,
   holds = [],
   capacityKnown = true,
+  allowPast = false,
 }: {
   settings: CalendarSettings;
   schedule: ScheduleCatalog;
   today: string;
   holds?: ReadonlyArray<SlotUse & { date: string }>;
   capacityKnown?: boolean;
+  allowPast?: boolean;
 }) {
   const [cursor, setCursor] = useState(today.slice(0, 7));
   const [view, setView] = useState<"month" | "week" | "day">("month");
@@ -94,14 +96,14 @@ export function AvailabilityCalendar({
           </div>
           <div className="availability__grid">
             {cells.map((cell, index) => cell.inMonth ? (
-              <DayButton key={cell.date} date={cell.date} holds={holds} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} today={today} onSelect={setSelected} />
+              <DayButton key={cell.date} allowPast={allowPast} date={cell.date} holds={holds} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} today={today} onSelect={setSelected} />
             ) : <span key={`empty-${index}`} />)}
           </div>
         </>
       ) : (
         <div className="availability__days">
           {(view === "week" ? weekDates(weekAnchor) : [dayAnchor]).map((date) => (
-            <DaySlots key={date} date={date} holds={holds} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} today={today} />
+            <DaySlots key={date} date={date} holds={holds} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} suggest={view === "day"} today={today} />
           ))}
         </div>
       )}
@@ -122,6 +124,9 @@ export function AvailabilityCalendar({
                 </li>
               ))}
             </ul>
+            {selectedDay.slots.some((slot) => slot.fitsRequest) ? null : (
+              <LaterDates date={selectedDay.date} holds={holds} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} today={today} />
+            )}
           </div>
         </div>
       ) : null}
@@ -137,6 +142,7 @@ function DaySlots({
   players,
   privateSlot,
   today,
+  suggest,
 }: {
   date: string;
   settings: CalendarSettings;
@@ -145,6 +151,7 @@ function DaySlots({
   players: number;
   privateSlot: boolean;
   today: string;
+  suggest: boolean;
 }) {
   const day = evaluateDay(date, settings, schedule, usesOn(holds, date), { players, privateSlot }, today);
   return (
@@ -158,7 +165,39 @@ function DaySlots({
           </li>
         ))}
       </ul>
+      {suggest && !day.slots.some((slot) => slot.fitsRequest) ? (
+        <LaterDates date={date} holds={holds} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} today={today} />
+      ) : null}
     </article>
+  );
+}
+
+function LaterDates({
+  date,
+  settings,
+  schedule,
+  holds,
+  players,
+  privateSlot,
+  today,
+}: {
+  date: string;
+  settings: CalendarSettings;
+  schedule: ScheduleCatalog;
+  holds: ReadonlyArray<SlotUse & { date: string }>;
+  players: number;
+  privateSlot: boolean;
+  today: string;
+}) {
+  const dates = laterDatesInMonth(date, settings, schedule, holds, { players, privateSlot }, today);
+  if (dates.length === 0) return <p>W tym miesiącu nie ma późniejszego dnia dla tej grupy.</p>;
+  return (
+    <div>
+      <p>Inne dni w tym samym miesiącu</p>
+      <ul>
+        {dates.map((item) => <li key={item}><a href={`/zapytaj-o-termin?data=${item}`}>Zapytaj o {item}</a></li>)}
+      </ul>
+    </div>
   );
 }
 
@@ -170,6 +209,7 @@ function DayButton({
   players,
   privateSlot,
   today,
+  allowPast,
   onSelect,
 }: {
   date: string;
@@ -179,12 +219,14 @@ function DayButton({
   players: number;
   privateSlot: boolean;
   today: string;
+  allowPast: boolean;
   onSelect: (date: string) => void;
 }) {
   const day = evaluateDay(date, settings, schedule, usesOn(holds, date), { players, privateSlot }, today);
   const dayNumber = String(Number(date.slice(-2)));
+  const past = date < today && !allowPast;
   return (
-    <button className={toneClass(day.tone)} type="button" onClick={() => onSelect(date)}>
+    <button className={toneClass(day.tone)} disabled={past} type="button" onClick={() => onSelect(date)}>
       <b>{dayNumber}</b>
       <small>{shortLabel(day.tone)}</small>
       <span className="sr-only">{date}, {day.statusLabel}</span>

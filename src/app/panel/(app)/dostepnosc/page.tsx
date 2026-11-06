@@ -34,6 +34,7 @@ export default async function PanelAvailabilityPage() {
         </ul>
       </div>
       <AvailabilityCalendar
+        allowPast
         capacityKnown={capacity.known}
         holds={capacity.holds}
         schedule={schedule}

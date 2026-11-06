@@ -2769,6 +2769,7 @@ h3 {
 .availability__legend i { display: inline-block; width: 14px; height: 14px; margin-right: 6px; }
 .availability__weekdays, .availability__grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
 .availability__day { position: relative; display: grid; min-width: 0; min-height: 72px; padding: 8px; color: #fff; text-align: left; }
+.availability__day:disabled { cursor: default; }
 .availability__day small { overflow-wrap: anywhere; }
 .availability__day.is-open, .availability__legend .is-open { background: #185338; }
 .availability__day.is-limited, .availability__legend .is-limited { background: #163B6D; }

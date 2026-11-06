@@ -72,6 +72,27 @@ export function weekDates(anchor: string): string[] {
   return Array.from({ length: 7 }, (_, index) => shiftDate(monday.toISOString().slice(0, 10), index));
 }
 
+export function laterDatesInMonth(
+  date: string,
+  settings: Pick<BusinessSettingsInput, "maxPlayersPerTeam" | "maxTeamsPerMatch" | "maxPlayersPerSlot" | "slotStartTimes" | "slotDurationMinutes">,
+  schedule: ScheduleCatalog,
+  holds: readonly (SlotUse & { date: string })[],
+  request: AvailabilityRequest,
+  today: string,
+  limit = 3,
+): string[] {
+  const [year, month] = date.split("-").map(Number);
+  const found: string[] = [];
+  for (const cell of monthCells(year, month)) {
+    if (!cell.inMonth || cell.date <= date || cell.date < today) continue;
+    const uses = holds.filter((hold) => hold.date === cell.date).map(({ slot, players, teams, privateSlot }) => ({ slot, players, teams, privateSlot }));
+    const day = evaluateDay(cell.date, settings, schedule, uses, request, today);
+    if (day.tone !== "unavailable" && day.slots.some((slot) => slot.fitsRequest)) found.push(cell.date);
+    if (found.length >= limit) break;
+  }
+  return found;
+}
+
 export function monthCells(year: number, month: number): Array<{ date: string; inMonth: boolean }> {
   const first = (new Date(Date.UTC(year, month - 1, 1, 12)).getUTCDay() + 6) % 7;
   const days = new Date(Date.UTC(year, month, 0, 12)).getUTCDate();
