@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import type { BusinessSettingsInput } from "@/lib/business/model";
 import type { ScheduleCatalog } from "@/lib/schedule/model";
-import { evaluateDay, laterDatesInMonth, monthCells, shiftDate, weekDates, type DayTone, type SlotUse } from "@/lib/availability/model";
+import { closureReason, evaluateDay, holdSummary, laterDatesInMonth, monthCells, shiftDate, weekDates, type DayTone, type SlotUse } from "@/lib/availability/model";
 
 type CalendarSettings = Pick<
   BusinessSettingsInput,
@@ -18,13 +18,15 @@ export function AvailabilityCalendar({
   holds = [],
   capacityKnown = true,
   allowPast = false,
+  showOperations = false,
 }: {
   settings: CalendarSettings;
   schedule: ScheduleCatalog;
   today: string;
-  holds?: ReadonlyArray<SlotUse & { date: string }>;
+  holds?: ReadonlyArray<SlotUse & { date: string; expiresAt?: string }>;
   capacityKnown?: boolean;
   allowPast?: boolean;
+  showOperations?: boolean;
 }) {
   const [cursor, setCursor] = useState(today.slice(0, 7));
   const [view, setView] = useState<"month" | "week" | "day">("month");
@@ -103,7 +105,7 @@ export function AvailabilityCalendar({
       ) : (
         <div className="availability__days">
           {(view === "week" ? weekDates(weekAnchor) : [dayAnchor]).map((date) => (
-            <DaySlots key={date} date={date} holds={holds} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} suggest={view === "day"} today={today} />
+            <DaySlots key={date} capacityKnown={capacityKnown} date={date} holds={holds} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} showOperations={showOperations} suggest={view === "day"} today={today} />
           ))}
         </div>
       )}
@@ -117,13 +119,14 @@ export function AvailabilityCalendar({
               {selectedDay.slots.map((slot) => (
                 <li key={slot.start}>
                   <strong>{slot.start}–{slot.end}</strong>
-                  <span>{slot.statusLabel}. Wolne fizycznie: {slot.freePhysicalSeats}/{settings.maxPlayersPerSlot}. Dla kolejnej drużyny: {slot.bookableSeats}.</span>
+                  <span>{slot.statusLabel}. Wolne fizycznie: {slot.freePhysicalSeats}/{settings.maxPlayersPerSlot}. Dla kolejnej drużyny: {slot.bookableSeats}.{showOperations && slot.closed ? ` Powód: ${closureReason(schedule, selectedDay.date, slot.start) ?? "niepodany"}.` : ""}</span>
                   {selectedDay.date >= today && slot.fitsRequest ? (
                     <a href={`/zapytaj-o-termin?data=${selectedDay.date}`}>Zapytaj o ten slot</a>
                   ) : <em>Niedostępny dla wybranej grupy</em>}
                 </li>
               ))}
             </ul>
+            {showOperations ? <Operations capacityKnown={capacityKnown} date={selectedDay.date} holds={holds} schedule={schedule} /> : null}
             {selectedDay.slots.some((slot) => slot.fitsRequest) ? null : (
               <LaterDates date={selectedDay.date} holds={holds} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} today={today} />
             )}
@@ -143,15 +146,19 @@ function DaySlots({
   privateSlot,
   today,
   suggest,
+  showOperations,
+  capacityKnown,
 }: {
   date: string;
   settings: CalendarSettings;
   schedule: ScheduleCatalog;
-  holds: ReadonlyArray<SlotUse & { date: string }>;
+  holds: ReadonlyArray<SlotUse & { date: string; expiresAt?: string }>;
   players: number;
   privateSlot: boolean;
   today: string;
   suggest: boolean;
+  showOperations: boolean;
+  capacityKnown: boolean;
 }) {
   const day = evaluateDay(date, settings, schedule, usesOn(holds, date), { players, privateSlot }, today);
   return (
@@ -160,15 +167,38 @@ function DaySlots({
       <ul>
         {day.slots.map((slot) => (
           <li key={slot.start}>
-            <span>{slot.start}–{slot.end}. {date < today ? "Dzień minął" : slot.statusLabel}. Wolne fizycznie: {slot.freePhysicalSeats}/{settings.maxPlayersPerSlot}. Dla kolejnej drużyny: {slot.bookableSeats}.</span>
+            <span>{slot.start}–{slot.end}. {date < today ? "Dzień minął" : slot.statusLabel}. Wolne fizycznie: {slot.freePhysicalSeats}/{settings.maxPlayersPerSlot}. Dla kolejnej drużyny: {slot.bookableSeats}.{showOperations && slot.closed ? ` Powód: ${closureReason(schedule, date, slot.start) ?? "niepodany"}.` : ""}</span>
             {date >= today && slot.fitsRequest ? <a href={`/zapytaj-o-termin?data=${date}`}>Zapytaj o ten slot</a> : <em>Niedostępny dla wybranej grupy</em>}
           </li>
         ))}
       </ul>
+      {showOperations ? <Operations capacityKnown={capacityKnown} date={date} holds={holds} schedule={schedule} /> : null}
       {suggest && !day.slots.some((slot) => slot.fitsRequest) ? (
         <LaterDates date={date} holds={holds} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} today={today} />
       ) : null}
     </article>
+  );
+}
+
+function Operations({
+  date,
+  schedule,
+  holds,
+  capacityKnown,
+}: {
+  date: string;
+  schedule: ScheduleCatalog;
+  holds: ReadonlyArray<SlotUse & { date: string; expiresAt?: string }>;
+  capacityKnown: boolean;
+}) {
+  const lines = holds.filter((hold) => hold.date === date && hold.expiresAt).map((hold) => holdSummary({ ...hold, expiresAt: hold.expiresAt ?? "" }));
+  const closures = schedule.blocks.filter((block) => block.date === date);
+  return (
+    <div>
+      <h3>Blokady pojemności</h3>
+      {capacityKnown ? lines.length === 0 ? <p>Brak niewygasłych blokad pojemności.</p> : <ul>{lines.map((line, index) => <li key={`${line}-${index}`}>{line}</li>)}</ul> : <p>Odczyt blokad pojemności nie powiódł się.</p>}
+      {closures.map((block) => <p key={`${block.slot}-${block.reason}`}>Zamknięcie {block.slot === "day" ? "całego dnia" : block.slot}: {block.reason}</p>)}
+    </div>
   );
 }
 
@@ -234,7 +264,7 @@ function DayButton({
   );
 }
 
-function usesOn(holds: ReadonlyArray<SlotUse & { date: string }>, date: string): SlotUse[] {
+function usesOn(holds: ReadonlyArray<SlotUse & { date: string; expiresAt?: string }>, date: string): SlotUse[] {
   return holds.filter((hold) => hold.date === date).map(({ slot, players, teams, privateSlot }) => ({ slot, players, teams, privateSlot }));
 }
 

@@ -72,6 +72,30 @@ export function weekDates(anchor: string): string[] {
   return Array.from({ length: 7 }, (_, index) => shiftDate(monday.toISOString().slice(0, 10), index));
 }
 
+export function closureReason(schedule: ScheduleCatalog, date: string, slot: string): string | null {
+  const match = schedule.blocks.find((block) => block.date === date && (block.slot === slot || block.slot === "day"));
+  return match?.reason ?? null;
+}
+
+export function holdSummary(hold: { slot: string; players: number; teams: number; privateSlot: boolean; expiresAt: string }): string {
+  const mode = hold.privateSlot ? "slot prywatny" : "gra wspólna";
+  return `${hold.slot}: ${hold.players} graczy, drużyny: ${hold.teams}, ${mode}, wygasa ${warsawStamp(hold.expiresAt)}`;
+}
+
+function warsawStamp(iso: string): string {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Warsaw",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(iso));
+  const pick = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
+  return `${pick("year")}-${pick("month")}-${pick("day")} ${pick("hour")}:${pick("minute")}`;
+}
+
 export function laterDatesInMonth(
   date: string,
   settings: Pick<BusinessSettingsInput, "maxPlayersPerTeam" | "maxTeamsPerMatch" | "maxPlayersPerSlot" | "slotStartTimes" | "slotDurationMinutes">,

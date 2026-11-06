@@ -35,6 +35,7 @@ export default async function PanelAvailabilityPage() {
       </div>
       <AvailabilityCalendar
         allowPast
+        showOperations
         capacityKnown={capacity.known}
         holds={capacity.holds}
         schedule={schedule}
