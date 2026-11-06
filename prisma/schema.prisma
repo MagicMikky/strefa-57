@@ -240,6 +240,16 @@ model SiteContent {
   @@index([updatedAt])
 }
 
+model GalleryCatalog {
+  id          String   @id
+  body        Json
+  version     Int      @default(1)
+  updatedAt   DateTime @updatedAt
+  updatedById String?
+
+  @@index([updatedAt])
+}
+
 model ContentRevision {
   id        String   @id
   entity    String

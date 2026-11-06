@@ -4,7 +4,7 @@ import { FaqList, MissionPanel, NumberedSteps, PackageCard } from "@/components/
 import { GalleryCoverflow } from "@/components/gallery-coverflow";
 import { Icon } from "@/components/icons";
 import { ButtonLink, Container, CtaBand, Eyebrow, FeatureCard, SectionHeading, TacticalMark } from "@/components/ui";
-import { galleryPhotos } from "@/data/gallery";
+import { getPublishedGallery } from "@/lib/gallery/public";
 import { audiences, eventTypeForAudience, visitSteps } from "@/data/site";
 import { attractionsForDisplay, packagesForDisplay } from "@/lib/content/model";
 import { getPublishedSiteCopy } from "@/lib/content/public";
@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const copy = await getPublishedSiteCopy();
+  const galleryPhotos = await getPublishedGallery();
   const attractions = attractionsForDisplay(copy);
   const packages = packagesForDisplay(copy);
   const faqItems = copy.faq;

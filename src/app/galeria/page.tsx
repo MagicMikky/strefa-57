@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AnalyticsView } from "@/components/analytics-view";
 import { GalleryCoverflow } from "@/components/gallery-coverflow";
 import { ButtonLink, Container, CtaBand, PageHero, SectionHeading } from "@/components/ui";
-import { galleryPhotos } from "@/data/gallery";
+import { getPublishedGallery } from "@/lib/gallery/public";
 
 export const metadata: Metadata = {
   title: "Galeria pola",
@@ -16,6 +16,7 @@ export default async function GalleryPage({
   searchParams: Promise<{ filtr?: string }>;
 }) {
   const params = await searchParams;
+  const galleryPhotos = await getPublishedGallery();
 
   return (
     <>

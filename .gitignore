@@ -30,6 +30,10 @@ Thumbs.db
 *.pem
 *.log
 
+# Owner uploads stay on the server disk, outside git.
+/storage/
+/public/gallery/managed/
+
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
