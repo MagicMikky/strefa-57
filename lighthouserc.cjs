@@ -1,7 +1,7 @@
 module.exports = {
   ci: {
     collect: {
-      startServerCommand: "npm run start -- --port 4173",
+      startServerCommand: "npx next start --hostname 127.0.0.1 --port 4173",
       startServerReadyPattern: "Ready",
       url: [
         "http://127.0.0.1:4173/",
