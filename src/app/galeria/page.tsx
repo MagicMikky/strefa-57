@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { InfoNotice } from "@/components/content";
 import { AnalyticsView } from "@/components/analytics-view";
-import { Icon } from "@/components/icons";
+import { GalleryBrowser } from "@/components/gallery-browser";
 import { ButtonLink, Container, CtaBand, PageHero, SectionHeading } from "@/components/ui";
 import { galleryPhotos } from "@/data/gallery";
-import { galleryItems } from "@/data/site";
 
 export const metadata: Metadata = {
   title: "Galeria pola",
@@ -30,44 +28,13 @@ export default function GalleryPage() {
           <SectionHeading
             eyebrow="Autentyczny obraz pola"
             title="Miejsca, które tworzą scenariusz."
-            body="Poniższe plansze pokazują przygotowane kategorie galerii. Docelowe fotografie muszą pochodzić z obiektu i mieć potwierdzone prawa do publikacji."
+            body="W siatce są kadry bez widocznych osób: okopy, osłona w lesie i rakieta V2. Zdjęcia z graczami czekają na zgodę na wizerunek i nie są publikowane."
           />
-          <div className="gallery-grid">
-            {galleryPhotos.length > 0
-              ? galleryPhotos.map((item) => (
-                  <article className="gallery-card" key={item.src}>
-                    <div className="gallery-card__art">
-                      <Image
-                        src={item.src}
-                        alt={item.alt}
-                        width={item.width}
-                        height={item.height}
-                        sizes="(max-width: 760px) 100vw, (max-width: 1100px) 50vw, 33vw"
-                      />
-                    </div>
-                    <div className="gallery-card__caption">
-                      <div><h2>{item.title}</h2><p>{item.label}</p></div>
-                      <Icon name="arrow" width={21} height={21} />
-                    </div>
-                  </article>
-                ))
-              : galleryItems.map((item, index) => (
-                  <article className={`gallery-card gallery-card--${item.tone}`} key={item.title}>
-                    <div className="gallery-card__art" role="img" aria-label={`Symboliczna plansza kategorii ${item.title}`}>
-                      <span className="gallery-card__cross" aria-hidden="true" />
-                      <strong>{String(index + 1).padStart(2, "0")}</strong>
-                    </div>
-                    <div className="gallery-card__caption">
-                      <div><h2>{item.title}</h2><p>{item.label}</p></div>
-                      <Icon name="arrow" width={21} height={21} />
-                    </div>
-                  </article>
-                ))}
-          </div>
+          <GalleryBrowser photos={galleryPhotos} />
           <AnalyticsView event="gallery_view" />
           <div className="gallery-notice">
             <InfoNotice title="Zdjęcia do uzupełnienia przed publikacją">
-              Nie używamy fotografii innego operatora ani obrazów udających ten obiekt. Właściciel powinien przekazać oryginalne materiały: pole, okopy, bunkier, V2, zaplecze i drużynę.
+              Nie używamy fotografii innego operatora ani obrazów udających ten obiekt. Kadry z widocznymi osobami oraz filmy z folderu gallery pozostają poza stroną do czasu zgody właściciela.
             </InfoNotice>
           </div>
         </Container>

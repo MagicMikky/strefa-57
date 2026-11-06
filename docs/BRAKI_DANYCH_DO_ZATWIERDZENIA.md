@@ -9,7 +9,7 @@ Poniższe informacje nie zostały potwierdzone. Nie wolno ich uzupełniać przyk
 | E-mail publiczny i skrzynka formularza | Placeholder | Adres odbiorcy i nadawcy Resend |
 | Ceny pakietów | „Cena do potwierdzenia” / wycena indywidualna | Kwoty, waluta i to, co wchodzi w cenę |
 | Minimum i maksimum graczy | Techniczny limit 1–200, nie reguła biznesowa | Zatwierdzone progi grup |
-| Zdjęcia pola | Folder `gallery/` jest pusty. `src/data/gallery.ts` ma pustą listę `galleryPhotos`; strona pokazuje symboliczne plansze, a po dodaniu zatwierdzonych plików do `public/gallery` i wpisu na liście renderuje je przez Next Image. Folder `layout/` nie jest publikowany | Oryginalne zdjęcia, prawa publikacji i zgody osób widocznych |
+| Zdjęcia pola | Opublikowane są trzy kadry bez osób: okopy, osłona w lesie i rakieta V2. Pięć zdjęć z graczami, `rakieta2.jpg` i dwa filmy są w `pendingGalleryAssets` i nie wchodzą na stronę | Zgoda na wizerunek osób w maskach oraz potwierdzenie, że `rakieta2.jpg` jest prawdziwym zdjęciem obiektu |
 | Adres i pin dojazdu | Żurawia 29, 80-298 Czaple, z notą o potwierdzeniu wjazdu | Dokładny punkt na mapie |
 | Wiek osób niepełnoletnich | FAQ mówi, że zasada wymaga potwierdzenia | Minimalny wiek i forma zgody opiekuna |
 | Regulamin, prywatność, cookies | Wersje robocze | Tekst po przeglądzie prawnym i okres retencji zapytań |
