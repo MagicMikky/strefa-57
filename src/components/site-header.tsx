@@ -7,7 +7,7 @@ import { Icon } from "@/components/icons";
 import { Logo } from "@/components/logo";
 import { mainNavigation } from "@/data/site";
 
-export function SiteHeader() {
+export function SiteHeader({ addressLabel }: { addressLabel: string }) {
   const pathname = usePathname();
   const [menuState, setMenuState] = useState({ open: false, pathname });
   const open = menuState.open && menuState.pathname === pathname;
@@ -23,7 +23,7 @@ export function SiteHeader() {
     <header className="site-header">
       <div className="site-header__bar">
         <p><span aria-hidden="true" /> Terenowa rozgrywka pod Gdańskiem</p>
-        <Link href="/dojazd">Żurawia 29, Czaple <Icon name="arrow" width={15} height={15} /></Link>
+        <Link href="/dojazd">{addressLabel} <Icon name="arrow" width={15} height={15} /></Link>
       </div>
       <div className="site-header__main container">
         <div className="site-header__brand">

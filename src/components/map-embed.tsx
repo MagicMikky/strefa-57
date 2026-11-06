@@ -6,9 +6,9 @@ import { trackEvent } from "@/lib/consent";
 
 const fallbackQuery = "Żurawia 29, 80-298 Czaple";
 
-export function MapEmbed() {
+export function MapEmbed({ query: queryProp }: { query?: string }) {
   const [active, setActive] = useState(false);
-  const query = process.env.NEXT_PUBLIC_MAP_QUERY || fallbackQuery;
+  const query = queryProp || process.env.NEXT_PUBLIC_MAP_QUERY || fallbackQuery;
   const encoded = encodeURIComponent(query);
 
   if (!active) {

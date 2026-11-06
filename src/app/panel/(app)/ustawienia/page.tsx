@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { retentionCutoff } from "@/lib/inquiries/retention";
 import { can } from "@/lib/staff/permissions";
 import { requireStaff } from "@/lib/staff/session";
@@ -45,6 +47,9 @@ export default async function SettingsPage({
           </p>
           <p className="mt-3 text-sm text-[var(--muted)]">
             MFA jest przygotowane jako pole konta, ale nie jest jeszcze włączone dla logowania.
+          </p>
+          <p className="mt-3 text-sm">
+            <Link className="font-bold text-[var(--forest)]" href="/panel/firma">Dane firmy, kontakt i publikacja</Link>
           </p>
         </section>
       ) : (

@@ -11,6 +11,7 @@ export const PERMISSIONS = [
   "inquiries.note",
   "staff.manage",
   "settings.manage",
+  "business.publish",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -23,6 +24,7 @@ const matrix: Record<StaffRole, ReadonlySet<Permission>> = {
     "inquiries.assign",
     "inquiries.note",
   ]),
+  // business.publish stays with the owner. Managers do not publish company data.
   employee: new Set(["inquiries.read", "inquiries.note"]),
 };
 
