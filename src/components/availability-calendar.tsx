@@ -25,8 +25,9 @@ export function AvailabilityCalendar({
   capacityKnown?: boolean;
 }) {
   const [cursor, setCursor] = useState(today.slice(0, 7));
-  const [view, setView] = useState<"month" | "week">("month");
+  const [view, setView] = useState<"month" | "week" | "day">("month");
   const [weekAnchor, setWeekAnchor] = useState(today);
+  const [dayAnchor, setDayAnchor] = useState(today);
   const [players, setPlayers] = useState(4);
   const [privateSlot, setPrivateSlot] = useState(false);
   const [selected, setSelected] = useState("");
@@ -46,6 +47,12 @@ export function AvailabilityCalendar({
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [selected]);
+
+  function moveCursor(direction: -1 | 1) {
+    if (view === "month") setCursor(shiftMonth(cursor, direction));
+    if (view === "week") setWeekAnchor(shiftDate(weekAnchor, direction * 7));
+    if (view === "day") setDayAnchor(shiftDate(dayAnchor, direction));
+  }
 
   return (
     <div className="availability">
@@ -68,10 +75,11 @@ export function AvailabilityCalendar({
       <div className="availability__nav">
         <button type="button" aria-pressed={view === "month"} onClick={() => setView("month")}>Miesiąc</button>
         <button type="button" aria-pressed={view === "week"} onClick={() => setView("week")}>Tydzień</button>
-        <button type="button" onClick={() => view === "month" ? setCursor(shiftMonth(cursor, -1)) : setWeekAnchor(shiftDate(weekAnchor, -7))}>Poprzedni</button>
-        <strong>{view === "month" ? monthName(year, month) : `${weekDates(weekAnchor)[0]} – ${weekDates(weekAnchor)[6]}`}</strong>
-        <button type="button" onClick={() => { setCursor(today.slice(0, 7)); setWeekAnchor(today); }}>Dziś</button>
-        <button type="button" onClick={() => view === "month" ? setCursor(shiftMonth(cursor, 1)) : setWeekAnchor(shiftDate(weekAnchor, 7))}>Następny</button>
+        <button type="button" aria-pressed={view === "day"} onClick={() => setView("day")}>Dzień</button>
+        <button type="button" onClick={() => moveCursor(-1)}>Poprzedni</button>
+        <strong>{view === "month" ? monthName(year, month) : view === "week" ? `${weekDates(weekAnchor)[0]} – ${weekDates(weekAnchor)[6]}` : dayAnchor}</strong>
+        <button type="button" onClick={() => { setCursor(today.slice(0, 7)); setWeekAnchor(today); setDayAnchor(today); }}>Dziś</button>
+        <button type="button" onClick={() => moveCursor(1)}>Następny</button>
       </div>
       <div className="availability__legend">
         <span><i className="is-open" /> Dostępny</span>
@@ -92,22 +100,9 @@ export function AvailabilityCalendar({
         </>
       ) : (
         <div className="availability__days">
-          {weekDates(weekAnchor).map((date) => {
-            const day = evaluateDay(date, settings, schedule, usesOn(holds, date), { players, privateSlot }, today);
-            return (
-              <article key={date}>
-                <h2>{date} <small>{day.statusLabel}</small></h2>
-                <ul>
-                  {day.slots.map((slot) => (
-                    <li key={slot.start}>
-                      <span>{slot.start}–{slot.end}. {date < today ? "Dzień minął" : slot.statusLabel}. Wolne fizycznie: {slot.freePhysicalSeats}/{settings.maxPlayersPerSlot}. Dla kolejnej drużyny: {slot.bookableSeats}.</span>
-                      {date >= today && slot.fitsRequest ? <a href={`/zapytaj-o-termin?data=${date}`}>Zapytaj o ten slot</a> : <em>Niedostępny dla wybranej grupy</em>}
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            );
-          })}
+          {(view === "week" ? weekDates(weekAnchor) : [dayAnchor]).map((date) => (
+            <DaySlots key={date} date={date} holds={holds} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} today={today} />
+          ))}
         </div>
       )}
       {selectedDay ? (
@@ -121,7 +116,7 @@ export function AvailabilityCalendar({
                 <li key={slot.start}>
                   <strong>{slot.start}–{slot.end}</strong>
                   <span>{slot.statusLabel}. Wolne fizycznie: {slot.freePhysicalSeats}/{settings.maxPlayersPerSlot}. Dla kolejnej drużyny: {slot.bookableSeats}.</span>
-                  {slot.fitsRequest ? (
+                  {selectedDay.date >= today && slot.fitsRequest ? (
                     <a href={`/zapytaj-o-termin?data=${selectedDay.date}`}>Zapytaj o ten slot</a>
                   ) : <em>Niedostępny dla wybranej grupy</em>}
                 </li>
@@ -131,6 +126,39 @@ export function AvailabilityCalendar({
         </div>
       ) : null}
     </div>
+  );
+}
+
+function DaySlots({
+  date,
+  settings,
+  schedule,
+  holds,
+  players,
+  privateSlot,
+  today,
+}: {
+  date: string;
+  settings: CalendarSettings;
+  schedule: ScheduleCatalog;
+  holds: ReadonlyArray<SlotUse & { date: string }>;
+  players: number;
+  privateSlot: boolean;
+  today: string;
+}) {
+  const day = evaluateDay(date, settings, schedule, usesOn(holds, date), { players, privateSlot }, today);
+  return (
+    <article>
+      <h2>{date} <small>{day.statusLabel}</small></h2>
+      <ul>
+        {day.slots.map((slot) => (
+          <li key={slot.start}>
+            <span>{slot.start}–{slot.end}. {date < today ? "Dzień minął" : slot.statusLabel}. Wolne fizycznie: {slot.freePhysicalSeats}/{settings.maxPlayersPerSlot}. Dla kolejnej drużyny: {slot.bookableSeats}.</span>
+            {date >= today && slot.fitsRequest ? <a href={`/zapytaj-o-termin?data=${date}`}>Zapytaj o ten slot</a> : <em>Niedostępny dla wybranej grupy</em>}
+          </li>
+        ))}
+      </ul>
+    </article>
   );
 }
 
