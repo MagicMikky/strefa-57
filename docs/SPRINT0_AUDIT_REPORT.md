@@ -55,7 +55,7 @@ U-11 oraz D-01–D-36 pozostają otwarte tam, gdzie rejestr nie oznacza ich jako
 | Obszar | Zagrożenie widoczne w kodzie | Następny krok |
 |---|---|---|
 | Panel | Hasło i sesja, bez MFA; bootstrap właściciela jest wyłączony po pierwszym koncie | D-27, potem osobny PR |
-| Zgłoszenia | Prawdziwe dane w PostgreSQL; polityka publiczna temu zaprzecza | Zatwierdzić szkic, potem `fix/privacy-notice-db` |
+| Zgłoszenia | Prawdziwe dane w PostgreSQL; polityka na `14e082d` temu zaprzecza | PR #39 publikuje opis techniczny. Podstawa, odbiorcy i retencja zostają puste |
 | Limit | Pamięć procesu nie jest wspólna dla wielu instancji | Dodać Redis dopiero z sekretami właściciela |
 | Galeria | Pliki z osobami i `rakieta2.jpg` bez potwierdzonych praw | Nie publikować; decyzja właściciela |
 | Hold | Jeden test dwóch połączeń na CI | Szersze scenariusze dopiero przy starcie 2.0 |
@@ -81,4 +81,4 @@ Uruchomione w `D:\Projects\strefa-sprint0-docs` na kodzie `14e082d` plus ta doku
 
 ## Następny mały PR
 
-`fix/privacy-notice-db` — dopiero po zatwierdzeniu szkicu przez właściciela. Do tego czasu nie zaczynać Sprintu 1.
+PR #39, `fix/privacy-notice-db`, publikuje opis techniczny. Podstawa prawna, odbiorcy i retencja nadal wymagają decyzji. Nie zaczynać Sprintu 1.
