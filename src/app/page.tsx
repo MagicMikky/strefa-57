@@ -61,7 +61,7 @@ export default function HomePage() {
             <SectionHeading
               eyebrow="Poznaj Strefę 29"
               title="Zobacz teren, zanim zapytasz o termin."
-              body="Dwa kadry bez widocznych osób: okopy i drewniana osłona w lesie. Rakieta V2 jest w sekcji scenariusza i w pełnej galerii."
+              body="Okopy, drewniana osłona i rakieta V2. W tych kadrach nie ma zawodników."
             />
             <Link className="text-link" href="/galeria">Zobacz całą galerię <Icon name="arrow" width={18} height={18} /></Link>
           </div>
