@@ -74,33 +74,46 @@ export async function createInitialOwner(input: {
 
   const id = randomUUID();
   const password = await hashPassword(input.password);
-  await prisma.user.create({
-    data: {
-      id,
-      name,
-      email,
-      login: login || null,
-      emailVerified: true,
-      role: "owner",
-      status: "active",
-      accounts: {
-        create: {
-          id: randomUUID(),
-          accountId: id,
-          providerId: "credential",
-          password,
+  try {
+    await prisma.user.create({
+      data: {
+        id,
+        name,
+        email,
+        login: login || null,
+        emailVerified: true,
+        role: "owner",
+        status: "active",
+        accounts: {
+          create: {
+            id: randomUUID(),
+            accountId: id,
+            providerId: "credential",
+            password,
+          },
+        },
+        staffAudits: {
+          create: {
+            id: randomUUID(),
+            action: "owner_bootstrapped",
+            targetId: id,
+          },
         },
       },
-      staffAudits: {
-        create: {
-          id: randomUUID(),
-          action: "owner_bootstrapped",
-          targetId: id,
-        },
-      },
-    },
-  });
+    });
+  } catch (error) {
+    if (!hasPrismaCode(error, "P2002")) throw error;
+    const ownersNow = await prisma.user.count({ where: { role: "owner" } });
+    throw new StaffAccessError(
+      409,
+      ownersNow > 0 ? "Konto właściciela już istnieje." : "Pracownik z tym adresem już istnieje.",
+    );
+  }
   return { id };
+}
+
+function hasPrismaCode(error: unknown, code: string): boolean {
+  return typeof error === "object" && error !== null && "code" in error && error.code === code;
 }
 
 export async function createStaffMember(input: {
