@@ -4,13 +4,19 @@ import { fallbackBusiness, selectPublicBundle, type BusinessBundle } from "@/lib
 import { readPublished } from "@/lib/business/store";
 import { getPrisma } from "@/lib/prisma";
 
-export const getPublicBusiness = cache(async (): Promise<BusinessBundle> => {
+export async function readPublicBusiness(
+  hasDatabase: boolean,
+  load: () => Promise<BusinessBundle | null>,
+): Promise<BusinessBundle> {
   const fallback = fallbackBusiness();
-  if (!process.env.DATABASE_URL) return fallback;
+  if (!hasDatabase) return fallback;
   try {
-    const published = await readPublished(getPrisma());
-    return selectPublicBundle(published, fallback);
+    return selectPublicBundle(await load(), fallback);
   } catch {
     return fallback;
   }
+}
+
+export const getPublicBusiness = cache(async (): Promise<BusinessBundle> => {
+  return readPublicBusiness(Boolean(process.env.DATABASE_URL), () => readPublished(getPrisma()));
 });
