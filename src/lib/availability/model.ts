@@ -59,6 +59,19 @@ export function weekdayCode(date: string): string {
   return weekdayByIndex[new Date(Date.UTC(year, month - 1, day, 12)).getUTCDay()];
 }
 
+export function shiftDate(date: string, days: number): string {
+  const [year, month, day] = date.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days, 12)).toISOString().slice(0, 10);
+}
+
+export function weekDates(anchor: string): string[] {
+  const [year, month, day] = anchor.split("-").map(Number);
+  const noon = new Date(Date.UTC(year, month - 1, day, 12));
+  const monday = new Date(noon);
+  monday.setUTCDate(noon.getUTCDate() - ((noon.getUTCDay() + 6) % 7));
+  return Array.from({ length: 7 }, (_, index) => shiftDate(monday.toISOString().slice(0, 10), index));
+}
+
 export function monthCells(year: number, month: number): Array<{ date: string; inMonth: boolean }> {
   const first = (new Date(Date.UTC(year, month - 1, 1, 12)).getUTCDay() + 6) % 7;
   const days = new Date(Date.UTC(year, month, 0, 12)).getUTCDate();

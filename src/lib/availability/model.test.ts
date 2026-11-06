@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { fallbackBusiness } from "@/lib/business/model";
 import { fallbackSchedule } from "@/lib/schedule/model";
-import { evaluateDay, monthCells, warsawDate } from "@/lib/availability/model";
+import { evaluateDay, monthCells, warsawDate, weekDates } from "@/lib/availability/model";
 
 const settings = fallbackBusiness().settings;
 
@@ -70,6 +70,18 @@ describe("availability calendar", () => {
 
   it("formats the Warsaw calendar date", () => {
     expect(warsawDate(new Date("2026-11-06T23:30:00.000Z"))).toBe("2026-11-07");
+  });
+
+  it("builds a Monday-first week around a Friday", () => {
+    expect(weekDates("2026-11-06")).toEqual([
+      "2026-11-02",
+      "2026-11-03",
+      "2026-11-04",
+      "2026-11-05",
+      "2026-11-06",
+      "2026-11-07",
+      "2026-11-08",
+    ]);
   });
 
   it("builds a Monday-first month", () => {
