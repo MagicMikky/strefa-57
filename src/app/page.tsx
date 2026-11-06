@@ -5,13 +5,19 @@ import { GalleryCoverflow } from "@/components/gallery-coverflow";
 import { Icon } from "@/components/icons";
 import { ButtonLink, Container, CtaBand, Eyebrow, FeatureCard, SectionHeading, TacticalMark } from "@/components/ui";
 import { galleryPhotos } from "@/data/gallery";
-import { attractions, audiences, eventTypeForAudience, faqItems, packages, visitSteps } from "@/data/site";
+import { audiences, eventTypeForAudience, visitSteps } from "@/data/site";
+import { attractionsForDisplay, packagesForDisplay } from "@/lib/content/model";
+import { getPublishedSiteCopy } from "@/lib/content/public";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const copy = await getPublishedSiteCopy();
+  const attractions = attractionsForDisplay(copy);
+  const packages = packagesForDisplay(copy);
+  const faqItems = copy.faq;
   return (
     <>
       <section className="home-hero">

@@ -230,6 +230,16 @@ model BusinessSettings {
   @@index([updatedAt])
 }
 
+model SiteContent {
+  id          String   @id
+  body        Json
+  version     Int      @default(1)
+  updatedAt   DateTime @updatedAt
+  updatedById String?
+
+  @@index([updatedAt])
+}
+
 model ContentRevision {
   id        String   @id
   entity    String

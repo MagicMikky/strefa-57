@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { InquiryForm } from "@/components/inquiry-form";
 import { Icon } from "@/components/icons";
 import { Container, PageHero } from "@/components/ui";
-import { packages } from "@/data/site";
+import { packagesForDisplay } from "@/lib/content/model";
+import { getPublishedSiteCopy } from "@/lib/content/public";
 
 export const metadata: Metadata = {
   title: "Zapytaj o wolny termin",
@@ -16,6 +17,7 @@ type InquiryPageProps = {
 
 export default async function InquiryPage({ searchParams }: InquiryPageProps) {
   const params = await searchParams;
+  const packages = packagesForDisplay(await getPublishedSiteCopy());
   return (
     <>
       <PageHero

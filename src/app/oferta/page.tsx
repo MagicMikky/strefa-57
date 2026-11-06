@@ -7,14 +7,15 @@ import {
   PageHero,
   SectionHeading,
 } from "@/components/ui";
-import { attractions, visitSteps } from "@/data/site";
+import { visitSteps } from "@/data/site";
+import { attractionsForDisplay } from "@/lib/content/model";
+import { getPublishedSiteCopy } from "@/lib/content/public";
 
-const metadataDescription =
-  "Poznaj teren Paintball Strefa 29 w Czaplach: okopy, bunkry, ambony, naturalne osłony, scenariusz z rakietą V2 oraz przebieg bezpiecznie prowadzonej wizyty.";
-
-export const metadata: Metadata = {
-  title: "Oferta i pole paintballowe",
-  description: metadataDescription,
+export async function generateMetadata(): Promise<Metadata> {
+  const copy = await getPublishedSiteCopy();
+  return {
+  title: copy.seo.oferta.title,
+  description: copy.seo.oferta.description,
   keywords: [
     "oferta paintball Gdańsk",
     "pole paintballowe Czaple",
@@ -29,15 +30,16 @@ export const metadata: Metadata = {
     type: "website",
     locale: "pl_PL",
     url: "/oferta",
-    title: "Oferta i teren gry — Paintball Strefa 29",
-    description: metadataDescription,
+    title: copy.seo.oferta.title,
+    description: copy.seo.oferta.description,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Oferta i teren gry — Paintball Strefa 29",
-    description: metadataDescription,
+    title: copy.seo.oferta.title,
+    description: copy.seo.oferta.description,
   },
-};
+  };
+}
 
 const v2Sequence = [
   {
@@ -98,7 +100,8 @@ const preparationTips = [
   },
 ] as const;
 
-export default function OfferPage() {
+export default async function OfferPage() {
+  const attractions = attractionsForDisplay(await getPublishedSiteCopy());
   return (
     <div className="offer-page">
       <PageHero
