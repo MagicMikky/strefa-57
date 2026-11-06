@@ -1,0 +1,259 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Better Auth tables. Field names match the library schema so customer
+// accounts can be added later without replacing this authenticator.
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  // Staff gate only: owner, manager, or employee. Sports and customer roles
+  // must not be stored here. See docs/STREFA29_LEAGUE_ROADMAP.md.
+  role          String    @default("member")
+  status        String    @default("active")
+  mfaEnrolled   Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  assignedInquiries Inquiry[]       @relation("AssignedInquiries")
+  notes             InquiryNote[]
+  inquiryHistory    InquiryHistory[]
+  staffAudits       StaffAudit[]
+  contentRevisions  ContentRevision[]
+  configChanges     ConfigChangeAudit[]
+
+  @@index([role, status])
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@index([expiresAt])
+}
+
+model Inquiry {
+  id                   String   @id
+  dedupeKey            String   @unique
+  contentHash          String
+  status               String   @default("new")
+  playerCount          Int
+  preferredDate        String
+  preferredTime        String
+  alternateDate        String
+  packageId            String
+  eventType            String
+  name                 String
+  preferredContact     String
+  phone                String
+  email                String
+  message              String
+  privacyAccepted      Boolean
+  privacyNoticeVersion String
+  assigneeId           String?
+  assignee             User?    @relation("AssignedInquiries", fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  notes                InquiryNote[]
+  history              InquiryHistory[]
+  notifications        NotificationOutbox[]
+
+  @@index([status, createdAt])
+  @@index([assigneeId])
+  @@index([createdAt])
+  @@index([email])
+}
+
+model InquiryNote {
+  id        String   @id
+  inquiryId String
+  inquiry   Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([inquiryId, createdAt])
+}
+
+model InquiryHistory {
+  id         String   @id
+  inquiryId  String
+  inquiry    Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action     String
+  fromStatus String?
+  toStatus   String?
+  createdAt  DateTime @default(now())
+
+  @@index([inquiryId, createdAt])
+  @@index([actorId, createdAt])
+}
+
+model NotificationOutbox {
+  id        String   @id
+  inquiryId String
+  inquiry   Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  channel   String   @default("email")
+  status    String   @default("pending")
+  attempts  Int      @default(0)
+  lastError String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([inquiryId])
+}
+
+model StaffAudit {
+  id        String   @id
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action    String
+  targetId  String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actorId])
+}
+
+// One row per slot: "draft" is private, "published" is the public snapshot.
+model BusinessProfile {
+  id              String   @id
+  tradeName       String
+  legalName       String   @default("")
+  taxId           String   @default("")
+  street          String
+  postalCode      String
+  city            String
+  region          String
+  country         String
+  dataController  String   @default("")
+  description     String
+  latitude        String?
+  longitude       String?
+  mapNote         String   @default("")
+  version         Int      @default(1)
+  updatedAt       DateTime @updatedAt
+  updatedById     String?
+
+  @@index([updatedAt])
+}
+
+model BusinessContact {
+  id           String   @id
+  phoneDisplay String
+  phoneHref    String   @default("")
+  emailDisplay String
+  emailHref    String   @default("")
+  hours        String
+  socialText   String   @default("")
+  directions   String
+  version      Int      @default(1)
+  updatedAt    DateTime @updatedAt
+  updatedById  String?
+
+  @@index([updatedAt])
+}
+
+model BusinessSettings {
+  id                    String   @id
+  maxPlayersPerTeam     Int
+  minTeamsPerMatch      Int
+  maxTeamsPerMatch      Int
+  maxPlayersPerSlot     Int
+  slotStartTimes        String
+  slotDurationMinutes   Int
+  slotBufferMinutes     Int
+  allowSharedSlot       Boolean
+  allowPrivateSlot      Boolean
+  equipmentSets         Int?
+  depositAmount         String?
+  privateSlotSurcharge  String?
+  paymentProvider       String?
+  cancellationPolicy    String?
+  commercialApproved    Boolean  @default(false)
+  version               Int      @default(1)
+  updatedAt             DateTime @updatedAt
+  updatedById           String?
+
+  @@index([updatedAt])
+}
+
+model ContentRevision {
+  id        String   @id
+  entity    String
+  version   Int
+  status    String
+  snapshot  Json
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  @@index([entity, createdAt])
+  @@index([actorId])
+}
+
+model ConfigChangeAudit {
+  id        String   @id
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  entity    String
+  action    String
+  before    Json?
+  after     Json
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actorId])
+}

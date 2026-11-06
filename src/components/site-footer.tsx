@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { Logo } from "@/components/logo";
-import { formatAddress, mainNavigation, siteConfig } from "@/data/site";
+import { mainNavigation } from "@/data/site";
+import { formatBusinessAddress, type BusinessBundle } from "@/lib/business/model";
 
-export function SiteFooter() {
+export function SiteFooter({ business }: { business: BusinessBundle }) {
   return (
     <footer className="site-footer">
       <div className="site-footer__paint" aria-hidden="true" />
@@ -34,13 +35,16 @@ export function SiteFooter() {
         </div>
         <div className="site-footer__contact">
           <p className="footer-title">Kontakt</p>
-          <p><Icon name="map" width={19} height={19} /> {formatAddress()}</p>
-          <p><Icon name="clock" width={19} height={19} /> {siteConfig.contact.hours}</p>
+          <p><Icon name="map" width={19} height={19} /> {formatBusinessAddress(business.profile)}</p>
+          <p><Icon name="clock" width={19} height={19} /> {business.contact.hours}</p>
+          {business.contact.phoneHref ? (
+            <p><a href={business.contact.phoneHref}>{business.contact.phoneDisplay}</a></p>
+          ) : null}
           <Link className="footer-route" href="/kontakt">Dane kontaktowe <Icon name="arrow" width={17} height={17} /></Link>
         </div>
       </div>
       <div className="container site-footer__bottom">
-        <p>© {new Date().getFullYear()} Paintball Strefa 29</p>
+        <p>© {new Date().getFullYear()} {business.profile.tradeName}</p>
         <p className="site-footer__notice">Zapytanie online nie jest potwierdzeniem terminu.</p>
         <div>
           <Link href="/polityka-prywatnosci">Prywatność</Link>

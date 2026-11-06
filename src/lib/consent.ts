@@ -8,8 +8,8 @@ export type ConsentPreferences = {
 
 export type AnalyticsEventName =
   | "inquiry_start"
-  | "inquiry_submit_success"
-  | "inquiry_submit_error"
+  | "inquiry_submit"
+  | "inquiry_error"
   | "contact_phone_click"
   | "contact_email_click"
   | "directions_click"

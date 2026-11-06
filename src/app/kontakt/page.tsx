@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { InfoNotice } from "@/components/content";
 import { Icon } from "@/components/icons";
 import { MapEmbed } from "@/components/map-embed";
 import { ButtonLink, Container, CtaBand, PageHero, SectionHeading } from "@/components/ui";
-import { formatAddress, siteConfig } from "@/data/site";
+import { formatBusinessAddress } from "@/lib/business/model";
+import { getPublicBusiness } from "@/lib/business/public";
 
 export const metadata: Metadata = {
   title: "Kontakt",
@@ -11,9 +11,14 @@ export const metadata: Metadata = {
   alternates: { canonical: "/kontakt" },
 };
 
-export default function ContactPage() {
-  const phoneReady = Boolean(siteConfig.contact.phoneHref);
-  const emailReady = Boolean(siteConfig.contact.emailHref);
+export default async function ContactPage() {
+  const business = await getPublicBusiness();
+  const phoneReady = Boolean(business.contact.phoneHref);
+  const emailReady = Boolean(business.contact.emailHref);
+  const address = formatBusinessAddress(business.profile);
+  const mapQuery = business.profile.latitude && business.profile.longitude
+    ? `${business.profile.latitude},${business.profile.longitude}`
+    : address;
 
   return (
     <>
@@ -30,10 +35,10 @@ export default function ContactPage() {
         <Container>
           <SectionHeading
             eyebrow="Wybierz wygodną drogę"
-            title="Zapytanie online albo kontakt bezpośredni."
-            body="Wersja 1.0 nie pokazuje dostępności na żywo. Każdy termin i końcową cenę potwierdza obsługa."
+            title="Najpierw formularz."
+            body="Terminu nie da się zarezerwować samodzielnie. Podaj datę i wielkość grupy, a obsługa wróci z ceną i dalszymi krokami."
           />
-          <div className="contact-grid">
+          <div className={phoneReady || emailReady ? "contact-grid" : "contact-grid contact-grid--single"}>
             <article className="contact-card contact-card--primary">
               <span><Icon name="calendar" width={27} height={27} /></span>
               <p className="contact-card__eyebrow">Najwięcej informacji od razu</p>
@@ -41,26 +46,24 @@ export default function ContactPage() {
               <p>Podaj datę, liczbę graczy i rodzaj wydarzenia. Formularz nie blokuje miejsca.</p>
               <ButtonLink href="/zapytaj-o-termin" variant="light">Przejdź do formularza</ButtonLink>
             </article>
-            <article className="contact-card">
-              <span><Icon name="phone" width={27} height={27} /></span>
-              <p className="contact-card__eyebrow">Telefon</p>
-              <h2>{siteConfig.contact.phoneDisplay}</h2>
-              <p>{siteConfig.contact.hours}. Numer musi zostać potwierdzony przez właściciela przed uruchomieniem.</p>
-              {phoneReady ? <a className="text-link" href={siteConfig.contact.phoneHref}>Zadzwoń <Icon name="arrow" width={18} height={18} /></a> : <span className="contact-card__pending">Dane oczekują na zatwierdzenie</span>}
-            </article>
-            <article className="contact-card">
-              <span><Icon name="mail" width={27} height={27} /></span>
-              <p className="contact-card__eyebrow">E-mail</p>
-              <h2>{siteConfig.contact.emailDisplay}</h2>
-              <p>Adres publiczny i skrzynka odbierająca formularz muszą należeć do firmy.</p>
-              {emailReady ? <a className="text-link" href={siteConfig.contact.emailHref}>Napisz e-mail <Icon name="arrow" width={18} height={18} /></a> : <span className="contact-card__pending">Dane oczekują na zatwierdzenie</span>}
-            </article>
-          </div>
-
-          <div className="content-spacer">
-            <InfoNotice title="Dane kontaktowe są blockerem publikacji">
-              Nie udało się potwierdzić oficjalnego telefonu, e-maila ani godzin kontaktu. Aplikacja celowo nie publikuje danych innej firmy ani wartości przykładowych.
-            </InfoNotice>
+            {phoneReady ? (
+              <article className="contact-card">
+                <span><Icon name="phone" width={27} height={27} /></span>
+                <p className="contact-card__eyebrow">Telefon</p>
+                <h2>{business.contact.phoneDisplay}</h2>
+                <p>{business.contact.hours}.</p>
+                <a className="text-link" href={business.contact.phoneHref}>Zadzwoń <Icon name="arrow" width={18} height={18} /></a>
+              </article>
+            ) : null}
+            {emailReady ? (
+              <article className="contact-card">
+                <span><Icon name="mail" width={27} height={27} /></span>
+                <p className="contact-card__eyebrow">E-mail</p>
+                <h2>{business.contact.emailDisplay}</h2>
+                <p>Napisz, jeśli wolisz ustalić szczegóły mailowo.</p>
+                <a className="text-link" href={business.contact.emailHref}>Napisz e-mail <Icon name="arrow" width={18} height={18} /></a>
+              </article>
+            ) : null}
           </div>
         </Container>
       </section>
@@ -68,14 +71,14 @@ export default function ContactPage() {
       <section className="section section--cream">
         <Container className="contact-location">
           <div>
-            <SectionHeading eyebrow="Lokalizacja z planu" title={formatAddress()} body="Dokładny punkt wjazdu i powiązanie adresu z polem wymagają ostatecznego potwierdzenia właściciela." />
+            <SectionHeading eyebrow="Adres" title={address} body={business.contact.directions} />
             <ul className="contact-facts">
-              <li><Icon name="map" width={21} height={21} /><span><strong>Adres</strong>{formatAddress()}</span></li>
-              <li><Icon name="route" width={21} height={21} /><span><strong>Wskazówka</strong>Okolice ul. Do Strzelenki — dokładny wjazd do potwierdzenia</span></li>
+              <li><Icon name="map" width={21} height={21} /><span><strong>Adres</strong>{address}</span></li>
+              <li><Icon name="route" width={21} height={21} /><span><strong>Wskazówka</strong>Okolice ul. Do Strzelenki. Ostatni zjazd dostaniesz z potwierdzeniem terminu.</span></li>
               <li><Icon name="clock" width={21} height={21} /><span><strong>Przyjazd</strong>Godzinę zbiórki potwierdzi obsługa</span></li>
             </ul>
           </div>
-          <MapEmbed />
+          <MapEmbed query={mapQuery} />
         </Container>
       </section>
       <CtaBand />

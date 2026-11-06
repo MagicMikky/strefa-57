@@ -1,5 +1,11 @@
 # Paintball Strefa 29 — plan rozbudowy strony do wersji 2.0
 
+> **Zakres historyczny tego pliku.** Opisuje pierwotny silnik rezerwacji gościnnej. Od 6 listopada 2026 plan nadrzędny jest w `docs/STREFA29_NOWA_ROADMAPA_I_PLAN_WERSJI_2026-11-06.md`, a rejestr w `docs/STREFA29_REJESTR_DECYZJI_DO_USTALENIA.md`.
+>
+> Bez zmian zostaje samo v2.0: rezerwacja gościnna, kalendarz i płatność, bez konta klienta. Konta klientów, wcześniej opisane jako funkcja poza produktem, są teraz wersją 2.1. Rozbudowany CMS, wcześniej poza v2.0, jest wersją 1.5B i powstaje przed rezerwacjami. Drużyny, rankingi i liga są wersjami 2.2, 2.3 i 3.0.
+>
+> Wartości startowe U-01–U-10 zastępują brak liczb dla pojemności i harmonogramu. Są seedem edytowalnym w przyszłym panelu, nie stałą w kodzie. Ceny, zadatek, dopłata prywatna, anulowanie, zwroty, operator płatności i liczba zestawów zostają OTWARTE.
+
 ## 1. Status i przeznaczenie dokumentu
 
 | Pole | Wartość |
@@ -722,7 +728,7 @@ Wersja 2.0 jest gotowa, gdy:
 - cykliczne wydarzenia i konta firmowe;
 - marketplace dodatkowych usług.
 
-Funkcje te wymagają oddzielnego priorytetyzowania po analizie danych z produkcyjnej wersji 2.0.
+Konta klientów i rozbudowany CMS są w tym akapicie zakresem historycznym. Plan nadrzędny przenosi CMS do 1.5B, a konta klientów do 2.1. Pozostałe punkty listy nadal nie należą do v2.0 i wymagają osobnej decyzji po danych z produkcji.
 
 ## 17. Rejestr decyzji
 
@@ -734,16 +740,16 @@ Statusy: `ZATWIERDZONE`, `OTWARTE`, `ZABLOKOWANE`.
 | V2-02 | Model płatności | właściciel produktu | zakończone | ZATWIERDZONE | stały zadatek; kwota pozostaje do zatwierdzenia |
 | V2-03 | Kanał potwierdzeń | właściciel produktu | zakończone | ZATWIERDZONE | e-mail; SMS poza zakresem |
 | V2-04 | Harmonogram projektu | właściciel produktu | zakończone | ZATWIERDZONE | etapy i bramki bez sztywnych dat przed estymacją |
-| V2-05 | Minimalna i maksymalna grupa | właściciel firmy | przed Etapem 1 | OTWARTE | zatwierdzone wartości i wyjątki |
-| V2-06 | Pojemność graczy, grup, sprzętu i obsługi | właściciel operacyjny | przed Etapem 1 | OTWARTE | kompletna macierz pojemności |
-| V2-07 | Czas gry, odprawa i bufory | właściciel operacyjny | przed Etapem 1 | OTWARTE | czasy dla każdego pakietu |
-| V2-08 | Łączenie grup i wyłączność pola | właściciel firmy | przed Etapem 1 | OTWARTE | jednoznaczne reguły dostępności |
-| V2-09 | Godziny, wyjątki, wyprzedzenie i horyzont | właściciel operacyjny | przed Etapem 1 | OTWARTE | reguły generowania slotów |
+| V2-05 | Minimalna i maksymalna grupa | właściciel firmy | przed Etapem 1 | HISTORYCZNE / PATRZ U-01 | start: 8 graczy w drużynie; jedna rezerwacja online to jedna drużyna, dopóki D-20 jest OTWARTE |
+| V2-06 | Pojemność graczy, grup, sprzętu i obsługi | właściciel operacyjny | przed Etapem 1 | CZĘŚCIOWO USTALONE | start: 32 graczy i 2–4 drużyny na slot (U-02, U-03); sprzęt i obsada nadal OTWARTE (D-14, D-15) |
+| V2-07 | Czas gry, odprawa i bufory | właściciel operacyjny | przed Etapem 1 | CZĘŚCIOWO USTALONE | start: 120 minut gry i 60 minut przerwy (U-05); czas zależny od pakietu nadal OTWARTY |
+| V2-08 | Łączenie grup i wyłączność pola | właściciel firmy | przed Etapem 1 | CZĘŚCIOWO USTALONE | slot współdzielony i prywatny (U-06, U-07); dopłata, minimum drużyn i zakres wyłączności nadal OTWARTE (D-09, D-21, D-22) |
+| V2-09 | Godziny, wyjątki, wyprzedzenie i horyzont | właściciel operacyjny | przed Etapem 1 | CZĘŚCIOWO USTALONE | start: 08:00, 11:00, 14:00 (U-04); sezon, wyprzedzenie i horyzont nadal OTWARTE (D-16, D-17) |
 | V2-10 | Kwota stałego zadatku i saldo | właściciel firmy i księgowość | przed Etapem 1 | OTWARTE | kwota PLN, wyjątki i sposób dopłaty |
 | V2-11 | Anulowanie, zmiana, no-show i pogoda | właściciel firmy i doradca prawny | przed Etapem 1 | OTWARTE | reguły wraz z terminami i zwrotami |
 | V2-12 | Operator płatności | właściciel firmy i wykonawca | przed Etapem 1 | OTWARTE | umowa, sandbox, webhooki, zwroty i rekonsyliacja |
 | V2-13 | Dostawca kolejki i topologia hostingu | wykonawca | przed Etapem 1 | OTWARTE | trwały worker, scheduler, pooling i region |
-| V2-14 | Dostawca uwierzytelniania panelu | wykonawca i właściciel bezpieczeństwa | przed Etapem 1 | OTWARTE | MFA, zaproszenia, sesje i role |
+| V2-14 | Dostawca uwierzytelniania panelu | wykonawca i właściciel bezpieczeństwa | przed Etapem 1 | HISTORYCZNE | 1.5A w PR #13 używa Better Auth; MFA, zaproszenia i pełna macierz ról nadal OTWARTE (D-27, D-28) |
 | V2-15 | Role i macierz uprawnień | właściciel operacyjny | przed Etapem 4 | OTWARTE | uprawnienia pracownika i administratora |
 | V2-16 | Źródło istniejących terminów i właściciel importu | właściciel operacyjny | przed Etapem 5 | OTWARTE | komplet źródeł i podpisany bilans |
 | V2-17 | RPO, RTO i retencja kopii | właściciel firmy i wykonawca | przed Etapem 5 | OTWARTE | wartości, odpowiedzialność i harmonogram testów |

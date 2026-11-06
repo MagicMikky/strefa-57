@@ -1,10 +1,12 @@
 # Paintball Strefa 29 — instrukcje dla agenta
 
-To repozytorium jest stroną marketingową wersji 1.0. Nie dodawaj kont klientów, rezerwacji, płatności ani bazy danych, dopóki właściciel nie zatwierdzi etapu 2.0.
+To repozytorium jest stroną marketingową 1.0 oraz rozpoczętym panelem 1.5A. Plan nadrzędny jest w `docs/STREFA29_NOWA_ROADMAPA_I_PLAN_WERSJI_2026-11-06.md`, a niezatwierdzone wartości w `docs/STREFA29_REJESTR_DECYZJI_DO_USTALENIA.md` i `docs/open-decisions.md`.
+
+Nie implementuj CMS 1.5B, rezerwacji, płatności, kont klientów, drużyn, rankingów ani ligi, dopóki właściciel nie wskaże konkretnej wersji. Nie wymyślaj cen, zadatku, dopłaty, zasad zwrotu, operatora płatności ani liczby zestawów. Nie cofaj logowania pracowników ani skrzynki zgłoszeń z PR #13.
 
 ## Zanim zmienisz kod
 
-- Przeczytaj `strona1_0.md`, `strona2_0.md` i `.cursor/rules/`.
+- Przeczytaj `strona1_0.md`, `strona2_0.md`, plan nadrzędny i `.cursor/rules/`.
 - Nie wymyślaj nazwy firmy, telefonu, e-maila, cen, opinii, zdjęć, wieku uczestników ani regulaminów.
 - Nie wdrażaj na produkcję i nie scalaj zmian bez wyraźnej zgody.
 - Sekrety zostają poza repozytorium. W `.env.example` są tylko nazwy zmiennych.
@@ -15,7 +17,7 @@ Po zmianie logiki uruchom `npm run typecheck`, `npm run lint`, `npm test` i `npm
 
 ## Etap 2.0
 
-Architektura rezerwacji i płatności jest opisana tylko w `strona2_0.md` oraz w skillu `booking-payments-reliability`. Nie implementuj jej w ramach prac nad 1.0.
+Architektura rezerwacji i płatności jest w `strona2_0.md` oraz w skillu `booking-payments-reliability`. Kolejność wersji i wartości startowe pojemności są w planie nadrzędnym. Nie implementuj rezerwacji w ramach prac nad 1.0 ani 1.5A.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

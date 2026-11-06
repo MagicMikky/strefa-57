@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { CookieConsent } from "@/components/cookie-consent";
 import { getSiteUrl, siteConfig } from "@/data/site";
+import { getPublicBusiness } from "@/lib/business/public";
 import { searchRobots } from "@/lib/seo";
 import "./globals.css";
 
@@ -43,20 +44,23 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  const business = await getPublicBusiness();
   const localBusiness = {
     "@context": "https://schema.org",
     "@type": "SportsActivityLocation",
-    name: siteConfig.name,
-    description: siteConfig.description,
+    name: business.profile.tradeName,
+    description: business.profile.description,
     url: siteUrl,
+    ...(business.contact.phoneHref ? { telephone: business.contact.phoneDisplay } : {}),
+    ...(business.contact.emailHref ? { email: business.contact.emailDisplay } : {}),
     address: {
       "@type": "PostalAddress",
-      streetAddress: siteConfig.address.street,
-      postalCode: siteConfig.address.postalCode,
-      addressLocality: siteConfig.address.city,
-      addressRegion: siteConfig.address.region,
-      addressCountry: siteConfig.address.country,
+      streetAddress: business.profile.street,
+      postalCode: business.profile.postalCode,
+      addressLocality: business.profile.city,
+      addressRegion: business.profile.region,
+      addressCountry: business.profile.country,
     },
   };
 
@@ -64,9 +68,9 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     <html lang="pl">
       <body>
         <a className="skip-link" href="#main-content">Przejdź do treści</a>
-        <SiteHeader />
+        <SiteHeader addressLabel={`${business.profile.street}, ${business.profile.city}`} />
         <main id="main-content">{children}</main>
-        <SiteFooter />
+        <SiteFooter business={business} />
         <CookieConsent />
         <script
           type="application/ld+json"

@@ -2,6 +2,7 @@
 
 import {
   useMemo,
+  useRef,
   useState,
   type FormEvent,
   type ReactNode,
@@ -187,6 +188,13 @@ export function InquiryForm({
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const inquiryStarted = useRef(false);
+
+  function handleInquiryStart() {
+    if (inquiryStarted.current) return;
+    inquiryStarted.current = true;
+    trackEvent("inquiry_start");
+  }
 
   const today = getWarsawDate();
   const minimumPreferredDate = tomorrowInWarsaw();
@@ -215,7 +223,7 @@ export function InquiryForm({
 
     const clientValidation = validateInquiry(payload);
     if (!clientValidation.ok) {
-      trackEvent("inquiry_submit_error", { stage: "validation" });
+      trackEvent("inquiry_error", { stage: "validation" });
       setFieldErrors(clientValidation.fieldErrors);
       setStatus({ kind: "error", message: clientValidation.message });
       requestAnimationFrame(() =>
@@ -239,7 +247,7 @@ export function InquiryForm({
       const rawResponse: unknown = await response.json().catch(() => null);
 
       if (!isInquiryApiResponse(rawResponse)) {
-        trackEvent("inquiry_submit_error", { stage: "response", status: response.status });
+        trackEvent("inquiry_error", { stage: "response", status: response.status });
         setStatus({
           kind: "error",
           message:
@@ -253,7 +261,7 @@ export function InquiryForm({
           "fieldErrors" in rawResponse && rawResponse.fieldErrors
             ? rawResponse.fieldErrors
             : {};
-        trackEvent("inquiry_submit_error", { stage: "server", status: response.status });
+        trackEvent("inquiry_error", { stage: "server", status: response.status });
         setFieldErrors(serverErrors);
         setStatus({ kind: "error", message: rawResponse.message });
         requestAnimationFrame(() =>
@@ -262,13 +270,13 @@ export function InquiryForm({
         return;
       }
 
-      trackEvent("inquiry_submit_success", { status: response.status });
+      trackEvent("inquiry_submit", { status: response.status });
       form.reset();
       setPreferredContact("email");
       setFieldErrors({});
       setStatus({ kind: "success", message: rawResponse.message });
     } catch {
-      trackEvent("inquiry_submit_error", { stage: "network" });
+      trackEvent("inquiry_error", { stage: "network" });
       setStatus({
         kind: "error",
         message:
@@ -299,6 +307,7 @@ export function InquiryForm({
         className="grid gap-6"
         method="post"
         noValidate
+        onFocus={handleInquiryStart}
         onSubmit={handleSubmit}
       >
         <FormSection legend="Planowana gra">

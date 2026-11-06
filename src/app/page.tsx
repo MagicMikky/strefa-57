@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FaqList, MissionPanel, NumberedSteps, PackageCard } from "@/components/content";
+import { GalleryCoverflow } from "@/components/gallery-coverflow";
 import { Icon } from "@/components/icons";
 import { ButtonLink, Container, CtaBand, Eyebrow, FeatureCard, SectionHeading, TacticalMark } from "@/components/ui";
+import { galleryPhotos } from "@/data/gallery";
 import { attractions, audiences, eventTypeForAudience, faqItems, packages, visitSteps } from "@/data/site";
 
 export const metadata: Metadata = {
@@ -53,6 +55,20 @@ export default function HomePage() {
         </Container>
       </section>
 
+      <section className="section section--sand">
+        <Container>
+          <div className="heading-row">
+            <SectionHeading
+              eyebrow="Poznaj Strefę 29"
+              title="Zobacz teren, zanim zapytasz o termin."
+              body="Okopy, drewniana osłona i rakieta V2. W tych kadrach nie ma zawodników."
+            />
+            <Link className="text-link" href="/galeria">Zobacz całą galerię <Icon name="arrow" width={18} height={18} /></Link>
+          </div>
+          <GalleryCoverflow photos={galleryPhotos} />
+        </Container>
+      </section>
+
       <section className="section section--dark mission-section">
         <Container className="split split--mission">
           <div>
@@ -78,13 +94,13 @@ export default function HomePage() {
           <SectionHeading
             eyebrow="Wybierz poziom wejścia"
             title="Pakiet dopasowany do tempa ekipy."
-            body="Poniższe warianty pokazują planowaną strukturę oferty. Końcową zawartość, ceny i dostępność dodatków potwierdzi obsługa przed uzgodnieniem wizyty."
+            body="Warianty opisują charakter gry. Zawartość, cenę i dodatki potwierdzi obsługa przed wizytą."
             align="center"
           />
           <div className="package-grid">
             {packages.map((item) => <PackageCard key={item.id} item={item} />)}
           </div>
-          <p className="section-footnote">Cennik jest obecnie przygotowywany do zatwierdzenia. Strona nie pobiera płatności online.</p>
+          <p className="section-footnote">Cenę ustala obsługa po zapytaniu. Strona nie pobiera płatności online.</p>
         </Container>
       </section>
 
