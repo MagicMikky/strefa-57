@@ -274,6 +274,23 @@ model ContentRevision {
   @@index([actorId])
 }
 
+// Anonymous capacity lock. It stores no guest name, contact, price, or payment.
+// A hold is ignored as soon as expiresAt passes. Nothing creates one until the
+// owner approves a duration.
+model CapacityHold {
+  id              String   @id
+  idempotencyKey  String   @unique
+  date            String
+  slot            String
+  players         Int
+  teams           Int
+  privateSlot     Boolean
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+
+  @@index([date, slot, expiresAt])
+}
+
 model ConfigChangeAudit {
   id        String   @id
   actorId   String?

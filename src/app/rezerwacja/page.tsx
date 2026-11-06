@@ -4,6 +4,7 @@ import { AvailabilityCalendar } from "@/components/availability-calendar";
 import { Container, PageHero } from "@/components/ui";
 import { warsawDate } from "@/lib/availability/model";
 import { getPublicBusiness } from "@/lib/business/public";
+import { getPublicCapacityHolds } from "@/lib/holds/public";
 import { getPublishedSchedule } from "@/lib/schedule/public";
 
 export const metadata: Metadata = {
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AvailabilityPage() {
-  const [business, schedule] = await Promise.all([getPublicBusiness(), getPublishedSchedule()]);
+  const [business, schedule, capacity] = await Promise.all([getPublicBusiness(), getPublishedSchedule(), getPublicCapacityHolds()]);
   const { settings } = business;
   return (
     <>
@@ -25,6 +26,8 @@ export default async function AvailabilityPage() {
       <section className="section">
         <Container>
           <AvailabilityCalendar
+            capacityKnown={capacity.known}
+            holds={capacity.holds}
             schedule={schedule}
             settings={{
               maxPlayersPerTeam: settings.maxPlayersPerTeam,
