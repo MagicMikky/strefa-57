@@ -56,6 +56,8 @@ export default async function InquiryPage({ searchParams }: InquiryPageProps) {
               initialDate={/^\d{4}-\d{2}-\d{2}$/.test(params.data ?? "") ? params.data : undefined}
               initialPlayers={initialPlayers}
               initialMessage={initialMessage || undefined}
+              initialPreferredTime={slot}
+              slotStarts={business.settings.slotStartTimes}
             />
           </div>
         </Container>

@@ -178,6 +178,15 @@ describe("validateInquiry", () => {
     }
   });
 
+  it("accepts a published slot start and still rejects an unlisted time", () => {
+    const starts = ["08:00", "11:00", "14:00"];
+    const accepted = validateInquiry({ ...validPayload(), preferredTime: "11:00" }, now, starts);
+    const rejected = validateInquiry({ ...validPayload(), preferredTime: "11:15" }, now, starts);
+    expect(accepted.ok).toBe(true);
+    if (accepted.ok) expect(accepted.data.preferredTime).toBe("11:00");
+    expect(rejected.ok).toBe(false);
+  });
+
   it("rejects invalid enums, package identifiers and control characters", () => {
     const result = validateInquiry(
       {

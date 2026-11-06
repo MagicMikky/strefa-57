@@ -38,6 +38,8 @@ export interface InquiryFormProps {
   initialDate?: string;
   initialPlayers?: number;
   initialMessage?: string;
+  initialPreferredTime?: string;
+  slotStarts?: readonly string[];
 }
 
 type FormStatus =
@@ -150,6 +152,8 @@ export function InquiryForm({
   initialDate,
   initialPlayers,
   initialMessage,
+  initialPreferredTime,
+  slotStarts = [],
 }: InquiryFormProps) {
   const packageOptions = useMemo(() => {
     const unique = new Map<string, InquiryPackageOption>();
@@ -177,6 +181,15 @@ export function InquiryForm({
     (item) => item.value === normalizedEventType,
   )
     ? normalizedEventType
+    : "";
+  const timeOptions = [
+    ...preferredTimeOptions,
+    ...slotStarts
+      .filter((start) => /^\d{2}:\d{2}$/.test(start) && !preferredTimeOptions.some((option) => option.value === start))
+      .map((start) => ({ value: start, label: `Slot ${start}` })),
+  ];
+  const selectedInitialTime = timeOptions.some((option) => option.value === initialPreferredTime)
+    ? initialPreferredTime
     : "";
 
   const [preferredContact, setPreferredContact] =
@@ -219,7 +232,7 @@ export function InquiryForm({
       website: asString(formData.get("website")),
     };
 
-    const clientValidation = validateInquiry(payload);
+    const clientValidation = validateInquiry(payload, new Date(), slotStarts);
     if (!clientValidation.ok) {
       trackEvent("inquiry_error", { stage: "validation" });
       setFieldErrors(clientValidation.fieldErrors);
@@ -393,12 +406,12 @@ export function InquiryForm({
               aria-describedby={describedBy("preferredTime", fieldErrors)}
               aria-invalid={Boolean(fieldErrors.preferredTime)}
               className={inputClassName}
-              defaultValue=""
+              defaultValue={selectedInitialTime}
               disabled={isSubmitting}
               id="inquiry-preferred-time"
               name="preferredTime"
             >
-              {preferredTimeOptions.map((option) => (
+              {timeOptions.map((option) => (
                 <option key={option.value || "empty"} value={option.value}>
                   {option.label}
                 </option>
