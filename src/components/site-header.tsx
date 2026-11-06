@@ -27,6 +27,11 @@ export function SiteHeader() {
       </div>
       <div className="site-header__main container">
         <Logo />
+        <div className="coordinate-tag">
+          <span>54°N</span>
+          <span>18°E</span>
+          <strong>STREFA 29</strong>
+        </div>
         <nav className="desktop-nav" aria-label="Główna nawigacja">
           {mainNavigation.map((item) => (
             <Link key={item.href} href={item.href} aria-current={pathname === item.href ? "page" : undefined}>

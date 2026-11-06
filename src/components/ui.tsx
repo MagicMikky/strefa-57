@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/components/icons";
@@ -106,14 +107,7 @@ export function PageHero({
 export function TacticalMark({ compact = false }: { compact?: boolean }) {
   return (
     <div className={`tactical-mark${compact ? " tactical-mark--compact" : ""}`} aria-hidden="true">
-      <div className="tactical-mark__ring tactical-mark__ring--outer" />
-      <div className="tactical-mark__ring tactical-mark__ring--inner" />
-      <div className="tactical-mark__cross tactical-mark__cross--h" />
-      <div className="tactical-mark__cross tactical-mark__cross--v" />
-      <span>29</span>
-      <i className="splash splash--one" />
-      <i className="splash splash--two" />
-      <i className="splash splash--three" />
+      <Image src="/logo.png" alt="" width={1254} height={1254} />
     </div>
   );
 }

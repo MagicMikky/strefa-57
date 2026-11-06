@@ -1,14 +1,16 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export function Logo({ light = false }: { light?: boolean }) {
   return (
     <Link className={`logo${light ? " logo--light" : ""}`} href="/">
-      <span className="logo__mark" aria-hidden="true">29</span>
-      <span className="logo__words">
-        <strong>STREFA</strong>
-        <small>PAINTBALL · CZAPLE</small>
-      </span>
-      <span className="sr-only">strona główna</span>
+      <Image
+        src="/logo.png"
+        alt="Paintball Strefa 29"
+        width={1254}
+        height={1254}
+        priority={!light}
+      />
     </Link>
   );
 }

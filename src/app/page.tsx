@@ -3,7 +3,7 @@ import Link from "next/link";
 import { FaqList, MissionPanel, NumberedSteps, PackageCard } from "@/components/content";
 import { Icon } from "@/components/icons";
 import { ButtonLink, Container, CtaBand, Eyebrow, FeatureCard, SectionHeading, TacticalMark } from "@/components/ui";
-import { attractions, audiences, eventTypeForAudience, faqItems, packages, stats, visitSteps } from "@/data/site";
+import { attractions, audiences, eventTypeForAudience, faqItems, packages, visitSteps } from "@/data/site";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -29,25 +29,7 @@ export default function HomePage() {
           </div>
           <div className="home-hero__visual">
             <TacticalMark />
-            <div className="coordinate-tag"><span>54°N</span><span>18°E</span><strong>STREFA 29</strong></div>
           </div>
-        </Container>
-        <div className="hero-ticker" aria-label="Najważniejsze elementy pola">
-          <div>
-            <span>OKOPY</span><i />
-            <span>BUNKRY</span><i />
-            <span>RAKIETA V2</span><i />
-            <span>AMBONY</span><i />
-            <span>TEREN 1+ HA</span><i />
-            <span>OKOPY</span><i />
-            <span>BUNKRY</span>
-          </div>
-        </div>
-      </section>
-
-      <section className="stats-strip" aria-label="Strefa 29 w liczbach">
-        <Container className="stats-strip__grid">
-          {stats.map((stat) => <div key={stat.label}><strong>{stat.value}</strong><span>{stat.label}</span></div>)}
         </Container>
       </section>
 
