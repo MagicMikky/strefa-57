@@ -6,18 +6,32 @@ import { fallbackBusiness } from "@/lib/business/model";
 import { readPublicBusiness } from "@/lib/business/public";
 import { publishCompanyDraft, readPublished, saveCompanyDraft } from "@/lib/business/store";
 
+interface MemoryTable {
+  findUnique(args: { where: { id: string } }): Promise<Record<string, unknown> | null>;
+  upsert(args: { where: { id: string }; create: Record<string, unknown>; update: Record<string, unknown> }): Promise<Record<string, unknown>>;
+}
+
+interface MemoryDatabase {
+  businessProfile: MemoryTable;
+  businessContact: MemoryTable;
+  businessSettings: MemoryTable;
+  contentRevision: { create(args: { data: Record<string, unknown> }): Promise<void> };
+  configChangeAudit: { create(args: { data: Record<string, unknown> }): Promise<void> };
+  $transaction(run: (client: MemoryDatabase) => Promise<void>): Promise<void>;
+}
+
 function memoryDatabase() {
   const rows = new Map<string, Map<string, Record<string, unknown>>>();
   const revisions: Array<Record<string, unknown>> = [];
   const audits: Array<Record<string, unknown>> = [];
   for (const name of ["profile", "contact", "settings"]) rows.set(name, new Map());
 
-  function table(name: string) {
+  function table(name: string): MemoryTable {
     return {
-      async findUnique({ where }: { where: { id: string } }) {
+      async findUnique({ where }) {
         return rows.get(name)?.get(where.id) ?? null;
       },
-      async upsert({ where, create, update }: { where: { id: string }; create: Record<string, unknown>; update: Record<string, unknown> }) {
+      async upsert({ where, create, update }) {
         const current = rows.get(name)?.get(where.id);
         const next = current ? { ...current, ...update } : create;
         rows.get(name)?.set(where.id, next);
@@ -26,13 +40,13 @@ function memoryDatabase() {
     };
   }
 
-  const db = {
+  const db: MemoryDatabase = {
     businessProfile: table("profile"),
     businessContact: table("contact"),
     businessSettings: table("settings"),
-    contentRevision: { async create({ data }: { data: Record<string, unknown> }) { revisions.push(data); } },
-    configChangeAudit: { async create({ data }: { data: Record<string, unknown> }) { audits.push(data); } },
-    async $transaction(run: (client: typeof db) => Promise<void>) {
+    contentRevision: { async create({ data }) { revisions.push(data); } },
+    configChangeAudit: { async create({ data }) { audits.push(data); } },
+    async $transaction(run) {
       await run(db);
     },
   };
