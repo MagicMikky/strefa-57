@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
+    "postinstall": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:generate": "prisma generate",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
@@ -16,7 +19,10 @@
     "lhci": "lhci autorun"
   },
   "dependencies": {
+    "@prisma/client": "6.19.3",
+    "better-auth": "1.7.18",
     "next": "16.4.5",
+    "pg": "8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
@@ -31,11 +37,17 @@
     "@vitest/coverage-v8": "5.1.0",
     "eslint": "9.39.5",
     "eslint-config-next": "16.4.5",
+    "prisma": "6.19.3",
     "tailwindcss": "4.3.3",
     "typescript": "5.9.3",
     "vitest": "5.1.0"
   },
   "engines": {
     "node": ">=22.12.0"
+  },
+  "allowScripts": {
+    "prisma@6.19.3": true,
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true
   }
 }

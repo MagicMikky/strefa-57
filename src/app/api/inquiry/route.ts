@@ -4,29 +4,24 @@ import { NextResponse } from "next/server";
 
 import {
   INQUIRY_SUCCESS_MESSAGE,
-  PRIVACY_NOTICE_VERSION,
-  eventTypeOptions,
-  optionLabel,
-  preferredContactOptions,
-  preferredTimeOptions,
   type InquiryApiResponse,
-  type ValidInquiry,
   validateInquiry,
 } from "@/lib/inquiry";
+import { dispatchInquiryNotification } from "@/lib/inquiries/dispatch";
+import { getRateLimitSalt } from "@/lib/inquiries/email";
+import {
+  InquiryConflictError,
+  inquiryContentHash,
+  inquiryFromPayload,
+  resolveDedupeKey,
+} from "@/lib/inquiries/model";
+import { getInquiryRepository } from "@/lib/inquiries/repository";
 import { consumeInquiryRateLimit, rateLimitSettings } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const MAX_BODY_BYTES = 16_384;
-
-interface EmailConfig {
-  apiKey: string;
-  to: string;
-  from: string;
-  rateLimitSalt: string;
-}
 
 class BodyReadError extends Error {
   constructor(
@@ -49,30 +44,6 @@ function jsonResponse(
       ...headers,
     },
   });
-}
-
-function hasHeaderInjection(value: string): boolean {
-  return value.includes("\r") || value.includes("\n");
-}
-
-function getEmailConfig(): EmailConfig | null {
-  const apiKey = process.env.RESEND_API_KEY?.trim() ?? "";
-  const to = process.env.INQUIRY_TO_EMAIL?.trim() ?? "";
-  const from = process.env.INQUIRY_FROM_EMAIL?.trim() ?? "";
-  const rateLimitSalt = process.env.RATE_LIMIT_SALT?.trim() ?? "";
-
-  if (
-    apiKey.length < 10 ||
-    !to ||
-    !from ||
-    rateLimitSalt.length < 16 ||
-    hasHeaderInjection(to) ||
-    hasHeaderInjection(from)
-  ) {
-    return null;
-  }
-
-  return { apiKey, to, from, rateLimitSalt };
 }
 
 function firstAddress(value: string | null): string {
@@ -99,14 +70,6 @@ function getClientAddress(headers: Headers): string {
   return "unknown";
 }
 
-function deliveryTimeoutMs(): number {
-  const parsed = Number(process.env.INQUIRY_DELIVERY_TIMEOUT_MS ?? "10000");
-  if (!Number.isFinite(parsed) || parsed < 10) {
-    return 10_000;
-  }
-  return parsed;
-}
-
 function hashRateLimitKey(request: Request, salt: string): string {
   const address = getClientAddress(request.headers);
   const userAgent =
@@ -114,7 +77,6 @@ function hashRateLimitKey(request: Request, salt: string): string {
       ? (request.headers.get("user-agent") ?? "unknown").slice(0, 256)
       : "";
   const identity = address + "|" + userAgent;
-
   return createHmac("sha256", salt).update(identity).digest("hex");
 }
 
@@ -134,7 +96,6 @@ function isAllowedOrigin(request: Request): boolean {
     if (configuredSiteUrl) {
       allowedOrigins.add(new URL(configuredSiteUrl).origin);
     }
-
     return allowedOrigins.has(new URL(origin).origin);
   } catch {
     return false;
@@ -143,10 +104,7 @@ function isAllowedOrigin(request: Request): boolean {
 
 async function readLimitedJson(request: Request): Promise<unknown> {
   const contentLength = Number(request.headers.get("content-length") ?? "0");
-  if (
-    Number.isFinite(contentLength) &&
-    contentLength > MAX_BODY_BYTES
-  ) {
+  if (Number.isFinite(contentLength) && contentLength > MAX_BODY_BYTES) {
     throw new BodyReadError(
       413,
       "Formularz jest zbyt duży. Skróć wiadomość i spróbuj ponownie.",
@@ -167,7 +125,6 @@ async function readLimitedJson(request: Request): Promise<unknown> {
     if (done) {
       break;
     }
-
     receivedBytes += value.byteLength;
     if (receivedBytes > MAX_BODY_BYTES) {
       await reader.cancel();
@@ -176,7 +133,6 @@ async function readLimitedJson(request: Request): Promise<unknown> {
         "Formularz jest zbyt duży. Skróć wiadomość i spróbuj ponownie.",
       );
     }
-
     body += decoder.decode(value, { stream: true });
   }
 
@@ -199,144 +155,27 @@ function isHoneypotFilled(input: unknown): boolean {
   if (typeof input !== "object" || input === null || Array.isArray(input)) {
     return false;
   }
-
   const value = (input as Record<string, unknown>).website;
   return typeof value === "string" && value.trim().length > 0;
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
-
-function displayValue(value: string): string {
-  return value || "—";
-}
-
-function buildEmail(inquiry: ValidInquiry) {
-  const preferredTime = optionLabel(
-    preferredTimeOptions,
-    inquiry.preferredTime,
-  );
-  const eventType = optionLabel(eventTypeOptions, inquiry.eventType);
-  const preferredContact = optionLabel(
-    preferredContactOptions,
-    inquiry.preferredContact,
-  );
-  const rows: Array<[string, string]> = [
-    ["Liczba graczy", String(inquiry.playerCount)],
-    ["Preferowana data", inquiry.preferredDate],
-    ["Preferowana pora", preferredTime],
-    ["Termin alternatywny", displayValue(inquiry.alternateDate)],
-    ["Identyfikator pakietu", inquiry.packageId],
-    ["Rodzaj wydarzenia", eventType],
-    ["Imię organizatora", inquiry.name],
-    ["Preferowany kontakt", preferredContact],
-    ["Telefon", displayValue(inquiry.phone)],
-    ["E-mail", displayValue(inquiry.email)],
-    ["Wiadomość", displayValue(inquiry.message)],
-    ["Wersja informacji o prywatności", PRIVACY_NOTICE_VERSION],
-  ];
-
-  const text = [
-    "Nowe niewiążące zapytanie o termin.",
-    "",
-    ...rows.map(([label, value]) => label + ": " + value),
-    "",
-    "To zapytanie nie sprawdza dostępności i nie tworzy rezerwacji.",
-  ].join("\n");
-
-  const htmlRows = rows
-    .map(
-      ([label, value]) =>
-        "<tr><th align=\"left\" valign=\"top\" style=\"padding:6px 12px 6px 0\">" +
-        escapeHtml(label) +
-        "</th><td style=\"padding:6px 0;white-space:pre-wrap\">" +
-        escapeHtml(value) +
-        "</td></tr>",
-    )
-    .join("");
-  const html =
-    "<h1>Nowe niewiążące zapytanie o termin</h1>" +
-    "<table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\">" +
-    htmlRows +
-    "</table>" +
-    "<p><strong>To zapytanie nie sprawdza dostępności i nie tworzy rezerwacji.</strong></p>";
-
-  return {
-    subject: "Nowe zapytanie o termin — " + inquiry.preferredDate,
-    text,
-    html,
-  };
-}
-
-async function sendInquiryEmail(
-  inquiry: ValidInquiry,
-  config: EmailConfig,
-): Promise<boolean> {
-  const email = buildEmail(inquiry);
-  const payload: Record<string, unknown> = {
-    from: config.from,
-    to: [config.to],
-    subject: email.subject,
-    text: email.text,
-    html: email.html,
-  };
-
-  if (inquiry.email) {
-    payload.reply_to = inquiry.email;
-  }
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), deliveryTimeoutMs());
-
-  try {
-    const response = await fetch(RESEND_ENDPOINT, {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + config.apiKey,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-      cache: "no-store",
-      signal: controller.signal,
-    });
-
-    return response.ok;
-  } catch {
-    return false;
-  } finally {
-    clearTimeout(timeout);
-  }
 }
 
 export async function POST(request: Request) {
   if (!isAllowedOrigin(request)) {
     return jsonResponse(
-      {
-        ok: false,
-        message: "Żądanie pochodzi z niedozwolonego źródła.",
-      },
+      { ok: false, message: "Żądanie pochodzi z niedozwolonego źródła." },
       403,
     );
   }
 
   if (!request.headers.get("content-type")?.toLowerCase().includes("application/json")) {
     return jsonResponse(
-      {
-        ok: false,
-        message: "Formularz musi zostać wysłany w formacie JSON.",
-      },
+      { ok: false, message: "Formularz musi zostać wysłany w formacie JSON." },
       415,
     );
   }
 
-  const config = getEmailConfig();
-  if (!config) {
+  const salt = getRateLimitSalt();
+  if (!salt) {
     return jsonResponse(
       {
         ok: false,
@@ -349,9 +188,7 @@ export async function POST(request: Request) {
 
   let rateLimit;
   try {
-    rateLimit = await consumeInquiryRateLimit(
-      hashRateLimitKey(request, config.rateLimitSalt),
-    );
+    rateLimit = await consumeInquiryRateLimit(hashRateLimitKey(request, salt));
   } catch {
     return jsonResponse(
       {
@@ -373,8 +210,7 @@ export async function POST(request: Request) {
     return jsonResponse(
       {
         ok: false,
-        message:
-          "Wysłano zbyt wiele formularzy. Odczekaj chwilę i spróbuj ponownie.",
+        message: "Wysłano zbyt wiele formularzy. Odczekaj chwilę i spróbuj ponownie.",
       },
       429,
       {
@@ -395,12 +231,8 @@ export async function POST(request: Request) {
         rateLimitHeaders,
       );
     }
-
     return jsonResponse(
-      {
-        ok: false,
-        message: "Nie udało się odczytać formularza.",
-      },
+      { ok: false, message: "Nie udało się odczytać formularza." },
       400,
       rateLimitHeaders,
     );
@@ -427,15 +259,55 @@ export async function POST(request: Request) {
     );
   }
 
-  const delivered = await sendInquiryEmail(validation.data, config);
-  if (!delivered) {
+  const repository = getInquiryRepository();
+  if (!repository) {
     return jsonResponse(
       {
         ok: false,
         message:
-          "Nie udało się teraz wysłać zapytania. Dane pozostały w formularzu — spróbuj ponownie za kilka minut lub skontaktuj się z obsługą bezpośrednio.",
+          "Formularz jest chwilowo niedostępny. Spróbuj ponownie później lub skontaktuj się z obsługą bezpośrednio.",
       },
-      502,
+      503,
+      rateLimitHeaders,
+    );
+  }
+
+  const contentHash = inquiryContentHash(validation.data);
+  const dedupe = resolveDedupeKey(
+    contentHash,
+    request.headers.get("idempotency-key"),
+  );
+  if ("error" in dedupe) {
+    return jsonResponse(
+      { ok: false, message: dedupe.error },
+      400,
+      rateLimitHeaders,
+    );
+  }
+
+  try {
+    const saved = await repository.createIfAbsent({
+      record: inquiryFromPayload(validation.data, dedupe.dedupeKey, contentHash),
+    });
+    await dispatchInquiryNotification(repository, saved.record.id, validation.data);
+  } catch (error) {
+    if (error instanceof InquiryConflictError) {
+      return jsonResponse(
+        {
+          ok: false,
+          message: "Ten klucz zgłoszenia został już użyty dla innej treści.",
+        },
+        409,
+        rateLimitHeaders,
+      );
+    }
+    return jsonResponse(
+      {
+        ok: false,
+        message:
+          "Formularz jest chwilowo niedostępny. Spróbuj ponownie później lub skontaktuj się z obsługą bezpośrednio.",
+      },
+      503,
       rateLimitHeaders,
     );
   }
