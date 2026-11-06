@@ -28,6 +28,8 @@ model User {
   notes             InquiryNote[]
   inquiryHistory    InquiryHistory[]
   staffAudits       StaffAudit[]
+  contentRevisions  ContentRevision[]
+  configChanges     ConfigChangeAudit[]
 
   @@index([role, status])
 }
@@ -159,6 +161,97 @@ model StaffAudit {
   actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
   action    String
   targetId  String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actorId])
+}
+
+// One row per slot: "draft" is private, "published" is the public snapshot.
+model BusinessProfile {
+  id              String   @id
+  tradeName       String
+  legalName       String   @default("")
+  taxId           String   @default("")
+  street          String
+  postalCode      String
+  city            String
+  region          String
+  country         String
+  dataController  String   @default("")
+  description     String
+  latitude        String?
+  longitude       String?
+  mapNote         String   @default("")
+  version         Int      @default(1)
+  updatedAt       DateTime @updatedAt
+  updatedById     String?
+
+  @@index([updatedAt])
+}
+
+model BusinessContact {
+  id           String   @id
+  phoneDisplay String
+  phoneHref    String   @default("")
+  emailDisplay String
+  emailHref    String   @default("")
+  hours        String
+  socialText   String   @default("")
+  directions   String
+  version      Int      @default(1)
+  updatedAt    DateTime @updatedAt
+  updatedById  String?
+
+  @@index([updatedAt])
+}
+
+model BusinessSettings {
+  id                    String   @id
+  maxPlayersPerTeam     Int
+  minTeamsPerMatch      Int
+  maxTeamsPerMatch      Int
+  maxPlayersPerSlot     Int
+  slotStartTimes        String
+  slotDurationMinutes   Int
+  slotBufferMinutes     Int
+  allowSharedSlot       Boolean
+  allowPrivateSlot      Boolean
+  equipmentSets         Int?
+  depositAmount         String?
+  privateSlotSurcharge  String?
+  paymentProvider       String?
+  cancellationPolicy    String?
+  commercialApproved    Boolean  @default(false)
+  version               Int      @default(1)
+  updatedAt             DateTime @updatedAt
+  updatedById           String?
+
+  @@index([updatedAt])
+}
+
+model ContentRevision {
+  id        String   @id
+  entity    String
+  version   Int
+  status    String
+  snapshot  Json
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  @@index([entity, createdAt])
+  @@index([actorId])
+}
+
+model ConfigChangeAudit {
+  id        String   @id
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  entity    String
+  action    String
+  before    Json?
+  after     Json
   createdAt DateTime @default(now())
 
   @@index([createdAt])
