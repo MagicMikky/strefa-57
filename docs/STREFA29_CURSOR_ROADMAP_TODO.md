@@ -13,7 +13,7 @@
 - [x] **S0-01 · P0 · Cursor** — porównanie `main` z GitHub i zapis w `docs/SPRINT0_AUDIT_REPORT.md`. **Odbiór:** SHA `14e082d` i run CI 42304528437.
 - [x] **S0-02 · P0 · Cursor** — master plan, TODO i rejestr w `docs/`; `AGENTS.md`, `README.md` i reguły Cursora opisują istniejący CMS, galerię, harmonogram i kalendarz. Rezerwacja i płatność zostają zakazane.
 - [x] **S0-03 · P1 · Cursor** — indeks `docs/DOCS_INDEX.md` i jednoliniowy odnośnik w starszych dokumentach. Nic nie skasowano.
-- [ ] **S0-04 · P0 · Właściciel** — projekt tekstu jest w `docs/STREFA29_POLITYKA_PRYWATNOSCI_PROJEKT.md`. Publiczna strona nadal mówi „brak bazy zapytań” i zostaje tak do zatwierdzenia podstawy, odbiorców i retencji. **Zależność:** zgoda właściciela, potem PR `fix/privacy-notice-db`.
+- [ ] **S0-04 · P0 · Właściciel** — opis techniczny jest w PR #39. Publiczna strona ma mówić o zapisie w PostgreSQL. Podstawa prawna, nazwani odbiorcy i okres retencji nadal niezatwierdzone, więc polityki nie wolno nazywać finalną.
 - [ ] **S0-05 · P0 · Właściciel** — ochrona `main` nadal `protected: false`. Instrukcja jest w raporcie Sprintu 0. Agent nie zmienia ustawień GitHub.
 - [x] **S0-06 · P1 · Cursor** — #35 bez unikalnego kodu; #7 i #33 z czerwonym CI; #6 zielone, ale major. Żadnego merge.
 - [x] **S0-07 · P1 · Cursor** — `npm audit` na drzewie `14e082d`: produkcja 3 high (`deepmerge-ts` przez Prisma 6), pełne drzewo 20 (8 moderate, 12 high). Bez `npm audit fix --force`. Szczegóły w raporcie Sprintu 0.
