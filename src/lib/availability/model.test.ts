@@ -37,6 +37,16 @@ describe("availability calendar", () => {
     expect(day.slots[1].fitsRequest).toBe(true);
   });
 
+  it("counts a private party as the whole slot", () => {
+    const day = evaluateDay("2026-11-14", settings, { weekdays: ["sb"], blocks: [] }, [
+      { slot: "08:00", players: 8, teams: 1, privateSlot: true },
+    ], { players: 4, privateSlot: false }, "2026-11-06");
+    expect(day.occupiedPlayers).toBe(32);
+    expect(day.slots[0].fitsRequest).toBe(false);
+    expect(day.slots[1].fitsRequest).toBe(true);
+    expect(day.tone).toBe("open");
+  });
+
   it("marks an administratively closed day unavailable without calling it reserved", () => {
     const day = evaluateDay("2026-11-14", settings, { weekdays: ["sb"], blocks: [{ date: "2026-11-14", slot: "day", reason: "Przerwa" }] }, [], { players: 4, privateSlot: false }, "2026-11-06");
     expect(day.tone).toBe("unavailable");

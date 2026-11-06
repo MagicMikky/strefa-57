@@ -114,6 +114,7 @@ export function evaluateDay(
   const active = slots.filter((slot) => !slot.closed);
   const activeCapacity = active.length * settings.maxPlayersPerSlot;
   const occupiedPlayers = active.reduce((sum, slot) => {
+    if (slot.privateReservation) return sum + settings.maxPlayersPerSlot;
     const used = reservations.filter((item) => item.slot === slot.start).reduce((total, item) => total + item.players, 0);
     return sum + used;
   }, 0);
