@@ -35,6 +35,9 @@ export function SiteHeader({ addressLabel }: { addressLabel: string }) {
               {item.label}
             </Link>
           ))}
+          <Link href="/panel/logowanie" aria-current={pathname === "/panel/logowanie" ? "page" : undefined}>
+            Logowanie
+          </Link>
         </nav>
         <Link className="button button--header" href="/zapytaj-o-termin">
           <span>Zapytaj o termin</span><Icon name="arrow" width={18} height={18} />
@@ -57,6 +60,9 @@ export function SiteHeader({ addressLabel }: { addressLabel: string }) {
               <span>0{index + 1}</span>{item.label}<Icon name="arrow" width={20} height={20} />
             </Link>
           ))}
+          <Link href="/panel/logowanie" aria-current={pathname === "/panel/logowanie" ? "page" : undefined}>
+            <span>0{mainNavigation.length + 1}</span>Logowanie<Icon name="arrow" width={20} height={20} />
+          </Link>
           <Link className="mobile-menu__cta" href="/zapytaj-o-termin">
             Zapytaj o wolny termin <Icon name="arrow" width={20} height={20} />
           </Link>

@@ -36,9 +36,9 @@ export default async function LoginPage({
         <p className="mt-3 max-w-xl text-[var(--muted)]">
           Dostęp mają tylko konta utworzone przez właściciela. Publiczna rejestracja jest wyłączona.
         </p>
-        {notice ? (
+        {notice || !configured ? (
           <p className="mt-4 max-w-xl rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-950" role="status">
-            {notice}
+            {notice ?? "Panel nie jest jeszcze skonfigurowany. Brakuje bazy albo sekretu sesji."}
           </p>
         ) : null}
         <div className="mt-8">
