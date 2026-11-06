@@ -158,6 +158,15 @@ h3 {
   gap: 28px;
 }
 
+.site-header__brand {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-block: 8px;
+}
+
 .logo {
   display: inline-flex;
   flex: 0 0 auto;
