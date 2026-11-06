@@ -235,8 +235,8 @@ export function validateInquiry(
     fieldErrors.preferredDate = "Wybierz preferowaną datę.";
   } else if (!isValidDateOnly(preferredDate)) {
     fieldErrors.preferredDate = "Podaj prawidłową datę.";
-  } else if (preferredDate <= today) {
-    fieldErrors.preferredDate = "Preferowana data musi być późniejsza niż dziś.";
+  } else if (preferredDate < today) {
+    fieldErrors.preferredDate = "Preferowana data nie może być datą z przeszłości.";
   }
 
   if (!preferredTimes.has(preferredTime)) {

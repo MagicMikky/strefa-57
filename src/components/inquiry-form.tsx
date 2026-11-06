@@ -50,13 +50,6 @@ const labelClassName = "block text-sm font-semibold text-stone-900";
 const fieldsetClassName =
   "rounded-xl border border-stone-300 bg-white/80 p-5 sm:p-6";
 
-function tomorrowInWarsaw(): string {
-  const today = getWarsawDate();
-  const date = new Date(today + "T00:00:00.000Z");
-  date.setUTCDate(date.getUTCDate() + 1);
-  return date.toISOString().slice(0, 10);
-}
-
 function asString(value: FormDataEntryValue | null): string {
   return typeof value === "string" ? value : "";
 }
@@ -203,7 +196,6 @@ export function InquiryForm({
   }
 
   const today = getWarsawDate();
-  const minimumPreferredDate = tomorrowInWarsaw();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -379,7 +371,7 @@ export function InquiryForm({
               className={inputClassName}
               disabled={isSubmitting}
               id="inquiry-preferred-date"
-              min={minimumPreferredDate}
+              min={today}
               defaultValue={initialDate}
               name="preferredDate"
               required
