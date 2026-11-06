@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getSiteUrl } from "@/data/site";
 
-const routes = ["", "/oferta", "/cennik", "/galeria", "/dla-kogo", "/faq", "/kontakt", "/dojazd", "/zapytaj-o-termin", "/regulamin", "/polityka-prywatnosci", "/cookies"];
+const routes = ["", "/oferta", "/cennik", "/rezerwacja", "/galeria", "/dla-kogo", "/faq", "/kontakt", "/dojazd", "/zapytaj-o-termin", "/regulamin", "/polityka-prywatnosci", "/cookies"];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = getSiteUrl();

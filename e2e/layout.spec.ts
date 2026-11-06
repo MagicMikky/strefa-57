@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const widths = [360, 390, 768, 1024, 1440];
-const routes = ["/", "/oferta", "/cennik", "/galeria", "/kontakt", "/zapytaj-o-termin", "/dojazd"];
+const routes = ["/", "/oferta", "/cennik", "/galeria", "/kontakt", "/zapytaj-o-termin", "/dojazd", "/rezerwacja"];
 
 test.describe("horizontal layout", () => {
   for (const width of widths) {

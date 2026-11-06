@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-const routes = ["/", "/oferta", "/cennik", "/galeria", "/dla-kogo", "/faq", "/kontakt", "/dojazd", "/zapytaj-o-termin"];
+const routes = ["/", "/oferta", "/cennik", "/galeria", "/dla-kogo", "/faq", "/kontakt", "/dojazd", "/zapytaj-o-termin", "/rezerwacja"];
 
 test.describe("public pages", () => {
   for (const route of routes) {

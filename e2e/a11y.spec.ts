@@ -11,6 +11,7 @@ const routes = [
   "/kontakt",
   "/dojazd",
   "/zapytaj-o-termin",
+  "/rezerwacja",
   "/regulamin",
   "/polityka-prywatnosci",
   "/cookies",
