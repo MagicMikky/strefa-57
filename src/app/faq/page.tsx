@@ -7,14 +7,13 @@ import {
   PageHero,
   SectionHeading,
 } from "@/components/ui";
-import { faqItems } from "@/data/site";
+import { getPublishedSiteCopy } from "@/lib/content/public";
 
-const metadataDescription =
-  "Odpowiedzi na najczęstsze pytania o Paintball Strefa 29: zapytania o termin, liczba graczy, czas wizyty, ubiór, pogoda, osoby niepełnoletnie, zaplecze i płatność.";
-
-export const metadata: Metadata = {
-  title: "Najczęstsze pytania",
-  description: metadataDescription,
+export async function generateMetadata(): Promise<Metadata> {
+  const copy = await getPublishedSiteCopy();
+  return {
+  title: copy.seo.faq.title,
+  description: copy.seo.faq.description,
   keywords: [
     "paintball FAQ",
     "jak przygotować się na paintball",
@@ -29,15 +28,16 @@ export const metadata: Metadata = {
     type: "website",
     locale: "pl_PL",
     url: "/faq",
-    title: "FAQ — Paintball Strefa 29",
-    description: metadataDescription,
+    title: copy.seo.faq.title,
+    description: copy.seo.faq.description,
   },
   twitter: {
     card: "summary_large_image",
-    title: "FAQ — Paintball Strefa 29",
-    description: metadataDescription,
+    title: copy.seo.faq.title,
+    description: copy.seo.faq.description,
   },
-};
+  };
+}
 
 const inquiryChecklist = [
   "preferowana data oraz ewentualny termin alternatywny",
@@ -47,20 +47,21 @@ const inquiryChecklist = [
   "pytania o zaplecze, dodatki lub szczególne potrzeby grupy",
 ] as const;
 
-const faqStructuredData = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: faqItems.map((item) => ({
-    "@type": "Question",
-    name: item.question,
-    acceptedAnswer: {
-      "@type": "Answer",
-      text: item.answer,
-    },
-  })),
-};
-
-export default function FaqPage() {
+export default async function FaqPage() {
+  const copy = await getPublishedSiteCopy();
+  const faqItems = copy.faq;
+  const faqStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
   return (
     <div className="faq-page">
       <PageHero

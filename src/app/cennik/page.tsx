@@ -7,15 +7,16 @@ import {
   PageHero,
   SectionHeading,
 } from "@/components/ui";
-import { addOns, packages } from "@/data/site";
+import { addOns } from "@/data/site";
+import { packagesForDisplay } from "@/lib/content/model";
+import { getPublishedSiteCopy } from "@/lib/content/public";
 import { AnalyticsView } from "@/components/analytics-view";
 
-const metadataDescription =
-  "Warianty gry na polu Paintball Strefa 29. Cenę potwierdza obsługa, a strona nie przyjmuje płatności ani nie tworzy rezerwacji.";
-
-export const metadata: Metadata = {
-  title: "Cennik i pakiety",
-  description: metadataDescription,
+export async function generateMetadata(): Promise<Metadata> {
+  const copy = await getPublishedSiteCopy();
+  return {
+  title: copy.seo.cennik.title,
+  description: copy.seo.cennik.description,
   keywords: [
     "cennik paintball Gdańsk",
     "pakiety paintball Czaple",
@@ -29,15 +30,16 @@ export const metadata: Metadata = {
     type: "website",
     locale: "pl_PL",
     url: "/cennik",
-    title: "Cennik i pakiety — Paintball Strefa 29",
-    description: metadataDescription,
+    title: copy.seo.cennik.title,
+    description: copy.seo.cennik.description,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Cennik i pakiety — Paintball Strefa 29",
-    description: metadataDescription,
+    title: copy.seo.cennik.title,
+    description: copy.seo.cennik.description,
   },
-};
+  };
+}
 
 const priceConfirmationSteps = [
   {
@@ -60,7 +62,8 @@ const priceConfirmationSteps = [
   },
 ] as const;
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const packages = packagesForDisplay(await getPublishedSiteCopy());
   return (
     <div className="pricing-page">
       <AnalyticsView event="pricing_view" />

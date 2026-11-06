@@ -5,37 +5,41 @@ import { SiteHeader } from "@/components/site-header";
 import { CookieConsent } from "@/components/cookie-consent";
 import { getSiteUrl, siteConfig } from "@/data/site";
 import { getPublicBusiness } from "@/lib/business/public";
+import { getPublishedSiteCopy } from "@/lib/content/public";
 import { searchRobots } from "@/lib/seo";
 import "./globals.css";
 
 const siteUrl = getSiteUrl();
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: {
-    default: "Paintball Strefa 29 | Pole paintballowe koło Gdańska",
-    template: "%s | Paintball Strefa 29",
-  },
-  description: siteConfig.description,
-  applicationName: siteConfig.name,
-  keywords: ["paintball Gdańsk", "paintball Trójmiasto", "paintball Czaple", "integracja firmowa Gdańsk"],
-  authors: [{ name: siteConfig.name }],
-  creator: siteConfig.name,
-  openGraph: {
-    type: "website",
-    locale: "pl_PL",
-    url: siteUrl,
-    siteName: siteConfig.name,
-    title: "Paintball Strefa 29 — wejdź do gry",
-    description: siteConfig.description,
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Paintball Strefa 29 — wejdź do gry",
-    description: siteConfig.description,
-  },
-  robots: searchRobots(),
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const copy = await getPublishedSiteCopy();
+  return {
+    metadataBase: new URL(siteUrl),
+    title: {
+      default: copy.seo.home.title,
+      template: "%s | Paintball Strefa 29",
+    },
+    description: copy.seo.home.description,
+    applicationName: siteConfig.name,
+    keywords: ["paintball Gdańsk", "paintball Trójmiasto", "paintball Czaple", "integracja firmowa Gdańsk"],
+    authors: [{ name: siteConfig.name }],
+    creator: siteConfig.name,
+    openGraph: {
+      type: "website",
+      locale: "pl_PL",
+      url: siteUrl,
+      siteName: siteConfig.name,
+      title: "Paintball Strefa 29 — wejdź do gry",
+      description: copy.seo.home.description,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Paintball Strefa 29 — wejdź do gry",
+      description: copy.seo.home.description,
+    },
+    robots: searchRobots(),
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",
