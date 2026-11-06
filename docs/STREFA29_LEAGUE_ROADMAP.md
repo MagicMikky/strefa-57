@@ -1,8 +1,10 @@
 # STREFA 29 LEAGUE — plan rozbudowy
 
-Ten dokument opisuje przyszły system ligowy. Nie włącza go. Wersja 1.5 zostaje przy kontach pracowników i skrzynce zgłoszeń. Nie ma tabel drużyn, turniejów, wyników ani rankingu i nie wolno ich dodawać, dopóki właściciel nie zatwierdzi osobnego etapu.
+Ten dokument opisuje przyszły system ligowy. Nie włącza go. Nie ma tabel drużyn, turniejów, wyników ani rankingu i nie wolno ich dodawać, dopóki właściciel nie zleci konkretnej wersji.
 
-Liga nie jest częścią rezerwacji z `strona2_0.md`. Konta klientów są tam poza zakresem wersji 2.0. Wejście w ligę wymaga osobnej zgody, po działającym panelu pracowniczym.
+Od 6 listopada 2026 kolejność wyznacza `docs/STREFA29_NOWA_ROADMAPA_I_PLAN_WERSJI_2026-11-06.md`. Liga nie jest częścią rezerwacji v2.0. Konta klientów są wersją 2.1, drużyny 2.2, rankingi 2.3, a turnieje i nagrody 3.0. Wcześniejsze etapy L1–L3 z dołu tego pliku oznaczają te same prace pod starymi nazwami. Wersja 1.5A zostaje przy kontach pracowników i skrzynce zgłoszeń.
+
+Założenie „mecz to dwie drużyny” jest historyczne. Wartość startowa U-02 dopuszcza od 2 do 4 drużyn, z limitem 8 zawodników w drużynie i 32 graczy w slocie. Punktacja, sezon, tie-break, walkowery i ostatnie słowo w sporze pozostają OTWARTE (D-33, D-34).
 
 ## Co zostaje z kont pracowniczych
 
@@ -49,7 +51,7 @@ Poniższe nazwy są planem migracji, nie obecnym schematem.
 - `TeamInvitation` — jednorazowy token przechowywany jako skrót, data wygaśnięcia, drużyna i adres albo konto zaproszonej osoby.
 - `Tournament` — należy do sezonu. Organizator nie jest kolumną na `User`.
 - `TournamentAssignment` — `userId`, `tournamentId`, rola `organizer` albo `referee`. Uprawnienie kończy się wraz z turniejem.
-- `Match` — dwie drużyny albo ustalony format zatwierdzony później. Format rozgrywki nie jest jeszcze wybrany.
+- `Match` — od 2 do 4 drużyn według U-02. Sposób wyłonienia zwycięzcy przy 3–4 drużynach jest OTWARTY (D-33). Wcześniejszy zapis „dwie drużyny” jest historyczny.
 - `MatchResult` — propozycja wyniku, autor, status `proposed`, `confirmed` albo `disputed`, kto potwierdził.
 - `Standing` — materializacja rankingu po zatwierdzonych wynikach. Można ją policzyć ponownie. Nie jest źródłem prawdy.
 - `SeasonAward` — nagroda po zamknięciu sezonu. Nazwy nagród i progi nie są ustalone.
@@ -96,12 +98,12 @@ Limit prób logowania zostaje wspólny z Better Auth. Osobno trzeba będzie ogra
 
 ## Podział prac
 
-| Etap | Zakres | Poza zakresem |
-| --- | --- | --- |
-| 1.5, teraz | konta pracowników, skrzynka zgłoszeń, bramka `User.role`, ten dokument | drużyny, turnieje, ranking, nagrody, konta klientów |
-| L1 | profil zawodnika, drużyna, zaproszenie, kapitan jako członkostwo | mecze i punkty |
-| L2 | sezon, turniej, mecz, propozycja wyniku, sędzia i organizator przypisani do turnieju | publiczny ranking |
-| L3 | ranking drużynowy i indywidualny, nagrody roczne po zatwierdzonym regulaminie | płatności i rezerwacje |
+| Etap | Odpowiednik w planie nadrzędnym | Zakres | Poza zakresem |
+| --- | --- | --- | --- |
+| 1.5A, teraz | 1.5A | konta pracowników, skrzynka zgłoszeń, bramka `User.role`, ten dokument | CMS 1.5B, rezerwacje, drużyny, turnieje, ranking, nagrody, konta klientów |
+| L1, historyczna nazwa | 2.2 | profil zawodnika, drużyna, zaproszenie, kapitan jako członkostwo; startowy limit składu 8 | mecze i punkty |
+| L2, historyczna nazwa | 2.3 i część 3.0 | mecz 2–4 drużyn, propozycja wyniku, sędzia i organizator | publiczny ranking przed zatwierdzoną punktacją |
+| L3, historyczna nazwa | 2.3 i 3.0 | ranking drużynowy i indywidualny, nagrody roczne po zatwierdzonym regulaminie | płatności i rezerwacje |
 
 Każdy etap zaczyna się od zatwierdzonych zasad i własnej migracji. Istniejących wierszy `User` pracowników nie przepisujemy na nowy model tożsamości. Dochodzą tylko powiązane rekordy.
 
