@@ -35,6 +35,7 @@ describe("schedule catalog", () => {
 
   it("keeps an unpublished draft private", () => {
     const fallback = fallbackSchedule();
+    expect(fallback.weekdays).toEqual(["pn", "wt", "sr", "cz", "pt"]);
     expect(selectPublishedSchedule(null, fallback)).toBe(fallback);
     expect(authorize("manager", "business.publish")).toBe("forbidden");
     expect(authorize("employee", "business.publish")).toBe("forbidden");

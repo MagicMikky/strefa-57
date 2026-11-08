@@ -24,12 +24,12 @@ export default async function AvailabilityPage() {
       <PageHero
         eyebrow="Dostępność"
         title={<>Sprawdź dzień. <em>Potem wyślij zapytanie.</em></>}
-        lead="Sprawdź opublikowane dni, dostępne godziny i potwierdzone wizyty. Wysłanie zapytania nie zajmuje terminu."
+        lead="Sprawdź dostępne godziny i potwierdzone wizyty. Wysłanie zapytania nie zajmuje terminu."
       />
       <section className="section">
         <Container>
           <AvailabilityCalendar
-            capacityKnown={capacity.known && confirmed.known}
+            capacityKnown={Boolean(process.env.DATABASE_URL) && capacity.known && confirmed.known}
             confirmedSlots={confirmed.slots}
             holds={capacity.holds}
             schedule={schedule}

@@ -7,12 +7,20 @@ import { closureReason, evaluateDay, holdSummary, laterDatesInMonth, monthCells,
 const settings = fallbackBusiness().settings;
 
 describe("availability calendar", () => {
-  it("keeps an unpublished weekday rhythm undecided", () => {
-    const day = evaluateDay("2026-11-14", settings, fallbackSchedule(), [], { players: 4, privateSlot: false }, "2026-11-06");
-    expect(day.tone).toBe("undecided");
+  it("opens three slots on weekdays by default and closes weekends", () => {
+    const day = evaluateDay("2026-11-11", settings, fallbackSchedule(), [], { players: 4, privateSlot: false }, "2026-11-06");
+    expect(day.tone).toBe("open");
     expect(day.slots).toHaveLength(3);
-    expect(day.slots[0]).toMatchObject({ start: "08:00", end: "10:00", bookableSeats: 8, freePhysicalSeats: 32, statusLabel: "Harmonogram nieustalony" });
-    expect(day.slots[0].fitsRequest).toBe(false);
+    expect(day.slots.map((slot) => slot.start)).toEqual(["08:00", "11:00", "14:00"]);
+    expect(day.slots[0]).toMatchObject({ start: "08:00", end: "10:00", bookableSeats: 8, freePhysicalSeats: 32, statusLabel: "Wolny", fitsRequest: true });
+    expect(evaluateDay("2026-11-14", settings, fallbackSchedule(), [], { players: 4, privateSlot: false }, "2026-11-06").tone).toBe("unavailable");
+  });
+
+  it("lets an administrator close a weekday or one slot", () => {
+    const closedDay = evaluateDay("2026-11-11", settings, { ...fallbackSchedule(), blocks: [{ date: "2026-11-11", slot: "day", reason: "Święto" }] }, [], { players: 4, privateSlot: false }, "2026-11-06");
+    expect(closedDay.slots.every((slot) => !slot.fitsRequest)).toBe(true);
+    const oneSlot = evaluateDay("2026-11-11", settings, { ...fallbackSchedule(), blocks: [{ date: "2026-11-11", slot: "11:00", reason: "Przerwa" }] }, [], { players: 4, privateSlot: false }, "2026-11-06");
+    expect(oneSlot.slots.map((slot) => slot.fitsRequest)).toEqual([true, false, true]);
   });
 
   it("turns a published open day green when less than half is occupied", () => {

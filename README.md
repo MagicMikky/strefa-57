@@ -34,6 +34,8 @@ Zmienne środowiskowe są opisane w `.env.example`. Indeksacja jest wyłączona,
 
 Wersja 1.0 przyjmuje zapytanie i, gdy `DATABASE_URL` jest ustawiony, zapisuje je jako `Inquiry` w PostgreSQL. Samo wysłanie zapytania ani zmiana jego statusu nie zajmują terminu. Uprawniony pracownik może osobno potwierdzić wizytę na stronie szczegółów zgłoszenia; potwierdzenie zapisuje `ConfirmedSlot` i zajmuje cały wybrany slot w kalendarzu. Może je tam również anulować. Nie ma płatności ani automatycznego checkoutu. Panel 1.5A i CMS właściciela 1.5B (treści, galeria, harmonogram, historia) oraz kalendarz dostępności są w kodzie. Kalendarz prowadzi do `/zapytaj-o-termin`. Checkout w `src/lib/business/checkout-gate.ts` ma `enabled: false`. Płatności opisane w `strona2_0.md` pozostają niezaimplementowane. Niezatwierdzone wartości są w `docs/STREFA29_DECYZJE_DO_USTALENIA.md`. Plan bieżący jest w `docs/STREFA29_MASTER_PLAN.md`.
 
+Domyślny kalendarz pokazuje poniedziałek–piątek z trzema slotami (08:00, 11:00, 14:00). Administrator może zmienić dni tygodnia i ręcznie dodać blokadę dnia lub godziny w `/panel/harmonogram`; po zapisaniu wersji roboczej należy ją opublikować.
+
 Gdy formularz nie dochodzi:
 1. Sprawdź odpowiedź `/api/inquiry`: 503 oznacza brak zapisu albo niedostępny współdzielony limit, 409 oznacza konflikt klucza, 429 oznacza limit.
 2. Potwierdź sekrety poza repozytorium: `DATABASE_URL` i `RATE_LIMIT_SALT`.

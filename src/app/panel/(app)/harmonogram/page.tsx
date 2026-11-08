@@ -41,8 +41,8 @@ export default async function SchedulePage({
       <div>
         <h1 className="text-3xl font-black">Harmonogram</h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-black/70">
-          Zapisujesz dni tygodnia i blokady. To nie liczy wolnych miejsc i nie otwiera rezerwacji.
-          Puste dni tygodnia znaczą „jeszcze nieustalone”, a nie „zamknięte na stałe”.
+          Domyślnie dostępne są poniedziałek–piątek i trzy sloty dziennie. Tutaj możesz zmienić dni tygodnia
+          oraz ręcznie zablokować święta, pojedyncze dni lub godziny. Zmiany wymagają publikacji.
         </p>
       </div>
       {query.saved ? <p className="rounded-2xl bg-[#e7f5ea] px-4 py-3 text-sm" role="status">Zapis przyjęty.</p> : null}

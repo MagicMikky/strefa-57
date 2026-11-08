@@ -21,6 +21,7 @@
 | U-09 | Kolory dostępności | USTALONE | Zielony: poniżej połowy; niebieski: od połowy; czerwony: niedostępny | Stan „nieustalony” przy braku danych; D-19 metodologia |
 | U-10 | Edytowalność | USTALONE | Dane firmy i reguły biznesowe przez panel | Kod/sekrety pozostają poza CMS |
 | U-11 | Niepogoda i zwroty | WSTĘPNE | Preferencja: co do zasady bez zwrotu przy złej pogodzie | **Prawnik:** wyjątki bezpieczeństwa, odwołanie przez obiekt, prawa klienta — D-13 |
+| U-12 | Domyślny harmonogram | USTALONE | Poniedziałek–piątek, 3 sloty dziennie według U-04 | Święta, dni i godziny wyłącza ręcznie administrator w panelu; sezonowość pozostaje w D-16 |
 
 ## B. Wszystkie sprawy otwarte (D-01–D-36)
 
@@ -41,7 +42,7 @@
 | D-13 | P0-LEGAL | Pogoda | Deszcz, burza, odwołanie obiektu, zagrożenie, zwroty i przełożenia | Regulamin + checkout |
 | D-14 | P0-CAP | Sprzęt | Liczba sprawnych zestawów, serwis, dostępność per slot | Wiążąca dostępność |
 | D-15 | P0-CAP | Obsada | Instruktorzy, minimum do 2–4 drużyn, ograniczenia | Wiążąca dostępność |
-| D-16 | P0-CAP | Sezon | Otwarte dni tygodnia, sezon, święta i wyjątki | Kalendarz sprzedaży |
+| D-16 | P0-CAP | Sezon | Domyślnie poniedziałek–piątek (U-12); do ustalenia sezonowość i ewentualne automatyczne wyjątki | Kalendarz sprzedaży |
 | D-17 | P0-CAP | Okno rezerwacji | Min. wyprzedzenie, max. horyzont, ostatni termin online | Kalendarz sprzedaży |
 | D-18 | P0-PAY | Hold | Ile minut; co gdy wygaśnie/klient zapłaci później | Checkout |
 | D-19 | P1-CAP | Kolor przy blokadach | Czy próg zapełnienia do czynnej pojemności (zalecane), czy nominalnej | Docelowy UX kalendarza |
@@ -79,6 +80,7 @@
 |---|---|---|---|---|---|
 | 2026-11-06 | U-01…U-10 | OTWARTE → USTALONE | Jak w tabeli A | Właściciel | Parametry startowe |
 | 2026-11-06 | U-11 | OTWARTE → WSTĘPNE | Niepogoda bez automatycznie gwarantowanego zwrotu; wymagany przegląd prawny | Właściciel (preferencja) | Jeszcze nie obowiązuje jako regulamin |
+| 2026-11-08 | U-12 | OTWARTE → USTALONE | Poniedziałek–piątek, trzy sloty dziennie; święta i inne wyłączenia ręcznie w panelu | Właściciel | Domyślny harmonogram |
 | — | — | — | — | — | — |
 
 ## E. Procedura synchronizacji

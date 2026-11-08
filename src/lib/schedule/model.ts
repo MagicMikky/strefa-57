@@ -15,7 +15,7 @@ export interface ScheduleCatalog {
 }
 
 export function fallbackSchedule(): ScheduleCatalog {
-  return { weekdays: [], blocks: [] };
+  return { weekdays: ["pn", "wt", "sr", "cz", "pt"], blocks: [] };
 }
 
 function realDate(value: string) {

@@ -50,8 +50,8 @@ describe("schedule publication", () => {
     expect(audits.some((item) => item.action === "publish" && item.actorId === "owner-1")).toBe(true);
   });
 
-  it("returns no invented closures when the database fails", async () => {
+  it("uses the approved weekday defaults when no schedule can be read", async () => {
     await expect(readPublicSchedule(false, async () => { throw new Error("draft"); })).resolves.toEqual(fallbackSchedule());
-    await expect(readPublicSchedule(true, async () => { throw new Error("offline"); })).resolves.toEqual({ weekdays: [], blocks: [] });
+    await expect(readPublicSchedule(true, async () => { throw new Error("offline"); })).resolves.toEqual(fallbackSchedule());
   });
 });
