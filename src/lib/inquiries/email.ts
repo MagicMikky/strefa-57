@@ -120,6 +120,7 @@ export function buildInquiryEmail(inquiry: ValidInquiry) {
 export async function sendInquiryEmail(
   inquiry: ValidInquiry,
   config: EmailConfig,
+  idempotencyKey: string,
 ): Promise<"sent" | "failed"> {
   const email = buildInquiryEmail(inquiry);
   const payload: Record<string, unknown> = {
@@ -143,6 +144,7 @@ export async function sendInquiryEmail(
       headers: {
         Authorization: "Bearer " + config.apiKey,
         "Content-Type": "application/json",
+        "Idempotency-Key": idempotencyKey,
       },
       body: JSON.stringify(payload),
       cache: "no-store",

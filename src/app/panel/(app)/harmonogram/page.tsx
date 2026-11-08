@@ -5,7 +5,7 @@ import { fallbackBusiness, initialBusinessSettings } from "@/lib/business/model"
 import { readPublished } from "@/lib/business/store";
 import { getPrisma } from "@/lib/prisma";
 import { fallbackSchedule, WEEKDAYS } from "@/lib/schedule/model";
-import { readScheduleSlot } from "@/lib/schedule/store";
+import { readScheduleDraftVersion, readScheduleSlot } from "@/lib/schedule/store";
 import { requireStaff } from "@/lib/staff/session";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +30,11 @@ export default async function SchedulePage({
   const db = getPrisma();
   const company = (await readPublished(db)) ?? fallbackBusiness();
   const settings = company.settings ?? initialBusinessSettings;
-  const draft = (await readScheduleSlot(db, "draft", settings.slotStartTimes)) ?? fallbackSchedule();
+  const [storedDraft, draftVersion] = await Promise.all([
+    readScheduleSlot(db, "draft", settings.slotStartTimes),
+    readScheduleDraftVersion(db),
+  ]);
+  const draft = storedDraft ?? fallbackSchedule();
 
   return (
     <section className="grid gap-6">
@@ -53,6 +57,7 @@ export default async function SchedulePage({
       </section>
 
       <form action={saveScheduleAction} className="grid gap-4 rounded-3xl bg-white p-5 shadow-sm">
+        <input name="version" type="hidden" value={draftVersion} />
         <fieldset>
           <legend className="text-lg font-black">Dni tygodnia</legend>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { saveCompanyDraftAction, publishCompanyAction } from "@/app/panel/(app)/firma/actions";
 import { fallbackBusiness, formatBusinessAddress } from "@/lib/business/model";
-import { readDraft, readPublished } from "@/lib/business/store";
+import { readDraft, readDraftVersion, readPublished } from "@/lib/business/store";
 import { getPrisma } from "@/lib/prisma";
 import { requireStaff } from "@/lib/staff/session";
 
@@ -26,7 +26,11 @@ export default async function CompanyPage({
   const actor = await requireStaff("business.publish");
   const query = await searchParams;
   const db = getPrisma();
-  const draft = (await readDraft(db)) ?? fallbackBusiness();
+  const [storedDraft, draftVersion] = await Promise.all([
+    readDraft(db),
+    readDraftVersion(db),
+  ]);
+  const draft = storedDraft ?? fallbackBusiness();
   const published = await readPublished(db);
   const history = await db.configChangeAudit.findMany({
     where: { entity: "company" },
@@ -52,6 +56,7 @@ export default async function CompanyPage({
       {query.error ? <p className="rounded-2xl bg-[#fff1f0] px-4 py-3 text-sm" role="alert">{query.error}</p> : null}
 
       <form action={saveCompanyDraftAction} className="grid gap-6">
+        <input name="version" type="hidden" value={draftVersion} />
         <fieldset className="grid gap-4 rounded-3xl bg-white p-5 shadow-sm">
           <legend className="text-lg font-black">Dane firmy</legend>
           <Field name="tradeName" label="Nazwa handlowa" value={draft.profile.tradeName} />

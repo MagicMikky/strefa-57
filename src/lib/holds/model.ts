@@ -93,7 +93,12 @@ function realDate(value: string): boolean {
   const year = Number(match[1]);
   const month = Number(match[2]);
   const day = Number(match[3]);
-  return new Date(Date.UTC(year, month - 1, day, 12)).getUTCDate() === day;
+  const date = new Date(Date.UTC(year, month - 1, day, 12));
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  );
 }
 
 function weekday(date: string): ScheduleCatalog["weekdays"][number] {

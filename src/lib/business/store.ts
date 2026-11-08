@@ -8,6 +8,7 @@ import {
   type BusinessProfileInput,
   type BusinessSettingsInput,
 } from "@/lib/business/model";
+import { ContentVersionConflictError } from "@/lib/content/version";
 
 type Db = PrismaClient | Prisma.TransactionClient;
 
@@ -135,6 +136,14 @@ export function readDraft(db: Db) {
   return readSlot(db, BUSINESS_SLOT.draft);
 }
 
+export async function readDraftVersion(db: Db): Promise<number> {
+  const row = await db.businessProfile.findUnique({
+    where: { id: BUSINESS_SLOT.draft },
+    select: { version: true },
+  });
+  return row?.version ?? 0;
+}
+
 export function readPublished(db: Db) {
   return readSlot(db, BUSINESS_SLOT.published);
 }
@@ -157,12 +166,48 @@ async function writeSlot(db: Db, slot: string, bundle: BusinessBundle, version: 
   });
 }
 
-export async function saveCompanyDraft(db: PrismaClient, actorId: string, next: BusinessBundle) {
+export async function saveCompanyDraft(
+  db: PrismaClient,
+  actorId: string,
+  next: BusinessBundle,
+  expected?: number,
+) {
   const before = await readDraft(db);
   await db.$transaction(async (tx) => {
     const current = await tx.businessProfile.findUnique({ where: { id: BUSINESS_SLOT.draft }, select: { version: true } });
-    const nextVersion = (current?.version ?? 0) + 1;
-    await writeSlot(tx, BUSINESS_SLOT.draft, next, nextVersion, actorId);
+    const nextVersion = expected === undefined ? (current?.version ?? 0) + 1 : expected + 1;
+    if (expected === undefined) {
+      await writeSlot(tx, BUSINESS_SLOT.draft, next, nextVersion, actorId);
+    } else if (expected === 0) {
+      if (current) throw new ContentVersionConflictError();
+      await tx.businessProfile.create({
+        data: { id: BUSINESS_SLOT.draft, ...profileData(next.profile, nextVersion, actorId) },
+      });
+      await tx.businessContact.create({
+        data: { id: BUSINESS_SLOT.draft, ...contactData(next.contact, nextVersion, actorId) },
+      });
+      await tx.businessSettings.create({
+        data: { id: BUSINESS_SLOT.draft, ...settingsData(next.settings, nextVersion, actorId) },
+      });
+    } else {
+      const [profile, contact, settings] = await Promise.all([
+        tx.businessProfile.updateMany({
+          where: { id: BUSINESS_SLOT.draft, version: expected },
+          data: profileData(next.profile, nextVersion, actorId),
+        }),
+        tx.businessContact.updateMany({
+          where: { id: BUSINESS_SLOT.draft, version: expected },
+          data: contactData(next.contact, nextVersion, actorId),
+        }),
+        tx.businessSettings.updateMany({
+          where: { id: BUSINESS_SLOT.draft, version: expected },
+          data: settingsData(next.settings, nextVersion, actorId),
+        }),
+      ]);
+      if (profile.count !== 1 || contact.count !== 1 || settings.count !== 1) {
+        throw new ContentVersionConflictError();
+      }
+    }
     await tx.contentRevision.create({
       data: {
         id: randomUUID(),

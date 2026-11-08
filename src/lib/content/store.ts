@@ -4,6 +4,7 @@ import type { Prisma, PrismaClient } from "@prisma/client";
 
 import { BUSINESS_SLOT } from "@/lib/business/model";
 import { normalizeSiteCopy, type SiteCopy } from "@/lib/content/model";
+import { ContentVersionConflictError } from "@/lib/content/version";
 
 type Db = PrismaClient | Prisma.TransactionClient;
 
@@ -18,20 +19,46 @@ export function readSiteDraft(db: Db) {
   return readSiteSlot(db, BUSINESS_SLOT.draft);
 }
 
+export async function readSiteDraftVersion(db: Db): Promise<number> {
+  const row = await db.siteContent.findUnique({
+    where: { id: BUSINESS_SLOT.draft },
+    select: { version: true },
+  });
+  return row?.version ?? 0;
+}
+
 export function readPublishedSite(db: Db) {
   return readSiteSlot(db, BUSINESS_SLOT.published);
 }
 
-export async function saveSiteDraft(db: PrismaClient, actorId: string, next: SiteCopy) {
+export async function saveSiteDraft(
+  db: PrismaClient,
+  actorId: string,
+  next: SiteCopy,
+  expected?: number,
+) {
   const before = await readSiteDraft(db);
   await db.$transaction(async (tx) => {
     const current = await tx.siteContent.findUnique({ where: { id: BUSINESS_SLOT.draft }, select: { version: true } });
-    const version = (current?.version ?? 0) + 1;
-    await tx.siteContent.upsert({
-      where: { id: BUSINESS_SLOT.draft },
-      create: { id: BUSINESS_SLOT.draft, body: next as unknown as Prisma.InputJsonValue, version, updatedById: actorId },
-      update: { body: next as unknown as Prisma.InputJsonValue, version, updatedById: actorId },
-    });
+    const version = expected === undefined ? (current?.version ?? 0) + 1 : expected + 1;
+    if (expected === undefined) {
+      await tx.siteContent.upsert({
+        where: { id: BUSINESS_SLOT.draft },
+        create: { id: BUSINESS_SLOT.draft, body: next as unknown as Prisma.InputJsonValue, version, updatedById: actorId },
+        update: { body: next as unknown as Prisma.InputJsonValue, version, updatedById: actorId },
+      });
+    } else if (expected === 0) {
+      if (current) throw new ContentVersionConflictError();
+      await tx.siteContent.create({
+        data: { id: BUSINESS_SLOT.draft, body: next as unknown as Prisma.InputJsonValue, version, updatedById: actorId },
+      });
+    } else {
+      const updated = await tx.siteContent.updateMany({
+        where: { id: BUSINESS_SLOT.draft, version: expected },
+        data: { body: next as unknown as Prisma.InputJsonValue, version, updatedById: actorId },
+      });
+      if (updated.count !== 1) throw new ContentVersionConflictError();
+    }
     await tx.contentRevision.create({
       data: {
         id: randomUUID(),

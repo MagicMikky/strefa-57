@@ -179,9 +179,11 @@ describe("POST /api/inquiry", () => {
 
     const calls = fetchMock.mock.calls as unknown as Array<[string, RequestInit?]>;
     const email = JSON.parse(String(calls[0]?.[1]?.body)) as { html: string; reply_to?: string };
+    const providerHeaders = new Headers(calls[0]?.[1]?.headers);
     expect(email.reply_to).toBe("anna@example.com");
     expect(email.html).toContain("&lt;b&gt;");
     expect(email.html).not.toContain("<b>");
+    expect(providerHeaders.get("idempotency-key")).toBeTruthy();
   });
 
   it("keeps a saved inquiry when the email provider rejects delivery", async () => {
@@ -208,15 +210,16 @@ describe("POST /api/inquiry", () => {
   it("does not create a second inquiry for the same payload", async () => {
     const fetchMock = vi.fn(async () => new Response("{}", { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
-    expect((await POST(inquiryRequest(validBody()))).status).toBe(200);
-    expect((await POST(inquiryRequest(validBody()))).status).toBe(200);
+    const headers = { "idempotency-key": "same-submission-key-123" };
+    expect((await POST(inquiryRequest(validBody(), headers))).status).toBe(200);
+    expect((await POST(inquiryRequest(validBody(), headers))).status).toBe(200);
     const stored = await getInquiryRepository()?.counts();
     expect(stored?.fresh).toBe(1);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("keeps a saved inquiry when marking the notification throws", async () => {
-    const mark = vi.spyOn(MemoryInquiryRepository.prototype, "markNotification").mockRejectedValue(new Error("mark failed"));
+    const mark = vi.spyOn(MemoryInquiryRepository.prototype, "completeNotification").mockRejectedValue(new Error("mark failed"));
     try {
       const response = await POST(inquiryRequest(validBody()));
       expect(response.status).toBe(200);
