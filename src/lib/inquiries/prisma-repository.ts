@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import type { Prisma, PrismaClient } from "@prisma/client";
 
+import { warsawDate } from "@/lib/availability/model";
 import {
   InquiryConflictError,
   InquiryNotFoundError,
@@ -284,8 +285,13 @@ export function createPrismaInquiryRepository(
     },
 
     async deleteOlderThan(cutoff) {
+      // Keep future confirmed visits manageable from their inquiry page.
+      const future = await db.confirmedSlot.findMany({
+        where: { date: { gte: warsawDate() } },
+        select: { inquiryId: true },
+      });
       const result = await db.inquiry.deleteMany({
-        where: { createdAt: { lt: cutoff } },
+        where: { createdAt: { lt: cutoff }, id: { notIn: future.map((item) => item.inquiryId) } },
       });
       return result.count;
     },

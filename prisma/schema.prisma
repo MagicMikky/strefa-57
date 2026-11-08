@@ -295,6 +295,19 @@ model CapacityHold {
   @@index([date, slot, expiresAt])
 }
 
+// A staff-confirmed visit occupies one published slot until staff cancels it.
+// The inquiry id is kept as an audit reference; no customer details are copied.
+model ConfirmedSlot {
+  id        String   @id
+  inquiryId String   @unique
+  date      String
+  slot      String
+  createdAt DateTime @default(now())
+
+  @@unique([date, slot])
+  @@index([date])
+}
+
 model ConfigChangeAudit {
   id        String   @id
   actorId   String?

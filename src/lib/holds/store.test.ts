@@ -19,6 +19,7 @@ interface HoldRow {
 }
 
 interface MemoryHoldDb {
+  confirmedSlot: { findUnique(): Promise<{ id: string } | null> };
   capacityHold: {
     findMany(args: { where: { OR: Array<Record<string, unknown>> } }): Promise<HoldRow[]>;
     create(args: { data: HoldRow }): Promise<HoldRow>;
@@ -32,6 +33,7 @@ function memoryDatabase() {
   const rows: HoldRow[] = [];
   let chain = Promise.resolve();
   const db: MemoryHoldDb = {
+    confirmedSlot: { async findUnique() { return null; } },
     capacityHold: {
       async findMany({ where }: { where: { OR: Array<Record<string, unknown>> } }) {
         return rows.filter((row) => where.OR.some((clause) => {

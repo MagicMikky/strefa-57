@@ -11,7 +11,8 @@ describe("availability calendar", () => {
     const day = evaluateDay("2026-11-14", settings, fallbackSchedule(), [], { players: 4, privateSlot: false }, "2026-11-06");
     expect(day.tone).toBe("undecided");
     expect(day.slots).toHaveLength(3);
-    expect(day.slots[0]).toMatchObject({ start: "08:00", end: "10:00", bookableSeats: 8, freePhysicalSeats: 32, statusLabel: "Wolny" });
+    expect(day.slots[0]).toMatchObject({ start: "08:00", end: "10:00", bookableSeats: 8, freePhysicalSeats: 32, statusLabel: "Harmonogram nieustalony" });
+    expect(day.slots[0].fitsRequest).toBe(false);
   });
 
   it("turns a published open day green when less than half is occupied", () => {
@@ -47,6 +48,14 @@ describe("availability calendar", () => {
     expect(day.tone).toBe("open");
   });
 
+  it("marks a staff-confirmed slot as occupied while leaving other hours available", () => {
+    const day = evaluateDay("2026-11-14", settings, { weekdays: ["sb"], blocks: [] }, [
+      { slot: "08:00", players: settings.maxPlayersPerSlot, teams: settings.maxTeamsPerMatch, privateSlot: true, confirmed: true },
+    ], { players: 4, privateSlot: false }, "2026-11-06");
+    expect(day.slots[0]).toMatchObject({ statusLabel: "Termin zajęty", fitsRequest: false, freePhysicalSeats: 0 });
+    expect(day.slots[1].fitsRequest).toBe(true);
+  });
+
   it("marks an administratively closed day unavailable without calling it reserved", () => {
     const day = evaluateDay("2026-11-14", settings, { weekdays: ["sb"], blocks: [{ date: "2026-11-14", slot: "day", reason: "Przerwa" }] }, [], { players: 4, privateSlot: false }, "2026-11-06");
     expect(day.tone).toBe("unavailable");
@@ -65,6 +74,7 @@ describe("availability calendar", () => {
   it("rejects a past day, a closed weekday and a group above one team", () => {
     expect(evaluateDay("2026-11-01", settings, { weekdays: ["sb", "nd"], blocks: [] }, [], { players: 4, privateSlot: false }, "2026-11-06").tone).toBe("unavailable");
     expect(evaluateDay("2026-11-16", settings, { weekdays: ["sb"], blocks: [] }, [], { players: 4, privateSlot: false }, "2026-11-06").tone).toBe("unavailable");
+    expect(evaluateDay("2026-11-16", settings, { weekdays: ["sb"], blocks: [] }, [], { players: 4, privateSlot: false }, "2026-11-06").slots[0].fitsRequest).toBe(false);
     expect(evaluateDay("2026-11-14", settings, { weekdays: ["sb"], blocks: [] }, [], { players: 9, privateSlot: true }, "2026-11-06").slots[0].fitsRequest).toBe(false);
   });
 

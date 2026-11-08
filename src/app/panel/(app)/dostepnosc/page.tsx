@@ -2,6 +2,7 @@ import { AvailabilityCalendar } from "@/components/availability-calendar";
 import { warsawDate } from "@/lib/availability/model";
 import { checkoutReadiness } from "@/lib/business/checkout-gate";
 import { getPublicBusiness } from "@/lib/business/public";
+import { getPublicConfirmedSlots } from "@/lib/confirmed-slots/public";
 import { getPublicCapacityHolds } from "@/lib/holds/public";
 import { getPublishedSchedule } from "@/lib/schedule/public";
 import { requireStaff } from "@/lib/staff/session";
@@ -10,10 +11,11 @@ export const dynamic = "force-dynamic";
 
 export default async function PanelAvailabilityPage() {
   await requireStaff("business.publish");
-  const [business, schedule, capacity] = await Promise.all([
+  const [business, schedule, capacity, confirmed] = await Promise.all([
     getPublicBusiness(),
     getPublishedSchedule(),
     getPublicCapacityHolds(),
+    getPublicConfirmedSlots(),
   ]);
   const { settings } = business;
   const checkout = checkoutReadiness();
@@ -22,7 +24,7 @@ export default async function PanelAvailabilityPage() {
       <div>
         <h1 className="text-3xl font-black">Dostępność</h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-black/70">
-          Widok liczy opublikowaną pojemność i niewygasłe blokady. Nie tworzy rezerwacji, ceny ani płatności.
+          Widok liczy opublikowaną pojemność, niewygasłe blokady i potwierdzone terminy. Potwierdzenie wizyty wykonasz przy zgłoszeniu.
         </p>
       </div>
       <div className="rounded-2xl border border-black/10 p-4">
@@ -36,7 +38,8 @@ export default async function PanelAvailabilityPage() {
       <AvailabilityCalendar
         allowPast
         showOperations
-        capacityKnown={capacity.known}
+        capacityKnown={capacity.known && confirmed.known}
+        confirmedSlots={confirmed.slots}
         holds={capacity.holds}
         schedule={schedule}
         settings={{

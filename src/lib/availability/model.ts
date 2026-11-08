@@ -6,6 +6,7 @@ export interface SlotUse {
   players: number;
   teams: number;
   privateSlot: boolean;
+  confirmed?: boolean;
 }
 
 export interface AvailabilityRequest {
@@ -20,6 +21,7 @@ export interface SlotAvailability {
   end: string;
   closed: boolean;
   privateReservation: boolean;
+  confirmed: boolean;
   freePhysicalSeats: number;
   bookableSeats: number;
   fitsRequest: boolean;
@@ -31,6 +33,7 @@ export interface DayAvailability {
   tone: DayTone;
   statusLabel: string;
   occupiedPlayers: number;
+  confirmedSlots: number;
   activeCapacity: number;
   slots: SlotAvailability[];
 }
@@ -144,29 +147,34 @@ export function evaluateDay(
   request: AvailabilityRequest,
   today = warsawDate(),
 ): DayAvailability {
+  const dayOpen = date >= today && schedule.weekdays.includes(weekdayCode(date) as ScheduleCatalog["weekdays"][number]);
   const slots = settings.slotStartTimes.map((start) => {
     const use = reservations.filter((item) => item.slot === start);
     const closed = blocked(schedule, date, start);
     const usedPlayers = use.reduce((sum, item) => sum + item.players, 0);
     const usedTeams = use.reduce((sum, item) => sum + item.teams, 0);
     const privateReservation = use.some((item) => item.privateSlot);
+    const confirmed = use.some((item) => item.confirmed);
     const teamSlotsLeft = Math.max(0, settings.maxTeamsPerMatch - usedTeams);
     const freePhysicalSeats = closed || privateReservation ? 0 : Math.max(0, settings.maxPlayersPerSlot - usedPlayers);
     const bookableSeats = closed || privateReservation || teamSlotsLeft < 1
       ? 0
       : Math.min(freePhysicalSeats, settings.maxPlayersPerTeam);
-    const fitsRequest = request.privateSlot
+    const fitsRequest = dayOpen && (request.privateSlot
       ? !closed && usedPlayers === 0 && usedTeams === 0 && request.players >= 1 && request.players <= settings.maxPlayersPerTeam
-      : bookableSeats >= request.players && request.players >= 1 && request.players <= settings.maxPlayersPerTeam;
+      : bookableSeats >= request.players && request.players >= 1 && request.players <= settings.maxPlayersPerTeam);
     return {
       start,
       end: addMinutes(start, settings.slotDurationMinutes),
       closed,
       privateReservation,
+      confirmed,
       freePhysicalSeats,
       bookableSeats,
       fitsRequest,
-      statusLabel: slotLabel(closed, privateReservation, bookableSeats, freePhysicalSeats, settings.maxPlayersPerSlot),
+      statusLabel: confirmed ? "Termin zajęty" : !closed && !dayOpen
+        ? date < today ? "Termin minął" : schedule.weekdays.length === 0 ? "Harmonogram nieustalony" : "Dzień zamknięty"
+        : slotLabel(closed, privateReservation, confirmed, bookableSeats, freePhysicalSeats, settings.maxPlayersPerSlot),
     };
   });
   const active = slots.filter((slot) => !slot.closed);
@@ -177,11 +185,12 @@ export function evaluateDay(
     return sum + used;
   }, 0);
   const tone = dayTone(date, schedule, slots, occupiedPlayers, activeCapacity, today);
-  return { date, tone, statusLabel: dayLabel(tone), occupiedPlayers, activeCapacity, slots };
+  return { date, tone, statusLabel: dayLabel(tone), occupiedPlayers, confirmedSlots: slots.filter((slot) => slot.confirmed).length, activeCapacity, slots };
 }
 
-function slotLabel(closed: boolean, privateReservation: boolean, bookable: number, physical: number, capacity: number): string {
+function slotLabel(closed: boolean, privateReservation: boolean, confirmed: boolean, bookable: number, physical: number, capacity: number): string {
   if (closed) return "Zablokowany";
+  if (confirmed) return "Termin zajęty";
   if (privateReservation) return "Slot prywatny";
   if (bookable <= 0) return "Brak miejsca dla kolejnej drużyny";
   if (physical < capacity) return "Częściowo zajęty";

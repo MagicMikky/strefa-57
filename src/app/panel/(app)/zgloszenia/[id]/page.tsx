@@ -1,15 +1,19 @@
 import { notFound } from "next/navigation";
 
+import { getPublicBusiness } from "@/lib/business/public";
 import {
   INQUIRY_STATUSES,
   INQUIRY_STATUS_LABELS,
 } from "@/lib/inquiries/model";
 import { getInquiryRepository } from "@/lib/inquiries/repository";
+import { getPrisma } from "@/lib/prisma";
 import { can } from "@/lib/staff/permissions";
 import { requireStaff } from "@/lib/staff/session";
 import {
   addInquiryNote,
   assignInquiry,
+  cancelInquiryVisit,
+  confirmInquiryVisit,
   updateInquiryStatus,
 } from "./actions";
 
@@ -25,11 +29,14 @@ function formatWhen(value: Date): string {
 
 export default async function InquiryDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string; result?: string }>;
 }) {
   const staff = await requireStaff("inquiries.read");
   const { id } = await params;
+  const feedback = await searchParams;
   const repository = getInquiryRepository();
   if (!repository) {
     return <p>Baza zgłoszeń nie jest skonfigurowana.</p>;
@@ -41,6 +48,18 @@ export default async function InquiryDetailPage({
   const staffList = can(staff.role, "inquiries.assign")
     ? await repository.listStaff()
     : [];
+  const [business, confirmation] = await Promise.all([
+    getPublicBusiness(),
+    process.env.DATABASE_URL ? getPrisma().confirmedSlot.findUnique({ where: { inquiryId: id } }) : Promise.resolve(null),
+  ]);
+  const confirmationErrors: Record<string, string> = {
+    invalid: "Wybierz przyszłą datę i skonfigurowany slot, który nie został ręcznie zablokowany.",
+    unavailable: "Ten slot jest już zajęty lub ma aktywną blokadę. Wybierz inny termin.",
+    "already-confirmed": "To zgłoszenie ma już potwierdzony termin. Najpierw anuluj poprzedni.",
+    missing: "Nie znaleziono zgłoszenia.",
+    "missing-confirmation": "Nie znaleziono potwierdzonego terminu.",
+    "confirmation-unavailable": "Potwierdzenie wymaga działającej bazy danych.",
+  };
 
   return (
     <div className="grid gap-8">
@@ -50,9 +69,12 @@ export default async function InquiryDetailPage({
           {INQUIRY_STATUS_LABELS[inquiry.status]} · wpływ {formatWhen(inquiry.createdAt)}
         </p>
         <p className="mt-2 max-w-2xl text-sm">
-          Zmiana statusu oznacza tylko pracę obsługi. Nie tworzy rezerwacji i nie blokuje terminu.
+          Status opisuje pracę obsługi. Termin zajmuje dopiero osobne potwierdzenie poniżej.
         </p>
       </header>
+      {feedback.error && confirmationErrors[feedback.error] ? <p role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-red-900">{confirmationErrors[feedback.error]}</p> : null}
+      {feedback.result === "confirmed" ? <p role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-emerald-900">Termin potwierdzony. Slot jest teraz niedostępny w kalendarzu.</p> : null}
+      {feedback.result === "cancelled" ? <p role="status" className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950">Potwierdzenie anulowane. Slot ponownie podlega harmonogramowi.</p> : null}
       <dl className="grid gap-3 rounded-3xl border border-black/10 bg-white p-5 md:grid-cols-2">
         <Fact label="E-mail" value={inquiry.email} />
         <Fact label="Telefon" value={inquiry.phone || "—"} />
@@ -64,6 +86,35 @@ export default async function InquiryDetailPage({
         <Fact label="Kontakt" value={inquiry.preferredContact} />
         <Fact label="Przypisany pracownik" value={inquiry.assigneeName ?? "Nieprzypisane"} />
       </dl>
+      {can(staff.role, "inquiries.update") ? (
+        <section className="rounded-3xl border border-black/10 bg-white p-5">
+          <h3 className="text-xl font-black">Potwierdzenie terminu</h3>
+          {confirmation ? (
+            <div className="mt-3 grid gap-3">
+              <p>Potwierdzono <strong>{confirmation.date} o {confirmation.slot}</strong>. Ten slot jest zajęty w całości.</p>
+              <form action={cancelInquiryVisit}>
+                <input name="id" type="hidden" value={inquiry.id} />
+                <button className="rounded-full border border-red-300 px-5 py-2 font-semibold text-red-900" type="submit">Anuluj potwierdzenie</button>
+              </form>
+            </div>
+          ) : (
+            <form action={confirmInquiryVisit} className="mt-3 grid max-w-xl gap-4">
+              <p className="text-sm text-[var(--muted)]">Potwierdź po uzgodnieniu wizyty z klientem. Zajmie to cały wybrany slot. Możesz potwierdzić także dzień spoza opublikowanego harmonogramu; taki dzień pozostanie zamknięty dla nowych zapytań.</p>
+              <input name="id" type="hidden" value={inquiry.id} />
+              <label className="grid gap-1 text-sm font-semibold">Data
+                <input className="rounded-xl border border-black/15 px-3 py-2" name="date" type="date" defaultValue={inquiry.preferredDate} required />
+              </label>
+              <label className="grid gap-1 text-sm font-semibold">Godzina
+                <select className="rounded-xl border border-black/15 px-3 py-2" name="slot" defaultValue={business.settings.slotStartTimes.includes(inquiry.preferredTime) ? inquiry.preferredTime : ""} required>
+                  <option value="">Wybierz slot</option>
+                  {business.settings.slotStartTimes.map((start) => <option key={start} value={start}>{start}</option>)}
+                </select>
+              </label>
+              <button className="w-fit rounded-full bg-[var(--forest)] px-5 py-3 font-semibold text-white" type="submit">Potwierdź i zajmij slot</button>
+            </form>
+          )}
+        </section>
+      ) : null}
       <section>
         <h3 className="text-xl font-black">Wiadomość</h3>
         <p className="mt-3 whitespace-pre-wrap rounded-3xl bg-white p-5">{inquiry.message || "—"}</p>

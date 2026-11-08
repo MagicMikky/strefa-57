@@ -150,6 +150,7 @@ function fakeDb(rows: Array<Record<string, unknown>>, audits: unknown[]) {
   });
 
   return {
+    confirmedSlot: { findMany: async () => [] },
     inquiry: {
       findUnique: async ({ where }: { where: { id?: string; dedupeKey?: string } }) => {
         const row = rows.find((item) => item.id === where.id || item.dedupeKey === where.dedupeKey);

@@ -4,6 +4,7 @@ import { AvailabilityCalendar } from "@/components/availability-calendar";
 import { Container, PageHero } from "@/components/ui";
 import { warsawDate } from "@/lib/availability/model";
 import { getPublicBusiness } from "@/lib/business/public";
+import { getPublicConfirmedSlots } from "@/lib/confirmed-slots/public";
 import { getPublicCapacityHolds } from "@/lib/holds/public";
 import { getPublishedSchedule } from "@/lib/schedule/public";
 
@@ -13,20 +14,23 @@ export const metadata: Metadata = {
   alternates: { canonical: "/rezerwacja" },
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function AvailabilityPage() {
-  const [business, schedule, capacity] = await Promise.all([getPublicBusiness(), getPublishedSchedule(), getPublicCapacityHolds()]);
+  const [business, schedule, capacity, confirmed] = await Promise.all([getPublicBusiness(), getPublishedSchedule(), getPublicCapacityHolds(), getPublicConfirmedSlots(warsawDate())]);
   const { settings } = business;
   return (
     <>
       <PageHero
         eyebrow="Dostępność"
         title={<>Sprawdź dzień. <em>Potem wyślij zapytanie.</em></>}
-        lead="Kolory liczą opublikowaną pojemność i blokady właściciela. Nie ma tu cen, zadatku ani potwierdzenia terminu."
+        lead="Sprawdź opublikowane dni, dostępne godziny i potwierdzone wizyty. Wysłanie zapytania nie zajmuje terminu."
       />
       <section className="section">
         <Container>
           <AvailabilityCalendar
-            capacityKnown={capacity.known}
+            capacityKnown={capacity.known && confirmed.known}
+            confirmedSlots={confirmed.slots}
             holds={capacity.holds}
             schedule={schedule}
             settings={{

@@ -1,9 +1,14 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
+import { getPublicBusiness } from "@/lib/business/public";
+import { cancelInquirySlot, confirmInquirySlot } from "@/lib/confirmed-slots/store";
 import { applyInquiryCommand } from "@/lib/inquiries/policy";
 import { getInquiryRepository } from "@/lib/inquiries/repository";
+import { getPrisma } from "@/lib/prisma";
+import { getPublishedSchedule } from "@/lib/schedule/public";
 import { requireStaff } from "@/lib/staff/session";
 
 function inquiryPath(id: string): string {
@@ -23,6 +28,31 @@ export async function updateInquiryStatus(formData: FormData) {
   }
   await repository.setStatus(id, decision.command.status, staff);
   redirect(inquiryPath(id));
+}
+
+export async function confirmInquiryVisit(formData: FormData) {
+  const staff = await requireStaff("inquiries.update");
+  const id = String(formData.get("id") ?? "");
+  const date = String(formData.get("date") ?? "");
+  const slot = String(formData.get("slot") ?? "");
+  if (!process.env.DATABASE_URL || !id) redirect(inquiryPath(id) + "?error=confirmation-unavailable");
+  const [business, schedule] = await Promise.all([getPublicBusiness(), getPublishedSchedule()]);
+  const result = await confirmInquirySlot(getPrisma(), { inquiryId: id, date, slot, actorId: staff.id, now: new Date() }, business.settings, schedule);
+  if (!result.ok) redirect(inquiryPath(id) + `?error=${result.error}`);
+  revalidatePath("/rezerwacja");
+  revalidatePath("/panel/dostepnosc");
+  redirect(inquiryPath(id) + "?result=confirmed");
+}
+
+export async function cancelInquiryVisit(formData: FormData) {
+  const staff = await requireStaff("inquiries.update");
+  const id = String(formData.get("id") ?? "");
+  if (!process.env.DATABASE_URL || !id) redirect(inquiryPath(id) + "?error=confirmation-unavailable");
+  const cancelled = await cancelInquirySlot(getPrisma(), id, staff.id);
+  if (!cancelled) redirect(inquiryPath(id) + "?error=missing-confirmation");
+  revalidatePath("/rezerwacja");
+  revalidatePath("/panel/dostepnosc");
+  redirect(inquiryPath(id) + "?result=cancelled");
 }
 
 export async function assignInquiry(formData: FormData) {

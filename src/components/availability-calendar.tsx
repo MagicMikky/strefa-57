@@ -16,6 +16,7 @@ export function AvailabilityCalendar({
   schedule,
   today,
   holds = [],
+  confirmedSlots = [],
   capacityKnown = true,
   allowPast = false,
   showOperations = false,
@@ -24,6 +25,7 @@ export function AvailabilityCalendar({
   schedule: ScheduleCatalog;
   today: string;
   holds?: ReadonlyArray<SlotUse & { date: string; expiresAt?: string }>;
+  confirmedSlots?: ReadonlyArray<{ date: string; slot: string }>;
   capacityKnown?: boolean;
   allowPast?: boolean;
   showOperations?: boolean;
@@ -35,21 +37,39 @@ export function AvailabilityCalendar({
   const [players, setPlayers] = useState(4);
   const [privateSlot, setPrivateSlot] = useState(false);
   const [selected, setSelected] = useState("");
+  const uses = [
+    ...holds,
+    ...confirmedSlots.map(({ date, slot }) => ({ date, slot, players: settings.maxPlayersPerSlot, teams: settings.maxTeamsPerMatch, privateSlot: true, confirmed: true })),
+  ];
   const closeRef = useRef<HTMLButtonElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
   const [year, month] = cursor.split("-").map(Number);
   const cells = monthCells(year, month);
   const selectedDay = selected
-    ? evaluateDay(selected, settings, schedule, usesOn(holds, selected), { players, privateSlot }, today)
+    ? evaluateDay(selected, settings, schedule, usesOn(uses, selected), { players, privateSlot }, today)
     : null;
 
   useEffect(() => {
     if (!selected) return;
+    openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     closeRef.current?.focus();
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setSelected("");
+      if (event.key === "Tab") {
+        const controls = Array.from(sheetRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href]') ?? []);
+        if (controls.length === 0) return;
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
     };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      openerRef.current?.focus();
+    };
   }, [selected]);
 
   function moveCursor(direction: -1 | 1) {
@@ -59,37 +79,51 @@ export function AvailabilityCalendar({
   }
 
   return (
-    <div className="availability">
-      <p className="availability__notice">Ten widok nie tworzy rezerwacji, blokady terminu ani płatności. Wybrany slot otwiera zwykłe zapytanie.</p>
-      {capacityKnown ? null : <p className="availability__notice">Nie udało się odczytać blokad pojemności. Kolory nie potwierdzają wolnych miejsc.</p>}
+    <section className="availability" aria-label="Kalendarz dostępności">
+      <div className="availability__intro">
+        <div>
+          <span className="availability__eyebrow">Kalendarz terminów</span>
+          <h2>Znajdź dogodny termin</h2>
+          <p>Wybierz liczbę graczy i rodzaj gry, a następnie sprawdź godziny dla wybranego dnia.</p>
+        </div>
+        <span className="availability__intro-mark" aria-hidden="true">29</span>
+      </div>
+      {capacityKnown ? null : <p className="availability__notice" role="alert">Nie udało się odczytać zajętych terminów. Dostępność jest chwilowo nieznana.</p>}
       {schedule.weekdays.length === 0 ? (
         <p className="availability__notice">Dni tygodnia nie zostały jeszcze opublikowane, więc kalendarz nie oznacza ich jako otwarte.</p>
       ) : null}
-      <div className="availability__filters">
+      <div className="availability__filters" aria-label="Ustawienia grupy">
         <label>
-          Gracze w jednej drużynie
+          <span>Liczba graczy w drużynie</span>
           <input min={1} max={settings.maxPlayersPerTeam} type="number" value={players} onChange={(event) => setPlayers(clampPlayers(event.target.value, settings.maxPlayersPerTeam))} />
         </label>
         <fieldset>
           <legend>Rodzaj gry</legend>
-          <label><input checked={!privateSlot} name="slot-mode" type="radio" onChange={() => setPrivateSlot(false)} /> Gra wspólna</label>
-          <label><input checked={privateSlot} name="slot-mode" type="radio" onChange={() => setPrivateSlot(true)} /> Prywatny slot</label>
+          <div className="availability__mode-options">
+            <label><input checked={!privateSlot} name="slot-mode" type="radio" onChange={() => setPrivateSlot(false)} /> <span>Gra wspólna</span></label>
+            <label><input checked={privateSlot} name="slot-mode" type="radio" onChange={() => setPrivateSlot(true)} /> <span>Prywatny slot</span></label>
+          </div>
         </fieldset>
       </div>
-      <div className="availability__nav">
-        <button type="button" aria-pressed={view === "month"} onClick={() => setView("month")}>Miesiąc</button>
-        <button type="button" aria-pressed={view === "week"} onClick={() => setView("week")}>Tydzień</button>
-        <button type="button" aria-pressed={view === "day"} onClick={() => setView("day")}>Dzień</button>
-        <button type="button" onClick={() => moveCursor(-1)}>Poprzedni</button>
-        <strong>{view === "month" ? monthName(year, month) : view === "week" ? `${weekDates(weekAnchor)[0]} – ${weekDates(weekAnchor)[6]}` : dayAnchor}</strong>
-        <button type="button" onClick={() => { setCursor(today.slice(0, 7)); setWeekAnchor(today); setDayAnchor(today); }}>Dziś</button>
-        <button type="button" onClick={() => moveCursor(1)}>Następny</button>
+      <div className="availability__toolbar">
+        <div className="availability__views" aria-label="Widok kalendarza">
+          <button type="button" aria-pressed={view === "month"} onClick={() => setView("month")}>Miesiąc</button>
+          <button type="button" aria-pressed={view === "week"} onClick={() => setView("week")}>Tydzień</button>
+          <button type="button" aria-pressed={view === "day"} onClick={() => setView("day")}>Dzień</button>
+        </div>
+        <div className="availability__nav">
+          <button type="button" aria-label="Poprzedni okres" onClick={() => moveCursor(-1)}>‹</button>
+          <strong aria-live="polite">{view === "month" ? monthName(year, month) : view === "week" ? `${weekDates(weekAnchor)[0]} – ${weekDates(weekAnchor)[6]}` : dayAnchor}</strong>
+          <button type="button" aria-label="Następny okres" onClick={() => moveCursor(1)}>›</button>
+          <button className="availability__today" type="button" onClick={() => { setCursor(today.slice(0, 7)); setWeekAnchor(today); setDayAnchor(today); }}>Dziś</button>
+        </div>
       </div>
       <div className="availability__legend">
         <span><i className="is-open" /> Dostępny</span>
-        <span><i className="is-limited" /> Od połowy pojemności</span>
+        <span><i className="is-limited" /> Mało miejsc</span>
         <span><i className="is-unavailable" /> Niedostępny</span>
         <span><i className="is-undecided" /> Nieustalony</span>
+        <span><i className="is-confirmed" /> Potwierdzony slot</span>
       </div>
       {view === "month" ? (
         <>
@@ -98,42 +132,44 @@ export function AvailabilityCalendar({
           </div>
           <div className="availability__grid">
             {cells.map((cell, index) => cell.inMonth ? (
-              <DayButton key={cell.date} allowPast={allowPast} date={cell.date} holds={holds} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} today={today} onSelect={setSelected} />
-            ) : <span key={`empty-${index}`} />)}
+              <DayButton key={cell.date} allowPast={allowPast} capacityKnown={capacityKnown} date={cell.date} holds={uses} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} today={today} onSelect={setSelected} />
+            ) : <span className="availability__empty" key={`empty-${index}`} />)}
           </div>
         </>
       ) : (
         <div className="availability__days">
           {(view === "week" ? weekDates(weekAnchor) : [dayAnchor]).map((date) => (
-            <DaySlots key={date} capacityKnown={capacityKnown} date={date} holds={holds} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} showOperations={showOperations} suggest={view === "day"} today={today} />
+            <DaySlots key={date} capacityKnown={capacityKnown} date={date} holds={uses} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} showOperations={showOperations} suggest={view === "day"} today={today} />
           ))}
         </div>
       )}
       {selectedDay ? (
         <div className="availability__dialog" role="dialog" aria-modal="true" aria-labelledby="availability-dialog-title">
-          <div className="availability__sheet">
-            <button ref={closeRef} type="button" onClick={() => setSelected("")}>Zamknij</button>
-            <h2 id="availability-dialog-title">{selectedDay.date}</h2>
-            <p>{selectedDay.statusLabel}. Zajęte {selectedDay.occupiedPlayers} z {selectedDay.activeCapacity} miejsc w otwartych slotach.</p>
+          <div className="availability__sheet" ref={sheetRef}>
+            <button className="availability__close" ref={closeRef} type="button" onClick={() => setSelected("")}>Zamknij <span aria-hidden="true">×</span></button>
+            <span className="availability__eyebrow">Dostępność godzin</span>
+            <h2 id="availability-dialog-title">{formatDate(selectedDay.date)}</h2>
+            <p className="availability__sheet-lead">{capacityKnown ? selectedDay.statusLabel : "Dostępność nieznana"}. {capacityKnown ? `Zajęte ${selectedDay.occupiedPlayers} z ${selectedDay.activeCapacity} miejsc w otwartych slotach.` : "Spróbuj ponownie później."}</p>
             <ul>
               {selectedDay.slots.map((slot) => (
-                <li key={slot.start}>
-                  <strong>{slot.start}–{slot.end}</strong>
-                  <span>{slot.statusLabel}. Wolne fizycznie: {slot.freePhysicalSeats}/{settings.maxPlayersPerSlot}. Dla kolejnej drużyny: {slot.bookableSeats}.{showOperations && slot.closed ? ` Powód: ${closureReason(schedule, selectedDay.date, slot.start) ?? "niepodany"}.` : ""}</span>
-                  {selectedDay.date >= today && slot.fitsRequest ? (
+                <li className="availability__slot" key={slot.start}>
+                  <div><strong>{slot.start}–{slot.end}</strong><span className={slot.fitsRequest && capacityKnown ? "availability__slot-state is-open" : "availability__slot-state is-unavailable"}>{capacityKnown ? slot.statusLabel : "Nieznany"}</span></div>
+                  <span>{capacityKnown && slot.fitsRequest ? `Wolnych miejsc dla drużyny: ${slot.bookableSeats}` : slot.confirmed || slot.privateReservation ? "Termin zajęty" : "Brak dostępności dla wybranej grupy"}.{showOperations && slot.closed ? ` Powód: ${closureReason(schedule, selectedDay.date, slot.start) ?? "niepodany"}.` : ""}</span>
+                  {capacityKnown && selectedDay.date >= today && slot.fitsRequest ? (
                     <a href={inquiryHref(selectedDay.date, { slot: slot.start, players, privateSlot })}>Zapytaj o ten slot</a>
                   ) : <em>Niedostępny dla wybranej grupy</em>}
                 </li>
               ))}
             </ul>
-            {showOperations ? <Operations capacityKnown={capacityKnown} date={selectedDay.date} holds={holds} schedule={schedule} /> : null}
-            {selectedDay.slots.some((slot) => slot.fitsRequest) ? null : (
-              <LaterDates date={selectedDay.date} holds={holds} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} today={today} />
+            {showOperations ? <Operations capacityKnown={capacityKnown} date={selectedDay.date} holds={uses} schedule={schedule} /> : null}
+            {!capacityKnown || selectedDay.slots.some((slot) => slot.fitsRequest) ? null : (
+              <LaterDates date={selectedDay.date} holds={uses} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} today={today} />
             )}
           </div>
         </div>
       ) : null}
-    </div>
+      <p className="availability__footer">Wybranie terminu otwiera zapytanie. Termin jest zajęty dopiero po potwierdzeniu przez obsługę.</p>
+    </section>
   );
 }
 
@@ -162,18 +198,19 @@ function DaySlots({
 }) {
   const day = evaluateDay(date, settings, schedule, usesOn(holds, date), { players, privateSlot }, today);
   return (
-    <article>
-      <h2>{date} <small>{day.statusLabel}</small></h2>
+    <article className="availability__day-panel">
+      <h2>{formatDate(date)} <small>{capacityKnown ? day.statusLabel : "Dostępność nieznana"}</small></h2>
       <ul>
         {day.slots.map((slot) => (
-          <li key={slot.start}>
-            <span>{slot.start}–{slot.end}. {date < today ? "Dzień minął" : slot.statusLabel}. Wolne fizycznie: {slot.freePhysicalSeats}/{settings.maxPlayersPerSlot}. Dla kolejnej drużyny: {slot.bookableSeats}.{showOperations && slot.closed ? ` Powód: ${closureReason(schedule, date, slot.start) ?? "niepodany"}.` : ""}</span>
-            {date >= today && slot.fitsRequest ? <a href={inquiryHref(date, { slot: slot.start, players, privateSlot })}>Zapytaj o ten slot</a> : <em>Niedostępny dla wybranej grupy</em>}
+          <li className="availability__slot" key={slot.start}>
+            <div><strong>{slot.start}–{slot.end}</strong><span className={capacityKnown && slot.fitsRequest ? "availability__slot-state is-open" : "availability__slot-state is-unavailable"}>{capacityKnown ? slot.statusLabel : "Nieznany"}</span></div>
+            <span>{capacityKnown && slot.fitsRequest ? `Wolnych miejsc dla drużyny: ${slot.bookableSeats}` : slot.confirmed || slot.privateReservation ? "Termin zajęty" : "Brak dostępności dla wybranej grupy"}.{showOperations && slot.closed ? ` Powód: ${closureReason(schedule, date, slot.start) ?? "niepodany"}.` : ""}</span>
+            {capacityKnown && date >= today && slot.fitsRequest ? <a href={inquiryHref(date, { slot: slot.start, players, privateSlot })}>Zapytaj o ten slot</a> : <em>Niedostępny dla wybranej grupy</em>}
           </li>
         ))}
       </ul>
       {showOperations ? <Operations capacityKnown={capacityKnown} date={date} holds={holds} schedule={schedule} /> : null}
-      {suggest && !day.slots.some((slot) => slot.fitsRequest) ? (
+      {capacityKnown && suggest && !day.slots.some((slot) => slot.fitsRequest) ? (
         <LaterDates date={date} holds={holds} players={players} privateSlot={privateSlot} schedule={schedule} settings={settings} today={today} />
       ) : null}
     </article>
@@ -192,10 +229,12 @@ function Operations({
   capacityKnown: boolean;
 }) {
   const lines = holds.filter((hold) => hold.date === date && hold.expiresAt).map((hold) => holdSummary({ ...hold, expiresAt: hold.expiresAt ?? "" }));
+  const confirmations = holds.filter((hold) => hold.date === date && !hold.expiresAt);
   const closures = schedule.blocks.filter((block) => block.date === date);
   return (
     <div>
-      <h3>Blokady pojemności</h3>
+      <h3>Zajęte terminy i blokady</h3>
+      {confirmations.map((item) => <p key={item.slot}>Potwierdzona wizyta: {item.slot} — cały slot zajęty.</p>)}
       {capacityKnown ? lines.length === 0 ? <p>Brak niewygasłych blokad pojemności.</p> : <ul>{lines.map((line, index) => <li key={`${line}-${index}`}>{line}</li>)}</ul> : <p>Odczyt blokad pojemności nie powiódł się.</p>}
       {closures.map((block) => <p key={`${block.slot}-${block.reason}`}>Zamknięcie {block.slot === "day" ? "całego dnia" : block.slot}: {block.reason}</p>)}
     </div>
@@ -240,6 +279,7 @@ function DayButton({
   privateSlot,
   today,
   allowPast,
+  capacityKnown,
   onSelect,
 }: {
   date: string;
@@ -250,16 +290,19 @@ function DayButton({
   privateSlot: boolean;
   today: string;
   allowPast: boolean;
+  capacityKnown: boolean;
   onSelect: (date: string) => void;
 }) {
   const day = evaluateDay(date, settings, schedule, usesOn(holds, date), { players, privateSlot }, today);
+  const tone = capacityKnown ? day.tone : "undecided";
   const dayNumber = String(Number(date.slice(-2)));
   const past = date < today && !allowPast;
   return (
-    <button className={toneClass(day.tone)} disabled={past} type="button" onClick={() => onSelect(date)}>
+    <button className={`${toneClass(tone)}${date === today ? " is-today" : ""}`} disabled={past} type="button" onClick={() => onSelect(date)}>
       <b>{dayNumber}</b>
-      <small>{shortLabel(day.tone)}</small>
-      <span className="sr-only">{date}, {day.statusLabel}</span>
+      <small>{capacityKnown ? shortLabel(tone) : "Nieznany"}</small>
+      {capacityKnown && day.confirmedSlots > 0 ? <span className="availability__confirmed-count" aria-hidden="true"><span>{day.confirmedSlots}</span><span className="availability__confirmed-word"> {day.confirmedSlots === 1 ? "zajęty" : "zajęte"}</span></span> : null}
+      <span className="sr-only">{formatDate(date)}, {capacityKnown ? day.statusLabel : "Dostępność nieznana"}{capacityKnown && day.confirmedSlots > 0 ? `, ${day.confirmedSlots} potwierdzonych slotów` : ""}</span>
     </button>
   );
 }
@@ -272,7 +315,7 @@ function inquiryHref(date: string, options: { slot?: string; players: number; pr
 }
 
 function usesOn(holds: ReadonlyArray<SlotUse & { date: string; expiresAt?: string }>, date: string): SlotUse[] {
-  return holds.filter((hold) => hold.date === date).map(({ slot, players, teams, privateSlot }) => ({ slot, players, teams, privateSlot }));
+  return holds.filter((hold) => hold.date === date).map(({ slot, players, teams, privateSlot, confirmed }) => ({ slot, players, teams, privateSlot, confirmed }));
 }
 
 function toneClass(tone: DayTone): string {
@@ -300,4 +343,9 @@ function shiftMonth(cursor: string, delta: number): string {
 
 function monthName(year: number, month: number): string {
   return new Intl.DateTimeFormat("pl-PL", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(year, month - 1, 1)));
+}
+
+function formatDate(date: string): string {
+  const [year, month, day] = date.split("-").map(Number);
+  return new Intl.DateTimeFormat("pl-PL", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(year, month - 1, day)));
 }
