@@ -6,25 +6,12 @@ import {
   type InquiryHistoryRecord,
   type InquiryListQuery,
   type InquiryNoteRecord,
-  type InquiryNotificationRecord,
   type InquiryRecord,
   type InquiryStatus,
 } from "@/lib/inquiries/model";
 
 export interface NewInquiry {
   record: Omit<InquiryRecord, "notes" | "history" | "notifications" | "assigneeName">;
-}
-
-export interface NotificationClaim {
-  id: string;
-  attempts: number;
-  leaseToken: string;
-}
-
-export interface NotificationCompletion {
-  status: InquiryNotificationRecord["status"];
-  error: string | null;
-  nextAttemptAt: Date;
 }
 
 export interface InquiryRepository {
@@ -48,19 +35,8 @@ export interface InquiryRepository {
     id: string,
     note: { authorId: string; authorName: string; body: string },
   ): Promise<InquiryRecord>;
-  notificationFor(id: string): Promise<InquiryNotificationRecord | null>;
-  claimNotification(
-    inquiryId: string,
-    lease: { token: string; now: Date; expiresAt: Date },
-  ): Promise<NotificationClaim | null>;
-  completeNotification(
-    inquiryId: string,
-    leaseToken: string,
-    result: NotificationCompletion,
-  ): Promise<boolean>;
   deleteOlderThan(cutoff: Date): Promise<number>;
   listStaff(): Promise<Array<{ id: string; name: string; role: string; status: string }>>;
-  listRetryable(limit: number): Promise<InquiryRecord[]>;
 }
 
 function emptyRecord(
@@ -81,24 +57,12 @@ function emptyRecord(
         createdAt: input.createdAt,
       },
     ],
-    notifications: [
-      {
-        id: randomUUID(),
-        status: "pending",
-        attempts: 0,
-        lastError: null,
-        createdAt: input.createdAt,
-      },
-    ],
+    notifications: [],
   };
 }
 
 export class MemoryInquiryRepository implements InquiryRepository {
   private readonly records = new Map<string, InquiryRecord>();
-  private readonly notificationDelivery = new Map<
-    string,
-    { leaseToken: string | null; leaseExpiresAt: Date | null; nextAttemptAt: Date }
-  >();
 
   async createIfAbsent(input: NewInquiry): Promise<{ record: InquiryRecord; created: boolean }> {
     const existing = [...this.records.values()].find(
@@ -113,11 +77,6 @@ export class MemoryInquiryRepository implements InquiryRepository {
 
     const record = emptyRecord(input.record);
     this.records.set(record.id, record);
-    this.notificationDelivery.set(record.id, {
-      leaseToken: null,
-      leaseExpiresAt: null,
-      nextAttemptAt: input.record.createdAt,
-    });
     return { record: structuredClone(record), created: true };
   }
 
@@ -245,67 +204,11 @@ export class MemoryInquiryRepository implements InquiryRepository {
     return structuredClone(record);
   }
 
-  async notificationFor(id: string): Promise<InquiryNotificationRecord | null> {
-    const record = this.records.get(id);
-    return record?.notifications[0] ? { ...record.notifications[0] } : null;
-  }
-
-  async claimNotification(
-    inquiryId: string,
-    lease: { token: string; now: Date; expiresAt: Date },
-  ): Promise<NotificationClaim | null> {
-    const record = this.records.get(inquiryId);
-    const notification = record?.notifications[0];
-    const delivery = this.notificationDelivery.get(inquiryId);
-    if (
-      !notification ||
-      !delivery ||
-      notification.status === "sent" ||
-      notification.attempts >= 5 ||
-      delivery.nextAttemptAt > lease.now ||
-      (delivery.leaseToken &&
-        delivery.leaseExpiresAt &&
-        delivery.leaseExpiresAt > lease.now)
-    ) {
-      return null;
-    }
-
-    delivery.leaseToken = lease.token;
-    delivery.leaseExpiresAt = lease.expiresAt;
-    return {
-      id: notification.id,
-      attempts: notification.attempts,
-      leaseToken: lease.token,
-    };
-  }
-
-  async completeNotification(
-    inquiryId: string,
-    leaseToken: string,
-    result: NotificationCompletion,
-  ): Promise<boolean> {
-    const record = this.records.get(inquiryId);
-    const notification = record?.notifications[0];
-    const delivery = this.notificationDelivery.get(inquiryId);
-    if (!notification || !delivery || delivery.leaseToken !== leaseToken) {
-      return false;
-    }
-
-    notification.attempts += result.status === "sent" || result.status === "failed" ? 1 : 0;
-    notification.status = result.status;
-    notification.lastError = result.error;
-    delivery.nextAttemptAt = result.nextAttemptAt;
-    delivery.leaseToken = null;
-    delivery.leaseExpiresAt = null;
-    return true;
-  }
-
   async deleteOlderThan(cutoff: Date): Promise<number> {
     let deleted = 0;
     for (const [id, record] of this.records) {
       if (record.createdAt < cutoff) {
         this.records.delete(id);
-        this.notificationDelivery.delete(id);
         deleted += 1;
       }
     }
@@ -314,27 +217,6 @@ export class MemoryInquiryRepository implements InquiryRepository {
 
   async listStaff(): Promise<Array<{ id: string; name: string; role: string; status: string }>> {
     return [];
-  }
-
-  async listRetryable(limit: number): Promise<InquiryRecord[]> {
-    const now = new Date();
-    return [...this.records.values()]
-      .filter((record) => {
-        const notification = record.notifications[0];
-        const delivery = this.notificationDelivery.get(record.id);
-        return (
-          notification &&
-          delivery &&
-          notification.status !== "sent" &&
-          notification.attempts < 5 &&
-          delivery.nextAttemptAt <= now &&
-          (!delivery.leaseToken ||
-            !delivery.leaseExpiresAt ||
-            delivery.leaseExpiresAt <= now)
-        );
-      })
-      .slice(0, limit)
-      .map((record) => structuredClone(record));
   }
 
   private require(id: string): InquiryRecord {
@@ -374,22 +256,10 @@ export class FailingInquiryRepository implements InquiryRepository {
   async addNote(): Promise<InquiryRecord> {
     throw new Error("database unavailable");
   }
-  async notificationFor(): Promise<InquiryNotificationRecord | null> {
-    throw new Error("database unavailable");
-  }
-  async claimNotification(): Promise<NotificationClaim | null> {
-    throw new Error("database unavailable");
-  }
-  async completeNotification(): Promise<boolean> {
-    throw new Error("database unavailable");
-  }
   async deleteOlderThan(): Promise<number> {
     throw new Error("database unavailable");
   }
   async listStaff(): Promise<Array<{ id: string; name: string; role: string; status: string }>> {
-    throw new Error("database unavailable");
-  }
-  async listRetryable(): Promise<InquiryRecord[]> {
     throw new Error("database unavailable");
   }
 }

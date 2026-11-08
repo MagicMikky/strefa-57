@@ -19,7 +19,7 @@ Uzupełnij lokalny `.env`, którego nie commitujemy:
 - `BETTER_AUTH_URL` — publiczny adres aplikacji, na przykład `http://localhost:3000`
 - `STAFF_BOOTSTRAP_TOKEN` — co najmniej 32 losowe znaki, tylko na czas utworzenia właściciela
 - `NOTIFICATION_WORKER_TOKEN` — co najmniej 32 losowe znaki
-- `RATE_LIMIT_SALT`, `RESEND_API_KEY`, `INQUIRY_TO_EMAIL`, `INQUIRY_FROM_EMAIL` — jak dotychczas
+- `RATE_LIMIT_SALT` — losowy sekret co najmniej 16 znaków
 - `DATA_RETENTION_DAYS` — zostaw puste do zatwierdzenia okresu
 
 `INQUIRY_STORE=memory` jest wyłącznie dla testów. Produkcja ma zostawić tę zmienną pustą.
@@ -40,16 +40,9 @@ Odpowiedź nie zawiera hasła. Drugie wywołanie po istniejącym właścicielu z
 
 Logowanie: `/panel/logowanie`.
 
-## Powiadomienia i retencja
+## Zgłoszenia i retencja
 
-Zapis zgłoszenia nie zależy od Resend. Ponowienie:
-
-```http
-POST /api/internal/notifications
-Authorization: Bearer <NOTIFICATION_WORKER_TOKEN>
-```
-
-To samo wywołanie z `/api/internal/retention` usuwa zgłoszenia tylko wtedy, gdy `DATA_RETENTION_DAYS` jest dodatnią liczbą całkowitą od 1 do 3650. Bez tej zmiennej odpowiedź ma `configured: false` i `deleted: 0`.
+Zgłoszenia są zapisywane w PostgreSQL i obsługiwane w `/panel/zgloszenia`. Aplikacja nie wysyła ich e-mailem. Wywołanie `/api/internal/retention` z tokenem workera usuwa zgłoszenia tylko wtedy, gdy `DATA_RETENTION_DAYS` jest dodatnią liczbą całkowitą od 1 do 3650. Bez tej zmiennej odpowiedź ma `configured: false` i `deleted: 0`.
 
 ## Kopie zapasowe
 

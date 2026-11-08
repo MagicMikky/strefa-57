@@ -11,9 +11,6 @@ import {
   parseInquiryListQuery,
   resolveDedupeKey,
 } from "@/lib/inquiries/model";
-import { retryPendingNotifications } from "@/lib/inquiries/maintenance";
-import { MemoryInquiryRepository } from "@/lib/inquiries/memory-repository";
-import { getEmailConfig } from "@/lib/inquiries/email";
 import { createInitialOwner, createStaffMember, setStaffStatus } from "@/lib/staff/accounts";
 import { getAuth } from "@/lib/auth";
 import type { ValidInquiry } from "@/lib/inquiry";
@@ -70,78 +67,26 @@ describe("staff and inquiry edge paths", () => {
     })).rejects.toThrow(/własnego/);
   });
 
-  it("hides auth and worker routes when secrets are absent", async () => {
+  it("hides auth and retention routes when secrets are absent", async () => {
     delete process.env.DATABASE_URL;
     delete process.env.BETTER_AUTH_SECRET;
     delete process.env.NOTIFICATION_WORKER_TOKEN;
     expect((await authGet(new Request("http://localhost:3000/api/auth/ok"))).status).toBe(503);
     expect(getAuth).toThrow(/not configured/);
-    expect((await notifications(new Request("http://localhost:3000/api/internal/notifications", { method: "POST" }))).status).toBe(404);
     expect((await retention(new Request("http://localhost:3000/api/internal/retention", { method: "POST" }))).status).toBe(404);
     process.env.STAFF_BOOTSTRAP_TOKEN = "short";
     expect((await bootstrap(new Request("http://localhost:3000/api/staff/bootstrap", { method: "POST" }))).status).toBe(404);
     delete process.env.STAFF_BOOTSTRAP_TOKEN;
   });
 
-  it("retries a skipped notification without a second inquiry", async () => {
-    const repository = new MemoryInquiryRepository();
-    const hash = inquiryContentHash(inquiry);
-    const created = await repository.createIfAbsent({
-      record: inquiryFromPayload(inquiry, hash, hash),
-    });
-    delete process.env.RESEND_API_KEY;
-    const summary = await retryPendingNotifications(repository);
-    expect(summary.examined).toBe(1);
-    expect(summary.skipped).toBe(1);
-    expect((await repository.get(created.record.id))?.notifications[0]?.lastError).toBe("email_not_configured");
+  it("keeps the legacy e-mail worker permanently disabled", async () => {
+    process.env.NOTIFICATION_WORKER_TOKEN = "a".repeat(32);
+    const response = await notifications();
+    expect(response.status).toBe(410);
+    expect(await response.json()).toMatchObject({ ok: false });
+    delete process.env.NOTIFICATION_WORKER_TOKEN;
   });
 
-  it("leases a notification to only one worker at a time", async () => {
-    const repository = new MemoryInquiryRepository();
-    const hash = inquiryContentHash(inquiry);
-    const created = await repository.createIfAbsent({
-      record: inquiryFromPayload(inquiry, "idem:lease-test-key-1", hash),
-    });
-    const now = new Date();
-    const expiresAt = new Date(now.getTime() + 60_000);
-    const first = await repository.claimNotification(created.record.id, {
-      token: "worker-1",
-      now,
-      expiresAt,
-    });
-    const second = await repository.claimNotification(created.record.id, {
-      token: "worker-2",
-      now,
-      expiresAt,
-    });
-
-    expect(first?.leaseToken).toBe("worker-1");
-    expect(second).toBeNull();
-    await expect(
-      repository.completeNotification(created.record.id, "worker-2", {
-        status: "sent",
-        error: null,
-        nextAttemptAt: now,
-      }),
-    ).resolves.toBe(false);
-    await expect(
-      repository.completeNotification(created.record.id, "worker-1", {
-        status: "sent",
-        error: null,
-        nextAttemptAt: now,
-      }),
-    ).resolves.toBe(true);
-  });
-
-  it("rejects an email configuration with header injection", () => {
-    process.env.RESEND_API_KEY = "re_test_key_value";
-    process.env.INQUIRY_TO_EMAIL = "inbox@example.com\nBcc: x";
-    process.env.INQUIRY_FROM_EMAIL = "Strefa 29 <form@example.com>";
-    expect(getEmailConfig()).toBeNull();
-    delete process.env.RESEND_API_KEY;
-    delete process.env.INQUIRY_TO_EMAIL;
-    delete process.env.INQUIRY_FROM_EMAIL;
-  });
 });
 
 describe("prisma inquiry repository", () => {
@@ -187,20 +132,7 @@ describe("prisma inquiry repository", () => {
     expect((await repository.counts()).waiting).toBe(1);
     expect(await repository.recent(5)).toHaveLength(1);
     expect((await repository.recentHistory(5))[0]?.action).toBeTruthy();
-    const now = new Date();
-    const claim = await repository.claimNotification(created.record.id, {
-      token: "prisma-worker-1",
-      now,
-      expiresAt: new Date(now.getTime() + 60_000),
-    });
-    expect(claim).not.toBeNull();
-    await repository.completeNotification(created.record.id, "prisma-worker-1", {
-      status: "failed",
-      error: "provider_rejected",
-      nextAttemptAt: now,
-    });
-    expect((await repository.notificationFor(created.record.id))?.status).toBe("failed");
-    expect(await repository.listRetryable(10)).toHaveLength(1);
+    expect(created.record.notifications).toEqual([]);
     expect((await repository.listStaff())[0]?.name).toBe("Ola");
     expect(await repository.deleteOlderThan(new Date(Date.now() + 60_000))).toBe(1);
     expect(await repository.get(created.record.id)).toBeNull();
@@ -225,7 +157,6 @@ function fakeDb(rows: Array<Record<string, unknown>>, audits: unknown[]) {
       },
       create: async ({ data }: { data: Record<string, unknown> }) => {
         const history = (data.history as { create: Record<string, unknown> }).create;
-        const notification = (data.notifications as { create: Record<string, unknown> }).create;
         const createdAt = new Date();
         const stored = {
           ...data,
@@ -234,15 +165,7 @@ function fakeDb(rows: Array<Record<string, unknown>>, audits: unknown[]) {
           assigneeId: null,
           notes: [],
           history: [{ ...history, actorId: null, actor: null, fromStatus: null, createdAt }],
-          notifications: [{
-            ...notification,
-            attempts: 0,
-            lastError: null,
-            nextAttemptAt: createdAt,
-            leaseToken: null,
-            leaseExpiresAt: null,
-            createdAt,
-          }],
+          notifications: [],
         };
         rows.push(stored);
         return decorate(stored);
@@ -297,38 +220,6 @@ function fakeDb(rows: Array<Record<string, unknown>>, audits: unknown[]) {
             actor: entry.actor ?? null,
           })),
         ),
-    },
-    notificationOutbox: {
-      findFirst: async ({ where }: { where: { inquiryId: string } }) => {
-        const row = rows.find((item) => item.id === where.inquiryId);
-        const notification = (row?.notifications as Array<Record<string, unknown>> | undefined)?.[0];
-        return notification ? { ...notification, inquiryId: where.inquiryId } : null;
-      },
-      updateMany: async ({
-        where,
-        data,
-      }: {
-        where: { id?: string; inquiryId?: string; leaseToken?: string };
-        data: Record<string, unknown> & { attempts?: { increment: number } };
-      }) => {
-        let count = 0;
-        for (const row of rows) {
-          const notification = (row.notifications as Array<Record<string, unknown>>)[0];
-          if (
-            notification &&
-            (!where.id || notification.id === where.id) &&
-            (!where.inquiryId || row.id === where.inquiryId) &&
-            (!where.leaseToken || notification.leaseToken === where.leaseToken)
-          ) {
-            for (const [key, value] of Object.entries(data)) {
-              if (key !== "attempts") notification[key] = value;
-            }
-            notification.attempts = Number(notification.attempts ?? 0) + (data.attempts?.increment ?? 0);
-            count += 1;
-          }
-        }
-        return { count };
-      },
     },
     user: {
       findMany: async () => [{ id: "staff-1", name: "Ola", role: "employee", status: "active" }],

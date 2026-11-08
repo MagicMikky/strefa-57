@@ -8,7 +8,7 @@ export const MAX_MESSAGE_LENGTH = 2_000;
 export const PRIVACY_NOTICE_VERSION = "1.1";
 
 export const INQUIRY_SUCCESS_MESSAGE =
-  "Zapytanie zostało wysłane. Termin nie jest jeszcze zarezerwowany ani zablokowany. Obsługa skontaktuje się z Tobą, aby potwierdzić dostępność, cenę i dalsze kroki.";
+  "Zgłoszenie zostało zapisane. Termin nie jest jeszcze zarezerwowany ani zablokowany. Obsługa skontaktuje się z Tobą, aby potwierdzić dostępność, cenę i dalsze kroki.";
 
 export const preferredTimeOptions = [
   { value: "", label: "Bez preferencji" },

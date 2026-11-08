@@ -668,7 +668,7 @@ export function InquiryForm({
           >
             <p className="font-semibold">
               {status.kind === "success"
-                ? "Zapytanie wysłane"
+                ? "Zgłoszenie zapisane"
                 : "Nie udało się wysłać formularza"}
             </p>
             <p className="mt-1 text-sm leading-6">{status.message}</p>
