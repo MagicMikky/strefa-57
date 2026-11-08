@@ -22,7 +22,7 @@ Pierwszego właściciela tworzy jednorazowy `POST /api/staff/bootstrap` z sekret
 
 PostgreSQL i Prisma. Tabele Better Auth: `User`, `Session`, `Account`, `Verification`. Tabele aplikacji: `Inquiry`, `InquiryNote`, `InquiryHistory`, `NotificationOutbox`, `StaffAudit`.
 
-Zgłoszenie dostaje klucz idempotencji. Ten sam klucz i ta sama treść zwracają istniejący rekord. Ten sam klucz i inna treść zwracają 409. Formularz odpowiada sukcesem dopiero po zapisie. E-mail Resend jest zadaniem w skrzynce wychodzącej i może się nie udać bez cofania zapisu. Ponowienie robi `POST /api/internal/notifications`.
+Zgłoszenie dostaje klucz idempotencji. Ten sam klucz i ta sama treść zwracają istniejący rekord. Ten sam klucz i inna treść zwracają 409. Formularz odpowiada sukcesem dopiero po zapisie w PostgreSQL. Zgłoszenia są obsługiwane wyłącznie w `/panel/zgloszenia`; aplikacja nie wysyła ich do zewnętrznego dostawcy e-mail.
 
 Statusy: `new`, `in_progress`, `waiting_for_customer`, `handled`, `closed`. Zmiana statusu zapisuje historię i nie tworzy rezerwacji.
 

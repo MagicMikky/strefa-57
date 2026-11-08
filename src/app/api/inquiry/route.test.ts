@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "./route";
 import { getWarsawDate } from "@/lib/inquiry";
-import { MemoryInquiryRepository } from "@/lib/inquiries/memory-repository";
 import { getInquiryRepository, resetInquiryRepositoryForTests } from "@/lib/inquiries/repository";
 import { resetRateLimitForTests } from "@/lib/rate-limit";
 
@@ -12,7 +11,6 @@ const mutableEnv = [
   "INQUIRY_FROM_EMAIL",
   "RATE_LIMIT_SALT",
   "RATE_LIMIT_MAX_REQUESTS",
-  "INQUIRY_DELIVERY_TIMEOUT_MS",
   "UPSTASH_REDIS_REST_URL",
   "UPSTASH_REDIS_REST_TOKEN",
   "NEXT_PUBLIC_SITE_URL",
@@ -35,7 +33,8 @@ function restoreEnv(): void {
   }
 }
 
-function enableDelivery(): void {
+function configureForm(): void {
+  // These legacy values must never cause an external e-mail request.
   process.env.RESEND_API_KEY = "re_test_key_value";
   process.env.INQUIRY_TO_EMAIL = "inbox@example.com";
   process.env.INQUIRY_FROM_EMAIL = "Strefa 29 <form@example.com>";
@@ -87,7 +86,7 @@ function inquiryRequest(
 describe("POST /api/inquiry", () => {
   beforeEach(() => {
     restoreEnv();
-    enableDelivery();
+    configureForm();
     resetRateLimitForTests();
     resetInquiryRepositoryForTests();
     vi.unstubAllGlobals();
@@ -105,7 +104,7 @@ describe("POST /api/inquiry", () => {
     expect(response.headers.get("cache-control")).toContain("no-store");
   });
 
-  it("saves an inquiry when email delivery is not configured", async () => {
+  it("saves an inquiry in the database without creating an e-mail job", async () => {
     delete process.env.RESEND_API_KEY;
     const response = await POST(inquiryRequest(validBody()));
     expect(response.status).toBe(200);
@@ -118,7 +117,7 @@ describe("POST /api/inquiry", () => {
       pageSize: 20,
     });
     expect(stored?.total).toBe(1);
-    expect(stored?.items[0]?.notifications[0]?.status).toBe("skipped");
+    expect(stored?.items[0]?.notifications).toEqual([]);
   });
 
   it("returns 403 for a cross-site request", async () => {
@@ -169,7 +168,7 @@ describe("POST /api/inquiry", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("sends a successful inquiry and escapes HTML in the operator email", async () => {
+  it("never calls an external e-mail provider", async () => {
     const fetchMock = vi.fn(async () => new Response("{}", { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
     const response = await POST(inquiryRequest(validBody()));
@@ -177,34 +176,7 @@ describe("POST /api/inquiry", () => {
     expect(response.headers.get("x-ratelimit-limit")).toBe("5");
     expect(response.headers.get("x-ratelimit-store")).toBe("memory");
 
-    const calls = fetchMock.mock.calls as unknown as Array<[string, RequestInit?]>;
-    const email = JSON.parse(String(calls[0]?.[1]?.body)) as { html: string; reply_to?: string };
-    const providerHeaders = new Headers(calls[0]?.[1]?.headers);
-    expect(email.reply_to).toBe("anna@example.com");
-    expect(email.html).toContain("&lt;b&gt;");
-    expect(email.html).not.toContain("<b>");
-    expect(providerHeaders.get("idempotency-key")).toBeTruthy();
-  });
-
-  it("keeps a saved inquiry when the email provider rejects delivery", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => new Response("no", { status: 500 })));
-    const response = await POST(inquiryRequest(validBody()));
-    expect(response.status).toBe(200);
-    const stored = await getInquiryRepository()?.recent(1);
-    expect(stored?.[0]?.notifications[0]?.status).toBe("failed");
-    expect(JSON.stringify(stored?.[0]?.notifications[0])).not.toContain("anna@example.com");
-  });
-
-  it("keeps a saved inquiry when the email provider times out", async () => {
-    process.env.INQUIRY_DELIVERY_TIMEOUT_MS = "30";
-    vi.stubGlobal(
-      "fetch",
-      vi.fn((_url: string, init?: RequestInit) => new Promise((_resolve, reject) => {
-        init?.signal?.addEventListener("abort", () => reject(new Error("aborted")));
-      })),
-    );
-    const response = await POST(inquiryRequest(validBody()));
-    expect(response.status).toBe(200);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("does not create a second inquiry for the same payload", async () => {
@@ -215,18 +187,7 @@ describe("POST /api/inquiry", () => {
     expect((await POST(inquiryRequest(validBody(), headers))).status).toBe(200);
     const stored = await getInquiryRepository()?.counts();
     expect(stored?.fresh).toBe(1);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("keeps a saved inquiry when marking the notification throws", async () => {
-    const mark = vi.spyOn(MemoryInquiryRepository.prototype, "completeNotification").mockRejectedValue(new Error("mark failed"));
-    try {
-      const response = await POST(inquiryRequest(validBody()));
-      expect(response.status).toBe(200);
-      expect((await getInquiryRepository()?.counts())?.fresh).toBe(1);
-    } finally {
-      mark.mockRestore();
-    }
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("returns 503 when the inquiry store is unavailable and does not echo the address", async () => {
@@ -253,7 +214,7 @@ describe("POST /api/inquiry", () => {
     vi.stubGlobal("fetch", fetchMock);
     expect((await POST(inquiryRequest(validBody()))).status).toBe(200);
     expect((await POST(inquiryRequest(validBody({ message: "Druga, inna prośba" })))).status).toBe(200);
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("returns 503 when the shared rate limit store is unavailable", async () => {

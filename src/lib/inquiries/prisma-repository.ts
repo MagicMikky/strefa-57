@@ -15,7 +15,6 @@ import {
 import type {
   InquiryRepository,
   NewInquiry,
-  NotificationCompletion,
 } from "@/lib/inquiries/memory-repository";
 import { STAFF_ROLES } from "@/lib/staff/permissions";
 
@@ -126,13 +125,6 @@ export function createPrismaInquiryRepository(
                 id: randomUUID(),
                 action: "created",
                 toStatus: "new",
-              },
-            },
-            notifications: {
-              create: {
-                id: randomUUID(),
-                channel: "email",
-                status: "pending",
               },
             },
           },
@@ -291,92 +283,6 @@ export function createPrismaInquiryRepository(
       return mapInquiry(updated);
     },
 
-    async notificationFor(id) {
-      const notification = await db.notificationOutbox.findFirst({
-        where: { inquiryId: id },
-        orderBy: { createdAt: "asc" },
-      });
-      if (!notification) {
-        return null;
-      }
-      return {
-        id: notification.id,
-        status: notification.status as InquiryNotificationRecord["status"],
-        attempts: notification.attempts,
-        lastError: notification.lastError,
-        createdAt: notification.createdAt,
-      };
-    },
-
-    async claimNotification(inquiryId, lease) {
-      const notification = await db.notificationOutbox.findFirst({
-        where: {
-          inquiryId,
-          status: { in: ["pending", "skipped", "failed"] },
-          attempts: { lt: 5 },
-          nextAttemptAt: { lte: lease.now },
-          OR: [
-            { leaseToken: null },
-            { leaseExpiresAt: null },
-            { leaseExpiresAt: { lte: lease.now } },
-          ],
-        },
-        orderBy: { createdAt: "asc" },
-      });
-      if (!notification) {
-        return null;
-      }
-
-      const claimed = await db.notificationOutbox.updateMany({
-        where: {
-          id: notification.id,
-          status: { in: ["pending", "skipped", "failed"] },
-          attempts: { lt: 5 },
-          nextAttemptAt: { lte: lease.now },
-          OR: [
-            { leaseToken: null },
-            { leaseExpiresAt: null },
-            { leaseExpiresAt: { lte: lease.now } },
-          ],
-        },
-        data: {
-          leaseToken: lease.token,
-          leaseExpiresAt: lease.expiresAt,
-        },
-      });
-      if (claimed.count !== 1) {
-        return null;
-      }
-
-      return {
-        id: notification.id,
-        attempts: notification.attempts,
-        leaseToken: lease.token,
-      };
-    },
-
-    async completeNotification(
-      inquiryId: string,
-      leaseToken: string,
-      result: NotificationCompletion,
-    ) {
-      const completed = await db.notificationOutbox.updateMany({
-        where: { inquiryId, leaseToken },
-        data: {
-          status: result.status,
-          lastError: result.error,
-          nextAttemptAt: result.nextAttemptAt,
-          leaseToken: null,
-          leaseExpiresAt: null,
-          attempts:
-            result.status === "sent" || result.status === "failed"
-              ? { increment: 1 }
-              : undefined,
-        },
-      });
-      return completed.count === 1;
-    },
-
     async deleteOlderThan(cutoff) {
       const result = await db.inquiry.deleteMany({
         where: { createdAt: { lt: cutoff } },
@@ -393,29 +299,6 @@ export function createPrismaInquiryRepository(
       return users;
     },
 
-    async listRetryable(limit: number) {
-      const now = new Date();
-      const rows = await db.inquiry.findMany({
-        where: {
-          notifications: {
-            some: {
-              status: { in: ["pending", "skipped", "failed"] },
-              attempts: { lt: 5 },
-              nextAttemptAt: { lte: now },
-              OR: [
-                { leaseToken: null },
-                { leaseExpiresAt: null },
-                { leaseExpiresAt: { lte: now } },
-              ],
-            },
-          },
-        },
-        include,
-        orderBy: { createdAt: "asc" },
-        take: limit,
-      });
-      return rows.map(mapInquiry);
-    },
   };
 }
 

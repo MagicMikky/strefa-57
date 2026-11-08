@@ -10,8 +10,7 @@ import {
 import { readPublicBusiness } from "@/lib/business/public";
 import { readPublished } from "@/lib/business/store";
 import { getPrisma } from "@/lib/prisma";
-import { dispatchInquiryNotification } from "@/lib/inquiries/dispatch";
-import { getRateLimitSalt } from "@/lib/inquiries/email";
+import { getRateLimitSalt } from "@/lib/inquiries/config";
 import {
   InquiryConflictError,
   inquiryContentHash,
@@ -289,9 +288,8 @@ export async function POST(request: Request) {
     );
   }
 
-  let saved: Awaited<ReturnType<typeof repository.createIfAbsent>>;
   try {
-    saved = await repository.createIfAbsent({
+    await repository.createIfAbsent({
       record: inquiryFromPayload(validation.data, dedupe.dedupeKey, contentHash),
     });
   } catch (error) {
@@ -314,12 +312,6 @@ export async function POST(request: Request) {
       503,
       rateLimitHeaders,
     );
-  }
-
-  try {
-    await dispatchInquiryNotification(repository, saved.record.id, validation.data);
-  } catch {
-    // The inquiry is already stored. A later worker can retry the notification.
   }
 
   return jsonResponse(
