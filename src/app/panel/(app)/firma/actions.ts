@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { normalizeBusiness, type BusinessBundle } from "@/lib/business/model";
 import { publishCompanyDraft, saveCompanyDraft } from "@/lib/business/store";
+import { ContentVersionConflictError, expectedVersion, isContentVersionConflict } from "@/lib/content/version";
 import { getPrisma } from "@/lib/prisma";
 import { requireStaff } from "@/lib/staff/session";
 
@@ -61,7 +62,16 @@ export async function saveCompanyDraftAction(form: FormData) {
   const actor = await requireStaff("business.publish");
   const parsed = bundleFromForm(form);
   if (!parsed.ok) redirect(`/panel/firma?error=${encodeURIComponent(parsed.error)}`);
-  await saveCompanyDraft(getPrisma(), actor.id, parsed.value);
+  const version = expectedVersion(form.get("version"));
+  if (version === null) redirect("/panel/firma?error=Nieprawid%C5%82owa+wersja+formularza.");
+  try {
+    await saveCompanyDraft(getPrisma(), actor.id, parsed.value, version);
+  } catch (error) {
+    if (isContentVersionConflict(error)) {
+      redirect(`/panel/firma?error=${encodeURIComponent(new ContentVersionConflictError().message)}`);
+    }
+    throw error;
+  }
   redirect("/panel/firma?saved=draft");
 }
 

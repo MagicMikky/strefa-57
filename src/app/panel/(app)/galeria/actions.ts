@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { fallbackGallery, normalizeGallery, type ManagedCategory, type ManagedPhoto } from "@/lib/gallery/model";
 import { inspectImage } from "@/lib/gallery/files";
 import { publishGalleryDraft, readGalleryDraft, saveGalleryDraft } from "@/lib/gallery/store";
+import { ContentVersionConflictError, expectedVersion, isContentVersionConflict } from "@/lib/content/version";
 import { managedSrc, saveGalleryUpload } from "@/lib/gallery/storage";
 import { getPrisma } from "@/lib/prisma";
 import { requireStaff } from "@/lib/staff/session";
@@ -27,12 +28,29 @@ function photosFromForm(form: FormData, current: ManagedPhoto[]) {
   })));
 }
 
+async function saveWithVersion(
+  actorId: string,
+  photos: ManagedPhoto[],
+  version: number,
+) {
+  try {
+    await saveGalleryDraft(getPrisma(), actorId, photos, version);
+  } catch (error) {
+    if (isContentVersionConflict(error)) {
+      redirect(`/panel/galeria?error=${encodeURIComponent(new ContentVersionConflictError().message)}`);
+    }
+    throw error;
+  }
+}
+
 export async function saveGalleryAction(form: FormData) {
   const actor = await requireStaff("business.publish");
   const current = (await readGalleryDraft(getPrisma())) ?? fallbackGallery();
   const parsed = photosFromForm(form, current);
   if (!parsed.ok) redirect(`/panel/galeria?error=${encodeURIComponent(parsed.error)}`);
-  await saveGalleryDraft(getPrisma(), actor.id, parsed.value);
+  const version = expectedVersion(form.get("version"));
+  if (version === null) redirect("/panel/galeria?error=Nieprawid%C5%82owa+wersja+formularza.");
+  await saveWithVersion(actor.id, parsed.value, version);
   redirect("/panel/galeria?saved=draft");
 }
 
@@ -77,6 +95,8 @@ export async function uploadGalleryAction(form: FormData) {
     },
   ]);
   if (!parsed.ok) redirect(`/panel/galeria?error=${encodeURIComponent(parsed.error)}`);
-  await saveGalleryDraft(getPrisma(), actor.id, parsed.value);
+  const version = expectedVersion(form.get("version"));
+  if (version === null) redirect("/panel/galeria?error=Nieprawid%C5%82owa+wersja+formularza.");
+  await saveWithVersion(actor.id, parsed.value, version);
   redirect("/panel/galeria?saved=upload");
 }

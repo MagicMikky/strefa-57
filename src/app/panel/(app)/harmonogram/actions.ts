@@ -8,6 +8,7 @@ import { readPublished } from "@/lib/business/store";
 import { getPrisma } from "@/lib/prisma";
 import { fallbackSchedule, normalizeSchedule, WEEKDAYS, type ScheduleBlock } from "@/lib/schedule/model";
 import { publishScheduleDraft, readScheduleSlot, saveScheduleDraft } from "@/lib/schedule/store";
+import { ContentVersionConflictError, expectedVersion, isContentVersionConflict } from "@/lib/content/version";
 import { requireStaff } from "@/lib/staff/session";
 
 function text(form: FormData, name: string) {
@@ -39,7 +40,16 @@ export async function saveScheduleAction(form: FormData) {
   const current = (await readScheduleSlot(getPrisma(), "draft", times)) ?? fallbackSchedule();
   const parsed = normalizeSchedule(catalogFromForm(form, current.blocks), times);
   if (!parsed.ok) redirect(`/panel/harmonogram?error=${encodeURIComponent(parsed.error)}`);
-  await saveScheduleDraft(getPrisma(), actor.id, parsed.value, times);
+  const version = expectedVersion(form.get("version"));
+  if (version === null) redirect("/panel/harmonogram?error=Nieprawid%C5%82owa+wersja+formularza.");
+  try {
+    await saveScheduleDraft(getPrisma(), actor.id, parsed.value, times, version);
+  } catch (error) {
+    if (isContentVersionConflict(error)) {
+      redirect(`/panel/harmonogram?error=${encodeURIComponent(new ContentVersionConflictError().message)}`);
+    }
+    throw error;
+  }
   redirect("/panel/harmonogram?saved=draft");
 }
 

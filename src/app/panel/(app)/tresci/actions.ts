@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { fallbackSiteCopy, normalizeSiteCopy } from "@/lib/content/model";
 import { publishSiteDraft, saveSiteDraft } from "@/lib/content/store";
+import { ContentVersionConflictError, expectedVersion, isContentVersionConflict } from "@/lib/content/version";
 import { getPrisma } from "@/lib/prisma";
 import { requireStaff } from "@/lib/staff/session";
 
@@ -56,7 +57,16 @@ export async function saveSiteDraftAction(form: FormData) {
   const actor = await requireStaff("business.publish");
   const parsed = copyFromForm(form);
   if (!parsed.ok) redirect(`/panel/tresci?error=${encodeURIComponent(parsed.error)}`);
-  await saveSiteDraft(getPrisma(), actor.id, parsed.value);
+  const version = expectedVersion(form.get("version"));
+  if (version === null) redirect("/panel/tresci?error=Nieprawid%C5%82owa+wersja+formularza.");
+  try {
+    await saveSiteDraft(getPrisma(), actor.id, parsed.value, version);
+  } catch (error) {
+    if (isContentVersionConflict(error)) {
+      redirect(`/panel/tresci?error=${encodeURIComponent(new ContentVersionConflictError().message)}`);
+    }
+    throw error;
+  }
   redirect("/panel/tresci?saved=draft");
 }
 

@@ -5,6 +5,7 @@ import type { Prisma, PrismaClient } from "@prisma/client";
 import { BUSINESS_SLOT } from "@/lib/business/model";
 import { normalizeGallery, type ManagedPhoto } from "@/lib/gallery/model";
 import { managedSrc, publishGalleryFile } from "@/lib/gallery/storage";
+import { ContentVersionConflictError } from "@/lib/content/version";
 
 type Db = PrismaClient | Prisma.TransactionClient;
 
@@ -17,6 +18,14 @@ export async function readGallerySlot(db: Db, slot: string): Promise<ManagedPhot
 
 export function readGalleryDraft(db: Db) {
   return readGallerySlot(db, BUSINESS_SLOT.draft);
+}
+
+export async function readGalleryDraftVersion(db: Db): Promise<number> {
+  const row = await db.galleryCatalog.findUnique({
+    where: { id: BUSINESS_SLOT.draft },
+    select: { version: true },
+  });
+  return row?.version ?? 0;
 }
 
 export function readPublishedGallery(db: Db) {
@@ -51,10 +60,37 @@ async function writeSlot(db: Db, slot: string, photos: ManagedPhoto[], version: 
   });
 }
 
-export async function saveGalleryDraft(db: PrismaClient, actorId: string, photos: ManagedPhoto[]) {
+export async function saveGalleryDraft(
+  db: PrismaClient,
+  actorId: string,
+  photos: ManagedPhoto[],
+  expected?: number,
+) {
   await db.$transaction(async (tx) => {
     const current = await tx.galleryCatalog.findUnique({ where: { id: BUSINESS_SLOT.draft }, select: { version: true } });
-    await writeSlot(tx, BUSINESS_SLOT.draft, photos, (current?.version ?? 0) + 1, actorId);
+    const version = expected === undefined ? (current?.version ?? 0) + 1 : expected + 1;
+    if (expected === undefined) {
+      await writeSlot(tx, BUSINESS_SLOT.draft, photos, version, actorId);
+      return;
+    }
+    if (expected === 0) {
+      if (current) throw new ContentVersionConflictError();
+      await tx.galleryCatalog.create({
+        data: { id: BUSINESS_SLOT.draft, body: photos as unknown as Prisma.InputJsonValue, version, updatedById: actorId },
+      });
+    } else {
+      const updated = await tx.galleryCatalog.updateMany({
+        where: { id: BUSINESS_SLOT.draft, version: expected },
+        data: { body: photos as unknown as Prisma.InputJsonValue, version, updatedById: actorId },
+      });
+      if (updated.count !== 1) throw new ContentVersionConflictError();
+    }
+    await tx.contentRevision.create({
+      data: { id: randomUUID(), entity: "gallery", version, status: BUSINESS_SLOT.draft, snapshot: photos as unknown as Prisma.InputJsonValue, actorId },
+    });
+    await tx.configChangeAudit.create({
+      data: { id: randomUUID(), actorId, entity: "gallery", action: "save_draft", before: undefined, after: photos as unknown as Prisma.InputJsonValue },
+    });
   });
 }
 
@@ -72,10 +108,12 @@ export async function publishGalleryDraft(db: PrismaClient, actorId: string) {
     ready.push({ ...photo, src: managedSrc(photo.storageName) });
   }
   await db.$transaction(async (tx) => {
-    const current = await tx.galleryCatalog.findUnique({ where: { id: BUSINESS_SLOT.published }, select: { version: true } });
-    const version = (current?.version ?? 0) + 1;
-    await writeSlot(tx, BUSINESS_SLOT.published, ready, version, actorId);
-    await writeSlot(tx, BUSINESS_SLOT.draft, ready, version, actorId);
+    const [published, draftRow] = await Promise.all([
+      tx.galleryCatalog.findUnique({ where: { id: BUSINESS_SLOT.published }, select: { version: true } }),
+      tx.galleryCatalog.findUnique({ where: { id: BUSINESS_SLOT.draft }, select: { version: true } }),
+    ]);
+    await writeSlot(tx, BUSINESS_SLOT.published, ready, (published?.version ?? 0) + 1, actorId);
+    await writeSlot(tx, BUSINESS_SLOT.draft, ready, (draftRow?.version ?? 0) + 1, actorId);
   });
   return { ok: true as const };
 }

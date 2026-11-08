@@ -44,7 +44,10 @@ describe("staff and inquiry edge paths", () => {
       status: "closed",
     });
     expect(parseInquiryListQuery({ page: "0", status: "booked" }).status).toBe("");
-    expect(resolveDedupeKey("abc", null)).toEqual({ dedupeKey: "abc" });
+    const first = resolveDedupeKey("abc", null);
+    const second = resolveDedupeKey("abc", null);
+    expect("dedupeKey" in first && first.dedupeKey).toMatch(/^submission:/);
+    expect(first).not.toEqual(second);
     expect("error" in resolveDedupeKey("abc", "short")).toBe(true);
     expect(resolveDedupeKey("abc", "idempotency-key-1")).toEqual({
       dedupeKey: "idem:idempotency-key-1",
@@ -91,6 +94,43 @@ describe("staff and inquiry edge paths", () => {
     expect(summary.examined).toBe(1);
     expect(summary.skipped).toBe(1);
     expect((await repository.get(created.record.id))?.notifications[0]?.lastError).toBe("email_not_configured");
+  });
+
+  it("leases a notification to only one worker at a time", async () => {
+    const repository = new MemoryInquiryRepository();
+    const hash = inquiryContentHash(inquiry);
+    const created = await repository.createIfAbsent({
+      record: inquiryFromPayload(inquiry, "idem:lease-test-key-1", hash),
+    });
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 60_000);
+    const first = await repository.claimNotification(created.record.id, {
+      token: "worker-1",
+      now,
+      expiresAt,
+    });
+    const second = await repository.claimNotification(created.record.id, {
+      token: "worker-2",
+      now,
+      expiresAt,
+    });
+
+    expect(first?.leaseToken).toBe("worker-1");
+    expect(second).toBeNull();
+    await expect(
+      repository.completeNotification(created.record.id, "worker-2", {
+        status: "sent",
+        error: null,
+        nextAttemptAt: now,
+      }),
+    ).resolves.toBe(false);
+    await expect(
+      repository.completeNotification(created.record.id, "worker-1", {
+        status: "sent",
+        error: null,
+        nextAttemptAt: now,
+      }),
+    ).resolves.toBe(true);
   });
 
   it("rejects an email configuration with header injection", () => {
@@ -147,7 +187,18 @@ describe("prisma inquiry repository", () => {
     expect((await repository.counts()).waiting).toBe(1);
     expect(await repository.recent(5)).toHaveLength(1);
     expect((await repository.recentHistory(5))[0]?.action).toBeTruthy();
-    await repository.markNotification(created.record.id, { status: "failed", error: "provider_rejected" });
+    const now = new Date();
+    const claim = await repository.claimNotification(created.record.id, {
+      token: "prisma-worker-1",
+      now,
+      expiresAt: new Date(now.getTime() + 60_000),
+    });
+    expect(claim).not.toBeNull();
+    await repository.completeNotification(created.record.id, "prisma-worker-1", {
+      status: "failed",
+      error: "provider_rejected",
+      nextAttemptAt: now,
+    });
     expect((await repository.notificationFor(created.record.id))?.status).toBe("failed");
     expect(await repository.listRetryable(10)).toHaveLength(1);
     expect((await repository.listStaff())[0]?.name).toBe("Ola");
@@ -183,7 +234,15 @@ function fakeDb(rows: Array<Record<string, unknown>>, audits: unknown[]) {
           assigneeId: null,
           notes: [],
           history: [{ ...history, actorId: null, actor: null, fromStatus: null, createdAt }],
-          notifications: [{ ...notification, attempts: 0, lastError: null, createdAt }],
+          notifications: [{
+            ...notification,
+            attempts: 0,
+            lastError: null,
+            nextAttemptAt: createdAt,
+            leaseToken: null,
+            leaseExpiresAt: null,
+            createdAt,
+          }],
         };
         rows.push(stored);
         return decorate(stored);
@@ -245,16 +304,30 @@ function fakeDb(rows: Array<Record<string, unknown>>, audits: unknown[]) {
         const notification = (row?.notifications as Array<Record<string, unknown>> | undefined)?.[0];
         return notification ? { ...notification, inquiryId: where.inquiryId } : null;
       },
-      update: async ({ where, data }: { where: { id: string }; data: { status: string; lastError: string | null; attempts?: { increment: number } } }) => {
+      updateMany: async ({
+        where,
+        data,
+      }: {
+        where: { id?: string; inquiryId?: string; leaseToken?: string };
+        data: Record<string, unknown> & { attempts?: { increment: number } };
+      }) => {
+        let count = 0;
         for (const row of rows) {
           const notification = (row.notifications as Array<Record<string, unknown>>)[0];
-          if (notification?.id === where.id) {
-            notification.status = data.status;
-            notification.lastError = data.lastError;
+          if (
+            notification &&
+            (!where.id || notification.id === where.id) &&
+            (!where.inquiryId || row.id === where.inquiryId) &&
+            (!where.leaseToken || notification.leaseToken === where.leaseToken)
+          ) {
+            for (const [key, value] of Object.entries(data)) {
+              if (key !== "attempts") notification[key] = value;
+            }
             notification.attempts = Number(notification.attempts ?? 0) + (data.attempts?.increment ?? 0);
+            count += 1;
           }
         }
-        return {};
+        return { count };
       },
     },
     user: {

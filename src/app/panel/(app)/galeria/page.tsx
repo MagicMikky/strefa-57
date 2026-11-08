@@ -1,7 +1,7 @@
 import { pendingGalleryAssets } from "@/data/gallery";
 import { publishGalleryAction, saveGalleryAction, uploadGalleryAction } from "@/app/panel/(app)/galeria/actions";
 import { fallbackGallery } from "@/lib/gallery/model";
-import { readGalleryDraft, readPublishedGallery } from "@/lib/gallery/store";
+import { readGalleryDraft, readGalleryDraftVersion, readPublishedGallery } from "@/lib/gallery/store";
 import { getPrisma } from "@/lib/prisma";
 import { requireStaff } from "@/lib/staff/session";
 
@@ -20,8 +20,13 @@ export default async function GalleryAdminPage({
 }) {
   await requireStaff("business.publish");
   const query = await searchParams;
-  const draft = (await readGalleryDraft(getPrisma())) ?? fallbackGallery();
-  const published = await readPublishedGallery(getPrisma());
+  const db = getPrisma();
+  const [storedDraft, draftVersion, published] = await Promise.all([
+    readGalleryDraft(db),
+    readGalleryDraftVersion(db),
+    readPublishedGallery(db),
+  ]);
+  const draft = storedDraft ?? fallbackGallery();
 
   return (
     <section className="grid gap-6">
@@ -36,6 +41,7 @@ export default async function GalleryAdminPage({
       {query.error ? <p className="rounded-2xl bg-[#fff1f0] px-4 py-3 text-sm" role="alert">{query.error}</p> : null}
 
       <form action={saveGalleryAction} className="grid gap-4">
+        <input name="version" type="hidden" value={draftVersion} />
         {draft.map((photo) => (
           <fieldset className="grid gap-3 rounded-3xl bg-white p-5 shadow-sm" key={photo.id}>
             <legend className="font-black">{photo.title || photo.id}</legend>
@@ -67,6 +73,7 @@ export default async function GalleryAdminPage({
       </form>
 
       <form action={uploadGalleryAction} className="grid gap-3 rounded-3xl bg-white p-5 shadow-sm">
+        <input name="version" type="hidden" value={draftVersion} />
         <h2 className="text-lg font-black">Dodaj zdjęcie</h2>
         <input accept="image/jpeg,image/png,image/webp" name="file" type="file" required />
         <input className="rounded-xl border px-3 py-2" name="title" placeholder="Tytuł" required />

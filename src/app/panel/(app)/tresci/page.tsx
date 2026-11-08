@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { publishSiteAction, saveSiteDraftAction } from "@/app/panel/(app)/tresci/actions";
 import { fallbackSiteCopy } from "@/lib/content/model";
-import { readPublishedSite, readSiteDraft } from "@/lib/content/store";
+import { readPublishedSite, readSiteDraft, readSiteDraftVersion } from "@/lib/content/store";
 import { getPrisma } from "@/lib/prisma";
 import { requireStaff } from "@/lib/staff/session";
 
@@ -25,7 +25,11 @@ export default async function ContentPage({
   await requireStaff("business.publish");
   const query = await searchParams;
   const db = getPrisma();
-  const draft = (await readSiteDraft(db)) ?? fallbackSiteCopy();
+  const [storedDraft, draftVersion] = await Promise.all([
+    readSiteDraft(db),
+    readSiteDraftVersion(db),
+  ]);
+  const draft = storedDraft ?? fallbackSiteCopy();
   const published = await readPublishedSite(db);
   const history = await db.configChangeAudit.findMany({
     where: { entity: "site-content" },
@@ -53,6 +57,7 @@ export default async function ContentPage({
       {query.error ? <p className="rounded-2xl bg-[#fff1f0] px-4 py-3 text-sm" role="alert">{query.error}</p> : null}
 
       <form action={saveSiteDraftAction} className="grid gap-6">
+        <input name="version" type="hidden" value={draftVersion} />
         <fieldset className="grid gap-4 rounded-3xl bg-white p-5 shadow-sm">
           <legend className="text-lg font-black">SEO</legend>
           <Field name="seoHomeTitle" label="Strona główna — tytuł" value={draft.seo.home.title} />

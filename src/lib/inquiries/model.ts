@@ -123,7 +123,11 @@ export function resolveDedupeKey(
   idempotencyKey: string | null,
 ): { dedupeKey: string } | { error: string } {
   if (!idempotencyKey) {
-    return { dedupeKey: contentHash };
+    // A content hash must not become a permanent idempotency key: two genuine
+    // submissions with identical answers are still two separate inquiries.
+    // First-party clients send an explicit key so network retries are deduped;
+    // callers without one receive a unique submission key.
+    return { dedupeKey: "submission:" + randomUUID() };
   }
 
   const key = idempotencyKey.trim();

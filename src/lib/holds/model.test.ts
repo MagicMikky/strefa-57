@@ -26,6 +26,17 @@ describe("capacity holds", () => {
     expect(decideHold([], request({ holdMinutes: null }), settings, schedule).ok).toBe(false);
   });
 
+  it("rejects dates with an impossible month or day", () => {
+    expect(decideHold([], request({ date: "2026-13-14" }), settings, schedule)).toMatchObject({
+      ok: false,
+      error: "invalid",
+    });
+    expect(decideHold([], request({ date: "2026-02-30" }), settings, schedule)).toMatchObject({
+      ok: false,
+      error: "invalid",
+    });
+  });
+
   it("keeps one team inside the published limits", () => {
     const decision = decideHold([], request(), settings, schedule);
     expect(decision.ok).toBe(true);

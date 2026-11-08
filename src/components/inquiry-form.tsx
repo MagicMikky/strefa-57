@@ -201,6 +201,7 @@ export function InquiryForm({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const inquiryStarted = useRef(false);
+  const idempotency = useRef<{ fingerprint: string; key: string } | null>(null);
 
   function handleInquiryStart() {
     if (inquiryStarted.current) return;
@@ -247,11 +248,20 @@ export function InquiryForm({
     setStatus({ kind: "idle", message: "" });
     setIsSubmitting(true);
 
+    const fingerprint = JSON.stringify(clientValidation.data);
+    if (idempotency.current?.fingerprint !== fingerprint) {
+      idempotency.current = {
+        fingerprint,
+        key: crypto.randomUUID(),
+      };
+    }
+
     try {
       const response = await fetch("/api/inquiry", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Idempotency-Key": idempotency.current.key,
         },
         body: JSON.stringify(clientValidation.data),
       });
@@ -282,6 +292,7 @@ export function InquiryForm({
       }
 
       trackEvent("inquiry_submit", { status: response.status });
+      idempotency.current = null;
       form.reset();
       setPreferredContact("email");
       setFieldErrors({});
