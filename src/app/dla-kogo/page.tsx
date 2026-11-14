@@ -181,7 +181,7 @@ export default function AudiencesPage() {
           <SectionHeading
             eyebrow="Szkoły i osoby niepełnoletnie"
             title="Najpierw zasady opieki i bezpieczeństwa."
-            body="Przed przedstawieniem oferty dla szkoły, kolonii lub grupy z osobami niepełnoletnimi obsługa potwierdza minimalny wiek, wymagane zgody, liczbę opiekunów i właściwy wariant rozgrywki."
+            body="Osoby poniżej 18 lat potrzebują oświadczenia zgody opiekuna prawnego. Szczegóły opieki i organizacji grupy potwierdzi obsługa przed wizytą."
             align="center"
           />
           <div className="audiences-organized__actions">

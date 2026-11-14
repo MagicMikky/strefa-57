@@ -32,11 +32,11 @@ export const siteConfig = {
     directionsNote: "Dokładną instrukcję wjazdu otrzymasz po uzgodnieniu terminu.",
   },
   contact: {
-    phoneDisplay: "Numer telefonu do potwierdzenia",
-    phoneHref: "",
-    emailDisplay: "E-mail do potwierdzenia",
-    emailHref: "",
-    hours: "Gry i kontakt po wcześniejszym uzgodnieniu",
+    phoneDisplay: "577 203 783",
+    phoneHref: "tel:577203783",
+    emailDisplay: "strefapaintball@icloud.com",
+    emailHref: "mailto:strefapaintball@icloud.com",
+    hours: "Gry codziennie przez cały rok, po uzgodnieniu terminu",
   },
   social: {
     facebook: "",
@@ -57,7 +57,7 @@ export const mainNavigation: NavigationItem[] = [
 export const stats = [
   { value: "1+ ha", label: "terenu do gry" },
   { value: "4", label: "proponowane pory startu" },
-  { value: "15 km", label: "od centrum Gdańska" },
+  { value: "ok. 20 min", label: "od centrum Gdańska" },
   { value: "V2", label: "unikalny scenariusz" },
 ] as const;
 
@@ -139,7 +139,8 @@ export const addOns = [
   "rękawice ochronne",
   "kombinezon",
   "granaty dymne — po potwierdzeniu dostępności",
-  "ognisko lub catering — po indywidualnym uzgodnieniu",
+  "ognisko — przygotowanie miejsca i drewno, bez żywności",
+  "grill — przygotowanie miejsca i węgiel, bez żywności",
 ] as const;
 
 export const audiences = [
@@ -221,7 +222,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "Ile osób może zagrać?",
     answer:
-      "Podaj liczbę uczestników w formularzu. Obsługa zaproponuje właściwy wariant i poinformuje, czy grupę można połączyć z inną albo zagrać samodzielnie.",
+      "Przyjmujemy grupy od 8 do 50 osób. Standardowo termin jest na wyłączność; bez dopłaty można zgodzić się na dołączenie innych grup.",
   },
   {
     question: "Ile trwa wizyta?",
@@ -231,7 +232,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "Czy można grać podczas deszczu?",
     answer:
-      "Lekki deszcz zwykle nie odbiera frajdy z gry terenowej, ale ostateczna decyzja zależy od warunków i bezpieczeństwa. Zasady przełożenia wydarzenia obsługa potwierdzi przed uzgodnieniem terminu.",
+      "W razie pogorszenia pogody skontaktuj się telefonicznie z obsługą. Możliwość przełożenia terminu lub zwrotu zadatku jest ustalana indywidualnie przez telefon.",
   },
   {
     question: "Jak się ubrać?",
@@ -241,7 +242,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "Czy osoby niepełnoletnie mogą zagrać?",
     answer:
-      "Minimalny wiek i forma zgody opiekuna zależą od zasad obiektu. W zapytaniu zaznacz, że grupa obejmuje osoby niepełnoletnie — obsługa poda aktualne zasady.",
+      "Uczestnik poniżej 18 lat potrzebuje oświadczenia zgody opiekuna prawnego. Wzór dokumentu zostanie udostępniony po otrzymaniu go od właściciela.",
   },
   {
     question: "Czy na miejscu jest parking i zaplecze?",
@@ -251,7 +252,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "Jak wygląda płatność?",
     answer:
-      "W wersji 1.0 strona nie obsługuje płatności. Po sprawdzeniu terminu obsługa przekazuje cenę, wysokość ewentualnego zadatku i sposób jego wpłaty. Nie wysyłaj danych karty przez formularz ani e-mail.",
+      "Zadatek za grupę jest odliczany od końcowego rachunku; aktualną kwotę podaje cennik. Płatność odbywa się poza stroną: gotówką, BLIK-iem lub przelewem. Możliwa jest faktura. Nie wysyłaj danych karty przez formularz ani e-mail.",
   },
 ];
 

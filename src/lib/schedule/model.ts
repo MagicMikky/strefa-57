@@ -15,7 +15,7 @@ export interface ScheduleCatalog {
 }
 
 export function fallbackSchedule(): ScheduleCatalog {
-  return { weekdays: ["pn", "wt", "sr", "cz", "pt"], blocks: [] };
+  return { weekdays: [...WEEKDAYS], blocks: [] };
 }
 
 function realDate(value: string) {
@@ -53,7 +53,7 @@ export function normalizeSchedule(
     if (!block || typeof block.date !== "string" || !realDate(block.date)) {
       return { ok: false, error: "Data blokady musi mieć format RRRR-MM-DD." };
     }
-    if (block.slot !== "day" && !slotStartTimes.includes(block.slot)) {
+    if (block.slot !== "day" && !slotStartTimes.includes(block.slot) && !/^([01]\d|2[0-3]):[0-5]\d$/.test(block.slot)) {
       return { ok: false, error: "Blokada dotyczy całego dnia albo jednego ze skonfigurowanych startów." };
     }
     const reason = plainText(String(block.reason ?? ""), 200, "Powód blokady");

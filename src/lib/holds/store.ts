@@ -19,7 +19,7 @@ interface HoldRow {
 
 interface HoldDb {
   confirmedSlot: {
-    findUnique(args: { where: { date_slot: { date: string; slot: string } } }): Promise<{ id: string } | null>;
+    findFirst(args: { where: { date: string; slot: string; cancelledAt: null } }): Promise<{ id: string } | null>;
   };
   capacityHold: {
     findMany(args: { where: { OR: Array<Record<string, unknown>> } }): Promise<HoldRow[]>;
@@ -39,7 +39,7 @@ export async function createCapacityHold(
   const client = db as unknown as HoldDb;
   return client.$transaction(async (tx) => {
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`${request.date}|${request.slot}`}))`;
-    if (await tx.confirmedSlot.findUnique({ where: { date_slot: { date: request.date, slot: request.slot } } })) {
+    if (await tx.confirmedSlot.findFirst({ where: { date: request.date, slot: request.slot, cancelledAt: null } })) {
       return { ok: false, error: "unavailable" };
     }
     const rows = await tx.capacityHold.findMany({

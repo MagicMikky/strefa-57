@@ -19,7 +19,7 @@ interface HoldRow {
 }
 
 interface MemoryHoldDb {
-  confirmedSlot: { findUnique(): Promise<{ id: string } | null> };
+  confirmedSlot: { findFirst(): Promise<{ id: string } | null> };
   capacityHold: {
     findMany(args: { where: { OR: Array<Record<string, unknown>> } }): Promise<HoldRow[]>;
     create(args: { data: HoldRow }): Promise<HoldRow>;
@@ -33,7 +33,7 @@ function memoryDatabase() {
   const rows: HoldRow[] = [];
   let chain = Promise.resolve();
   const db: MemoryHoldDb = {
-    confirmedSlot: { async findUnique() { return null; } },
+    confirmedSlot: { async findFirst() { return null; } },
     capacityHold: {
       async findMany({ where }: { where: { OR: Array<Record<string, unknown>> } }) {
         return rows.filter((row) => where.OR.some((clause) => {
@@ -72,7 +72,7 @@ function memoryDatabase() {
   return { db: db as unknown as PrismaClient, rows };
 }
 
-const settings = { ...fallbackBusiness().settings, maxTeamsPerMatch: 1 };
+const settings = { ...fallbackBusiness().settings, maxPlayersPerSlot: 8, maxTeamsPerMatch: 1, slotStartTimes: ["08:00"] };
 const schedule = { weekdays: ["sb" as const], blocks: [] };
 const now = new Date("2026-11-06T10:00:00.000Z");
 

@@ -37,6 +37,7 @@ export interface InquiryFormProps {
   initialEventType?: string;
   initialDate?: string;
   initialPlayers?: number;
+  initialSharing?: boolean;
   initialMessage?: string;
   initialPreferredTime?: string;
   slotStarts?: readonly string[];
@@ -151,6 +152,7 @@ export function InquiryForm({
   initialEventType,
   initialDate,
   initialPlayers,
+  initialSharing = false,
   initialMessage,
   initialPreferredTime,
   slotStarts = [],
@@ -219,6 +221,7 @@ export function InquiryForm({
 
     const payload: InquiryPayload = {
       playerCount: Number(playerCountValue),
+      allowSharing: formData.get("allowSharing") === "on",
       preferredDate: asString(formData.get("preferredDate")),
       preferredTime: asString(formData.get("preferredTime")),
       alternateDate: asString(formData.get("alternateDate")),
@@ -354,6 +357,13 @@ export function InquiryForm({
               type="number"
             />
             <FieldError errors={fieldErrors} field="playerCount" />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="flex items-start gap-3 text-sm text-stone-900">
+              <input className="mt-1 size-4 accent-lime-700" defaultChecked={initialSharing} disabled={isSubmitting} name="allowSharing" type="checkbox" />
+              <span><strong>Inne grupy mogą dołączyć</strong><br />Domyślnie termin jest na wyłączność. Zgoda na wspólną grę nie kosztuje dodatkowo.</span>
+            </label>
+            <FieldError errors={fieldErrors} field="allowSharing" />
           </div>
 
           <div>

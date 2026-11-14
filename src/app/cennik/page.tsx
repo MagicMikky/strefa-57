@@ -11,6 +11,7 @@ import { addOns } from "@/data/site";
 import { packagesForDisplay } from "@/lib/content/model";
 import { getPublishedSiteCopy } from "@/lib/content/public";
 import { AnalyticsView } from "@/components/analytics-view";
+import { getPublicBusiness } from "@/lib/business/public";
 
 export async function generateMetadata(): Promise<Metadata> {
   const copy = await getPublishedSiteCopy();
@@ -63,7 +64,9 @@ const priceConfirmationSteps = [
 ] as const;
 
 export default async function PricingPage() {
-  const packages = packagesForDisplay(await getPublishedSiteCopy());
+  const [copy, business] = await Promise.all([getPublishedSiteCopy(), getPublicBusiness()]);
+  const packages = packagesForDisplay(copy);
+  const money = (value: string) => `${value.replace(/\.00$/, "").replace(".", ",")} zł`;
   return (
     <div className="pricing-page">
       <AnalyticsView event="pricing_view" />
@@ -107,7 +110,7 @@ export default async function PricingPage() {
             <SectionHeading
               eyebrow="Dodatki"
               title="Rozszerzenia ustalane przed wizytą."
-              body="Dostępność, cenę i warunki każdego dodatku potwierdza obsługa. Niektóre opcje mogą wymagać wcześniejszego zgłoszenia albo zależeć od warunków na polu."
+              body={`Ognisko: ${money(business.settings.campfirePrice)}. Grill: ${money(business.settings.grillPrice)}. Oba dodatki można wybrać razem. Ceny obejmują przygotowanie miejsca z drewnem lub węglem, bez produktów spożywczych.`}
             />
             <ButtonLink href="/zapytaj-o-termin" variant="secondary">
               Zapytaj o dodatki
@@ -142,7 +145,7 @@ export default async function PricingPage() {
           <SectionHeading
             eyebrow="Płatność"
             title="Ta strona nie pobiera pieniędzy."
-            body="Nie ma tu koszyka, płatności online ani automatycznych zadatków. Sposób płatności i ewentualny zadatek obsługa przekazuje dopiero po sprawdzeniu zapytania."
+            body={`Zadatek wynosi ${money(business.settings.depositAmount)} za grupę i jest odliczany od końcowego rachunku. Płatność gotówką, BLIK-iem lub przelewem; możliwa jest faktura. Strona nie pobiera pieniędzy — szczegóły uzgodnisz z obsługą.`}
             light
           />
           <InfoNotice title="Nie przesyłaj danych karty" tone="dark">

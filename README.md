@@ -1,5 +1,7 @@
 # Paintball Strefa 29 — lokalny projekt
 
+Aktualne zasady: grupy 8–50 osób, starty 10:00, 12:00, 15:00 i 18:00 każdego dnia. Gra jest domyślnie na wyłączność; klient może bez dopłaty zgodzić się na dołączenie innych grup. Pracownik dodaje i zmienia rezerwacje telefoniczne w `/panel/rezerwacje`. Publiczny kalendarz nadal prowadzi do zgłoszenia bez płatności online.
+
 Instrukcje uruchomienia projektu lokalnie i uruchomienia testów.
 
 Wymagania:
@@ -34,7 +36,7 @@ Zmienne środowiskowe są opisane w `.env.example`. Indeksacja jest wyłączona,
 
 Wersja 1.0 przyjmuje zapytanie i, gdy `DATABASE_URL` jest ustawiony, zapisuje je jako `Inquiry` w PostgreSQL. Samo wysłanie zapytania ani zmiana jego statusu nie zajmują terminu. Uprawniony pracownik może osobno potwierdzić wizytę na stronie szczegółów zgłoszenia; potwierdzenie zapisuje `ConfirmedSlot` i zajmuje cały wybrany slot w kalendarzu. Może je tam również anulować. Nie ma płatności ani automatycznego checkoutu. Panel 1.5A i CMS właściciela 1.5B (treści, galeria, harmonogram, historia) oraz kalendarz dostępności są w kodzie. Kalendarz prowadzi do `/zapytaj-o-termin`. Checkout w `src/lib/business/checkout-gate.ts` ma `enabled: false`. Płatności opisane w `strona2_0.md` pozostają niezaimplementowane. Niezatwierdzone wartości są w `docs/STREFA29_DECYZJE_DO_USTALENIA.md`. Plan bieżący jest w `docs/STREFA29_MASTER_PLAN.md`.
 
-Domyślny kalendarz pokazuje poniedziałek–piątek z trzema slotami (08:00, 11:00, 14:00). Administrator może zmienić dni tygodnia i ręcznie dodać blokadę dnia lub godziny w `/panel/harmonogram`; po zapisaniu wersji roboczej należy ją opublikować.
+Domyślny kalendarz pokazuje wszystkie dni z czterema slotami (10:00, 12:00, 15:00, 18:00). Administrator może zmienić dni tygodnia i ręcznie dodać blokadę dnia lub godziny w `/panel/harmonogram`; po zapisaniu wersji roboczej należy ją opublikować.
 
 Gdy formularz nie dochodzi:
 1. Sprawdź odpowiedź `/api/inquiry`: 503 oznacza brak zapisu albo niedostępny współdzielony limit, 409 oznacza konflikt klucza, 429 oznacza limit.

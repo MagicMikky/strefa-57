@@ -53,6 +53,7 @@ export interface InquiryRecord {
   contentHash: string;
   status: InquiryStatus;
   playerCount: number;
+  allowSharing?: boolean;
   preferredDate: string;
   preferredTime: string;
   alternateDate: string;
@@ -104,6 +105,7 @@ export function isInquiryStatus(value: string): value is InquiryStatus {
 export function inquiryContentHash(inquiry: ValidInquiry): string {
   const canonical = JSON.stringify({
     playerCount: inquiry.playerCount,
+    allowSharing: inquiry.allowSharing,
     preferredDate: inquiry.preferredDate,
     preferredTime: inquiry.preferredTime,
     alternateDate: inquiry.alternateDate,
@@ -150,6 +152,7 @@ export function inquiryFromPayload(
     contentHash,
     status: "new",
     playerCount: inquiry.playerCount,
+    allowSharing: inquiry.allowSharing,
     preferredDate: inquiry.preferredDate,
     preferredTime: inquiry.preferredTime,
     alternateDate: inquiry.alternateDate,

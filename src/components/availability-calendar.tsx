@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react";
 
 import type { BusinessSettingsInput } from "@/lib/business/model";
 import type { ScheduleCatalog } from "@/lib/schedule/model";
-import { closureReason, evaluateDay, holdSummary, laterDatesInMonth, monthCells, shiftDate, weekDates, type DayTone, type SlotUse } from "@/lib/availability/model";
+import { closureReason, evaluateDay, holdSummary, laterDatesInMonth, monthCells, shiftDate, slotsOverlap, weekDates, type DayTone, type SlotUse } from "@/lib/availability/model";
 
 type CalendarSettings = Pick<
   BusinessSettingsInput,
-  "maxPlayersPerTeam" | "maxTeamsPerMatch" | "maxPlayersPerSlot" | "slotStartTimes" | "slotDurationMinutes"
+  "minPlayersPerBooking" | "maxPlayersPerTeam" | "maxTeamsPerMatch" | "maxPlayersPerSlot" | "slotStartTimes" | "slotDurationMinutes"
 >;
 
 export function AvailabilityCalendar({
@@ -25,7 +25,7 @@ export function AvailabilityCalendar({
   schedule: ScheduleCatalog;
   today: string;
   holds?: ReadonlyArray<SlotUse & { date: string; expiresAt?: string }>;
-  confirmedSlots?: ReadonlyArray<{ date: string; slot: string }>;
+  confirmedSlots?: ReadonlyArray<{ date: string; slot: string; players: number; privateSlot: boolean }>;
   capacityKnown?: boolean;
   allowPast?: boolean;
   showOperations?: boolean;
@@ -34,12 +34,14 @@ export function AvailabilityCalendar({
   const [view, setView] = useState<"month" | "week" | "day">("month");
   const [weekAnchor, setWeekAnchor] = useState(today);
   const [dayAnchor, setDayAnchor] = useState(today);
-  const [players, setPlayers] = useState(4);
-  const [privateSlot, setPrivateSlot] = useState(false);
+  const [players, setPlayers] = useState(settings.minPlayersPerBooking);
+  const [privateSlot, setPrivateSlot] = useState(true);
   const [selected, setSelected] = useState("");
   const uses = [
     ...holds,
-    ...confirmedSlots.map(({ date, slot }) => ({ date, slot, players: settings.maxPlayersPerSlot, teams: settings.maxTeamsPerMatch, privateSlot: true, confirmed: true })),
+    ...confirmedSlots.flatMap(({ date, slot, players, privateSlot }) => settings.slotStartTimes
+      .filter((start) => slotsOverlap(start, slot, settings.slotDurationMinutes))
+      .map((start) => ({ date, slot: start, players: start === slot ? players : settings.maxPlayersPerSlot, teams: 1, privateSlot: start === slot ? privateSlot : true, confirmed: true }))),
   ];
   const closeRef = useRef<HTMLButtonElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
@@ -94,14 +96,14 @@ export function AvailabilityCalendar({
       ) : null}
       <div className="availability__filters" aria-label="Ustawienia grupy">
         <label>
-          <span>Liczba graczy w drużynie</span>
-          <input min={1} max={settings.maxPlayersPerTeam} type="number" value={players} onChange={(event) => setPlayers(clampPlayers(event.target.value, settings.maxPlayersPerTeam))} />
+          <span>Liczba graczy w grupie</span>
+          <input min={settings.minPlayersPerBooking} max={settings.maxPlayersPerSlot} type="number" value={players} onChange={(event) => setPlayers(clampPlayers(event.target.value, settings.minPlayersPerBooking, settings.maxPlayersPerSlot))} />
         </label>
         <fieldset>
           <legend>Rodzaj gry</legend>
           <div className="availability__mode-options">
-            <label><input checked={!privateSlot} name="slot-mode" type="radio" onChange={() => setPrivateSlot(false)} /> <span>Gra wspólna</span></label>
-            <label><input checked={privateSlot} name="slot-mode" type="radio" onChange={() => setPrivateSlot(true)} /> <span>Prywatny slot</span></label>
+            <label><input checked={privateSlot} name="slot-mode" type="radio" onChange={() => setPrivateSlot(true)} /> <span>Na wyłączność</span></label>
+            <label><input checked={!privateSlot} name="slot-mode" type="radio" onChange={() => setPrivateSlot(false)} /> <span>Mogą dołączyć inni (bez dopłaty)</span></label>
           </div>
         </fieldset>
       </div>
@@ -149,12 +151,12 @@ export function AvailabilityCalendar({
             <button className="availability__close" ref={closeRef} type="button" onClick={() => setSelected("")}>Zamknij <span aria-hidden="true">×</span></button>
             <span className="availability__eyebrow">Dostępność godzin</span>
             <h2 id="availability-dialog-title">{formatDate(selectedDay.date)}</h2>
-            <p className="availability__sheet-lead">{capacityKnown ? selectedDay.statusLabel : "Dostępność nieznana"}. {capacityKnown ? `Zajęte ${selectedDay.occupiedPlayers} z ${selectedDay.activeCapacity} miejsc w otwartych slotach.` : "Spróbuj ponownie później."}</p>
+            <p className="availability__sheet-lead">{capacityKnown ? selectedDay.statusLabel : "Dostępność nieznana"}. {capacityKnown ? "Wybierz godzinę zgodną z wielkością i trybem grupy." : "Spróbuj ponownie później."}</p>
             <ul>
               {selectedDay.slots.map((slot) => (
                 <li className="availability__slot" key={slot.start}>
                   <div><strong>{slot.start}–{slot.end}</strong><span className={slot.fitsRequest && capacityKnown ? "availability__slot-state is-open" : "availability__slot-state is-unavailable"}>{capacityKnown ? slot.statusLabel : "Nieznany"}</span></div>
-                  <span>{capacityKnown && slot.fitsRequest ? `Wolnych miejsc dla drużyny: ${slot.bookableSeats}` : slot.confirmed || slot.privateReservation ? "Termin zajęty" : "Brak dostępności dla wybranej grupy"}.{showOperations && slot.closed ? ` Powód: ${closureReason(schedule, selectedDay.date, slot.start) ?? "niepodany"}.` : ""}</span>
+                  <span>{capacityKnown && slot.fitsRequest ? `Wolnych miejsc: ${slot.bookableSeats}` : slot.privateReservation ? "Termin zajęty" : "Brak dostępności dla wybranej grupy"}.{showOperations && slot.closed ? ` Powód: ${closureReason(schedule, selectedDay.date, slot.start) ?? "niepodany"}.` : ""}</span>
                   {capacityKnown && selectedDay.date >= today && slot.fitsRequest ? (
                     <a href={inquiryHref(selectedDay.date, { slot: slot.start, players, privateSlot })}>Zapytaj o ten slot</a>
                   ) : <em>Niedostępny dla wybranej grupy</em>}
@@ -310,7 +312,7 @@ function DayButton({
 function inquiryHref(date: string, options: { slot?: string; players: number; privateSlot: boolean }): string {
   const query = [`data=${date}`, `gracze=${options.players}`];
   if (options.slot) query.push(`slot=${options.slot}`);
-  if (options.privateSlot) query.push("tryb=prywatny");
+  query.push(`tryb=${options.privateSlot ? "prywatny" : "wspolny"}`);
   return `/zapytaj-o-termin?${query.join("&")}`;
 }
 
@@ -329,10 +331,10 @@ function shortLabel(tone: DayTone): string {
   return "Niedostępny";
 }
 
-function clampPlayers(value: string, max: number): number {
+function clampPlayers(value: string, min: number, max: number): number {
   const parsed = Number(value);
-  if (!Number.isInteger(parsed)) return 1;
-  return Math.min(max, Math.max(1, parsed));
+  if (!Number.isInteger(parsed)) return min;
+  return Math.min(max, Math.max(min, parsed));
 }
 
 function shiftMonth(cursor: string, delta: number): string {

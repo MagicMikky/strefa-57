@@ -34,6 +34,7 @@ export default async function AvailabilityPage() {
             holds={capacity.holds}
             schedule={schedule}
             settings={{
+              minPlayersPerBooking: settings.minPlayersPerBooking,
               maxPlayersPerTeam: settings.maxPlayersPerTeam,
               maxTeamsPerMatch: settings.maxTeamsPerMatch,
               maxPlayersPerSlot: settings.maxPlayersPerSlot,

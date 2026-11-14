@@ -88,6 +88,7 @@ model Inquiry {
   contentHash          String
   status               String   @default("new")
   playerCount          Int
+  allowSharing         Boolean  @default(false)
   preferredDate        String
   preferredTime        String
   alternateDate        String
@@ -178,6 +179,9 @@ model BusinessProfile {
   legalName       String   @default("")
   taxId           String   @default("")
   street          String
+  registeredStreet String @default("")
+  registeredPostalCode String @default("")
+  registeredCity String @default("")
   postalCode      String
   city            String
   region          String
@@ -212,6 +216,7 @@ model BusinessContact {
 
 model BusinessSettings {
   id                    String   @id
+  minPlayersPerBooking  Int      @default(8)
   maxPlayersPerTeam     Int
   minTeamsPerMatch      Int
   maxTeamsPerMatch      Int
@@ -223,6 +228,8 @@ model BusinessSettings {
   allowPrivateSlot      Boolean
   equipmentSets         Int?
   depositAmount         String?
+  campfirePrice         String?
+  grillPrice            String?
   privateSlotSurcharge  String?
   paymentProvider       String?
   cancellationPolicy    String?
@@ -299,12 +306,20 @@ model CapacityHold {
 // The inquiry id is kept as an audit reference; no customer details are copied.
 model ConfirmedSlot {
   id        String   @id
-  inquiryId String   @unique
+  inquiryId String?  @unique
   date      String
   slot      String
+  players   Int      @default(0)
+  privateSlot Boolean @default(true)
+  source    String   @default("inquiry")
+  contactName String?
+  contactPhone String?
+  notes     String?
+  cancelledAt DateTime?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@unique([date, slot])
+  @@index([date, slot, cancelledAt])
   @@index([date])
 }
 

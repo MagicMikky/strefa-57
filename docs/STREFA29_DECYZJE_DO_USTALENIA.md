@@ -11,17 +11,22 @@
 | ID | Parametr | Status | Wartość | Uwagi |
 |---|---|---|---|---|
 | U-01 | Maksimum zawodników w drużynie | USTALONE | 8 | Edytowalne przez ownera |
-| U-02 | Liczba drużyn w meczu | USTALONE | 2–4 | Procedura przy mniejszej liczbie drużyn do ustalenia |
-| U-03 | Maksimum zawodników na slot | USTALONE | 32 | Poza limitem sprzętu/personelu |
-| U-04 | Standardowe starty | USTALONE | 08:00, 11:00, 14:00 | Lokalnie Europe/Warsaw; owner może zmieniać |
-| U-05 | Gra i bufor | USTALONE | 120 + 60 minut | Bufor pomiędzy grami |
-| U-06 | Współdzielenie slotu | USTALONE | Tak | Różne grupy łącznie ≤ 4 zespoły i 32 osoby |
-| U-07 | Prywatny slot | USTALONE | Tak, cały slot na wyłączność | Dopłata D-09 otwarta |
+| U-02 | Liczba drużyn w meczu | ZMIENIONE | Podział grupy przez obsługę, bez limitu 4 drużyn dla zgłoszenia | Historyczny limit zastąpiony limitem 50 osób na slot |
+| U-03 | Maksimum zawodników na slot | USTALONE | 50 | Sprzęt i obsada nadal wymagają potwierdzenia |
+| U-04 | Standardowe starty | USTALONE | 10:00, 12:00, 15:00, 18:00 | Także rezerwacje telefoniczne |
+| U-05 | Czas gry i bufor | USTALONE | Slot do 120 minut; brak automatycznego bufora | Szczegóły wizyty uzgadnia obsługa |
+| U-06 | Współdzielenie slotu | USTALONE | Tylko za zgodą grup, łącznie do 50 osób | Bez dopłaty |
+| U-07 | Prywatny slot | USTALONE | Domyślnie na wyłączność | Zgoda na wspólną grę bez dopłaty |
 | U-08 | Blokada przez właściciela | USTALONE | Cały dzień lub slot | Bez automatycznego wypierania opłaconych wizyt |
 | U-09 | Kolory dostępności | USTALONE | Zielony: poniżej połowy; niebieski: od połowy; czerwony: niedostępny | Stan „nieustalony” przy braku danych; D-19 metodologia |
 | U-10 | Edytowalność | USTALONE | Dane firmy i reguły biznesowe przez panel | Kod/sekrety pozostają poza CMS |
-| U-11 | Niepogoda i zwroty | WSTĘPNE | Preferencja: co do zasady bez zwrotu przy złej pogodzie | **Prawnik:** wyjątki bezpieczeństwa, odwołanie przez obiekt, prawa klienta — D-13 |
-| U-12 | Domyślny harmonogram | USTALONE | Poniedziałek–piątek, 3 sloty dziennie według U-04 | Święta, dni i godziny wyłącza ręcznie administrator w panelu; sezonowość pozostaje w D-16 |
+| U-11 | Niepogoda i zwroty | WSTĘPNE | Każdy przypadek omawiany telefonicznie | Bez automatycznej obietnicy zwrotu; finalny regulamin nadal D-13 |
+| U-12 | Domyślny harmonogram | USTALONE | Siedem dni w tygodniu, także święta, 4 sloty dziennie według U-04 | Wyłączenia ręczne w panelu |
+| U-13 | Wielkość grupy | USTALONE | 8–50 osób; grup 1–7 nie przyjmować | Zgłoszenie online i wpis telefoniczny |
+| U-14 | Zadatek | USTALONE OPERACYJNIE | 500 zł za grupę, odliczany od rachunku | Płatność poza stroną |
+| U-15 | Ognisko i grill | USTALONE OPERACYJNIE | 200 zł każde, oba razem 400 zł | Opał w cenie, żywność osobno |
+| U-16 | Kontakt i obiekt | USTALONE | 577 203 783; strefapaintball@icloud.com; Żurawia 29, 80-298 Czaple | Adres rejestrowy i link FB niepodane |
+| U-17 | Osoby niepełnoletnie | USTALONE CZĘŚCIOWO | Poniżej 18 lat wymagana zgoda opiekuna | Wzór dokumentu oczekiwany |
 
 ## B. Wszystkie sprawy otwarte (D-01–D-36)
 
@@ -42,7 +47,7 @@
 | D-13 | P0-LEGAL | Pogoda | Deszcz, burza, odwołanie obiektu, zagrożenie, zwroty i przełożenia | Regulamin + checkout |
 | D-14 | P0-CAP | Sprzęt | Liczba sprawnych zestawów, serwis, dostępność per slot | Wiążąca dostępność |
 | D-15 | P0-CAP | Obsada | Instruktorzy, minimum do 2–4 drużyn, ograniczenia | Wiążąca dostępność |
-| D-16 | P0-CAP | Sezon | Domyślnie poniedziałek–piątek (U-12); do ustalenia sezonowość i ewentualne automatyczne wyjątki | Kalendarz sprzedaży |
+| D-16 | P0-CAP | Sezon | Gry przez cały rok i święta; wyłączenia administrator ustawia ręcznie | Kalendarz sprzedaży |
 | D-17 | P0-CAP | Okno rezerwacji | Min. wyprzedzenie, max. horyzont, ostatni termin online | Kalendarz sprzedaży |
 | D-18 | P0-PAY | Hold | Ile minut; co gdy wygaśnie/klient zapłaci później | Checkout |
 | D-19 | P1-CAP | Kolor przy blokadach | Czy próg zapełnienia do czynnej pojemności (zalecane), czy nominalnej | Docelowy UX kalendarza |
@@ -81,6 +86,7 @@
 | 2026-11-06 | U-01…U-10 | OTWARTE → USTALONE | Jak w tabeli A | Właściciel | Parametry startowe |
 | 2026-11-06 | U-11 | OTWARTE → WSTĘPNE | Niepogoda bez automatycznie gwarantowanego zwrotu; wymagany przegląd prawny | Właściciel (preferencja) | Jeszcze nie obowiązuje jako regulamin |
 | 2026-11-08 | U-12 | OTWARTE → USTALONE | Poniedziałek–piątek, trzy sloty dziennie; święta i inne wyłączenia ręcznie w panelu | Właściciel | Domyślny harmonogram |
+| 2026-11-13 | U-02…U-17 | POPRZEDNIE → USTALONE/WSTĘPNE | Harmonogram, limit 50, minimum 8, wyłączność, wpisy telefoniczne i kontakt jak w tabeli A | Właściciel i doprecyzowanie użytkownika | Po wdrożeniu migracji |
 | — | — | — | — | — | — |
 
 ## E. Procedura synchronizacji

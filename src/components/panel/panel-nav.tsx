@@ -13,6 +13,7 @@ export function PanelNav({ staff }: { staff: StaffSession }) {
       <Link className="rounded-full border border-black/15 px-4 py-2" href="/panel/zgloszenia">
         Zgłoszenia
       </Link>
+      {can(staff.role, "inquiries.update") ? <Link className="rounded-full border border-black/15 px-4 py-2" href="/panel/rezerwacje">Rezerwacje telefoniczne</Link> : null}
       {can(staff.role, "staff.manage") ? (
         <Link className="rounded-full border border-black/15 px-4 py-2" href="/panel/pracownicy">
           Pracownicy

@@ -1,8 +1,8 @@
 import { packages } from "@/data/site";
 
 // Technical bounds until the owner approves a business minimum and maximum.
-export const MIN_PLAYER_COUNT = 1;
-export const MAX_PLAYER_COUNT = 200;
+export const MIN_PLAYER_COUNT = 8;
+export const MAX_PLAYER_COUNT = 50;
 export const UNKNOWN_PACKAGE_ID = "nie-wiem";
 export const MAX_MESSAGE_LENGTH = 2_000;
 export const PRIVACY_NOTICE_VERSION = "1.1";
@@ -40,6 +40,7 @@ export type PreferredContact =
 
 export interface InquiryPayload {
   playerCount: number;
+  allowSharing?: boolean;
   preferredDate: string;
   preferredTime: string;
   alternateDate: string;
@@ -55,6 +56,7 @@ export interface InquiryPayload {
 }
 
 export interface ValidInquiry extends InquiryPayload {
+  allowSharing: boolean;
   preferredTime: PreferredTime | string;
   eventType: EventType;
   preferredContact: PreferredContact;
@@ -216,6 +218,10 @@ export function validateInquiry(
       MAX_PLAYER_COUNT +
       ".";
   }
+  const allowSharing = source.allowSharing === true;
+  if (source.allowSharing !== undefined && typeof source.allowSharing !== "boolean") {
+    fieldErrors.allowSharing = "Wybierz prawidłowy tryb gry.";
+  }
 
   const preferredDate = readString(source, "preferredDate", fieldErrors);
   const preferredTime = readString(source, "preferredTime", fieldErrors);
@@ -318,6 +324,7 @@ export function validateInquiry(
     ok: true,
     data: {
       playerCount,
+      allowSharing,
       preferredDate,
       preferredTime,
       alternateDate,

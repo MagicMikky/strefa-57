@@ -14,7 +14,7 @@ describe("validateInquiry", () => {
     const preferredDate = getWarsawDate(tomorrow);
 
     const input = {
-      playerCount: 5,
+      playerCount: 8,
       preferredDate,
       preferredTime: "12:00",
       alternateDate: "",
@@ -32,7 +32,7 @@ describe("validateInquiry", () => {
     const result = validateInquiry(input, new Date());
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.playerCount).toBe(5);
+      expect(result.data.playerCount).toBe(8);
       expect(result.data.email).toBe("jan@example.com");
     }
   });

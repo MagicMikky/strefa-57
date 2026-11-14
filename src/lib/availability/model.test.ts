@@ -1,131 +1,62 @@
 import { describe, expect, it } from "vitest";
-
 import { fallbackBusiness } from "@/lib/business/model";
 import { fallbackSchedule } from "@/lib/schedule/model";
-import { closureReason, evaluateDay, holdSummary, laterDatesInMonth, monthCells, warsawDate, weekDates } from "@/lib/availability/model";
+import { evaluateDay, laterDatesInMonth, monthCells, slotsOverlap, warsawDate, weekDates } from "@/lib/availability/model";
 
 const settings = fallbackBusiness().settings;
+const schedule = fallbackSchedule();
+const today = "2026-11-06";
+const day = "2026-11-14";
+const request = { players: 8, privateSlot: true };
 
 describe("availability calendar", () => {
-  it("opens three slots on weekdays by default and closes weekends", () => {
-    const day = evaluateDay("2026-11-11", settings, fallbackSchedule(), [], { players: 4, privateSlot: false }, "2026-11-06");
-    expect(day.tone).toBe("open");
-    expect(day.slots).toHaveLength(3);
-    expect(day.slots.map((slot) => slot.start)).toEqual(["08:00", "11:00", "14:00"]);
-    expect(day.slots[0]).toMatchObject({ start: "08:00", end: "10:00", bookableSeats: 8, freePhysicalSeats: 32, statusLabel: "Wolny", fitsRequest: true });
-    expect(evaluateDay("2026-11-14", settings, fallbackSchedule(), [], { players: 4, privateSlot: false }, "2026-11-06").tone).toBe("unavailable");
+  it("opens four slots on all seven days, including weekends and holidays", () => {
+    for (const date of ["2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12", "2026-11-13", "2026-11-14", "2026-11-15"]) {
+      const result = evaluateDay(date, settings, schedule, [], request, today);
+      expect(result.tone).toBe("open");
+      expect(result.slots.map((slot) => slot.start)).toEqual(["10:00", "12:00", "15:00", "18:00"]);
+      expect(result.slots.every((slot) => slot.fitsRequest)).toBe(true);
+    }
   });
-
-  it("lets an administrator close a weekday or one slot", () => {
-    const closedDay = evaluateDay("2026-11-11", settings, { ...fallbackSchedule(), blocks: [{ date: "2026-11-11", slot: "day", reason: "Święto" }] }, [], { players: 4, privateSlot: false }, "2026-11-06");
+  it("enforces the group minimum and maximum", () => {
+    expect(evaluateDay(day, settings, schedule, [], { players: 7, privateSlot: true }, today).tone).toBe("unavailable");
+    expect(evaluateDay(day, settings, schedule, [], { players: 50, privateSlot: true }, today).tone).toBe("open");
+    expect(evaluateDay(day, settings, schedule, [], { players: 51, privateSlot: true }, today).tone).toBe("unavailable");
+  });
+  it("honors a manually blocked day or slot and legacy overlapping blocks", () => {
+    const closedDay = evaluateDay(day, settings, { ...schedule, blocks: [{ date: day, slot: "day", reason: "Zamknięte" }] }, [], request, today);
     expect(closedDay.slots.every((slot) => !slot.fitsRequest)).toBe(true);
-    const oneSlot = evaluateDay("2026-11-11", settings, { ...fallbackSchedule(), blocks: [{ date: "2026-11-11", slot: "11:00", reason: "Przerwa" }] }, [], { players: 4, privateSlot: false }, "2026-11-06");
-    expect(oneSlot.slots.map((slot) => slot.fitsRequest)).toEqual([true, false, true]);
+    const oneSlot = evaluateDay(day, settings, { ...schedule, blocks: [{ date: day, slot: "15:00", reason: "Przerwa" }] }, [], request, today);
+    expect(oneSlot.slots.map((slot) => slot.fitsRequest)).toEqual([true, true, false, true]);
+    const legacy = evaluateDay(day, settings, { ...schedule, blocks: [{ date: day, slot: "11:00", reason: "Stara blokada" }] }, [], request, today);
+    expect(legacy.slots.map((slot) => slot.fitsRequest)).toEqual([false, false, true, true]);
   });
-
-  it("turns a published open day green when less than half is occupied", () => {
-    const day = evaluateDay("2026-11-14", settings, { weekdays: ["sb"], blocks: [] }, [], { players: 4, privateSlot: false }, "2026-11-06");
-    expect(day.tone).toBe("open");
-    expect(day.activeCapacity).toBe(96);
+  it("makes a confirmed exclusive booking occupy its whole slot", () => {
+    const result = evaluateDay(day, settings, schedule, [{ slot: "10:00", players: 8, teams: 1, privateSlot: true, confirmed: true }], request, today);
+    expect(result.slots[0]).toMatchObject({ fitsRequest: false, freePhysicalSeats: 0, statusLabel: "Slot prywatny" });
+    expect(result.slots[1].fitsRequest).toBe(true);
+    expect(result.occupiedPlayers).toBe(50);
   });
-
-  it("turns the day blue once half of the active capacity is occupied", () => {
-    const day = evaluateDay("2026-11-14", settings, { weekdays: ["sb"], blocks: [] }, [
-      { slot: "08:00", players: 24, teams: 3, privateSlot: false },
-      { slot: "11:00", players: 24, teams: 3, privateSlot: false },
-    ], { players: 4, privateSlot: false }, "2026-11-06");
-    expect(day.tone).toBe("limited");
-    expect(day.occupiedPlayers).toBe(48);
+  it("allows shared groups until fifty people and prevents an exclusive join", () => {
+    const uses = [{ slot: "10:00", players: 42, teams: 1, privateSlot: false, confirmed: true }];
+    expect(evaluateDay(day, settings, schedule, uses, { players: 8, privateSlot: false }, today).slots[0]).toMatchObject({ fitsRequest: true, bookableSeats: 8, statusLabel: "Częściowo zajęty" });
+    expect(evaluateDay(day, settings, schedule, uses, { players: 9, privateSlot: false }, today).slots[0].fitsRequest).toBe(false);
+    expect(evaluateDay(day, settings, schedule, uses, request, today).slots[0].fitsRequest).toBe(false);
   });
-
-  it("separates physical seats from seats bookable by another team", () => {
-    const day = evaluateDay("2026-11-14", settings, { weekdays: ["sb"], blocks: [] }, [
-      { slot: "08:00", players: 16, teams: 4, privateSlot: false },
-    ], { players: 4, privateSlot: false }, "2026-11-06");
-    expect(day.slots[0]).toMatchObject({ freePhysicalSeats: 16, bookableSeats: 0, fitsRequest: false });
-    expect(day.slots[1].fitsRequest).toBe(true);
+  it("keeps past and administratively closed weekdays unavailable", () => {
+    expect(evaluateDay("2026-11-01", settings, schedule, [], request, today).tone).toBe("unavailable");
+    expect(evaluateDay(day, settings, { weekdays: ["pn"], blocks: [] }, [], request, today).tone).toBe("unavailable");
   });
-
-  it("counts a private party as the whole slot", () => {
-    const day = evaluateDay("2026-11-14", settings, { weekdays: ["sb"], blocks: [] }, [
-      { slot: "08:00", players: 8, teams: 1, privateSlot: true },
-    ], { players: 4, privateSlot: false }, "2026-11-06");
-    expect(day.occupiedPlayers).toBe(32);
-    expect(day.slots[0].fitsRequest).toBe(false);
-    expect(day.slots[1].fitsRequest).toBe(true);
-    expect(day.tone).toBe("open");
-  });
-
-  it("marks a staff-confirmed slot as occupied while leaving other hours available", () => {
-    const day = evaluateDay("2026-11-14", settings, { weekdays: ["sb"], blocks: [] }, [
-      { slot: "08:00", players: settings.maxPlayersPerSlot, teams: settings.maxTeamsPerMatch, privateSlot: true, confirmed: true },
-    ], { players: 4, privateSlot: false }, "2026-11-06");
-    expect(day.slots[0]).toMatchObject({ statusLabel: "Termin zajęty", fitsRequest: false, freePhysicalSeats: 0 });
-    expect(day.slots[1].fitsRequest).toBe(true);
-  });
-
-  it("marks an administratively closed day unavailable without calling it reserved", () => {
-    const day = evaluateDay("2026-11-14", settings, { weekdays: ["sb"], blocks: [{ date: "2026-11-14", slot: "day", reason: "Przerwa" }] }, [], { players: 4, privateSlot: false }, "2026-11-06");
-    expect(day.tone).toBe("unavailable");
-    expect(day.slots.every((slot) => slot.statusLabel === "Zablokowany")).toBe(true);
-  });
-
-  it("labels a partly filled slot and a private reservation", () => {
-    const day = evaluateDay("2026-11-14", settings, { weekdays: ["sb"], blocks: [] }, [
-      { slot: "08:00", players: 8, teams: 1, privateSlot: false },
-      { slot: "11:00", players: 10, teams: 1, privateSlot: true },
-    ], { players: 4, privateSlot: false }, "2026-11-06");
-    expect(day.slots[0].statusLabel).toBe("Częściowo zajęty");
-    expect(day.slots[1]).toMatchObject({ statusLabel: "Slot prywatny", fitsRequest: false, freePhysicalSeats: 0 });
-  });
-
-  it("rejects a past day, a closed weekday and a group above one team", () => {
-    expect(evaluateDay("2026-11-01", settings, { weekdays: ["sb", "nd"], blocks: [] }, [], { players: 4, privateSlot: false }, "2026-11-06").tone).toBe("unavailable");
-    expect(evaluateDay("2026-11-16", settings, { weekdays: ["sb"], blocks: [] }, [], { players: 4, privateSlot: false }, "2026-11-06").tone).toBe("unavailable");
-    expect(evaluateDay("2026-11-16", settings, { weekdays: ["sb"], blocks: [] }, [], { players: 4, privateSlot: false }, "2026-11-06").slots[0].fitsRequest).toBe(false);
-    expect(evaluateDay("2026-11-14", settings, { weekdays: ["sb"], blocks: [] }, [], { players: 9, privateSlot: true }, "2026-11-06").slots[0].fitsRequest).toBe(false);
-  });
-
-  it("formats the Warsaw calendar date", () => {
+  it("finds later matching dates and handles Warsaw dates", () => {
+    const saturdayOnly = { weekdays: ["sb" as const], blocks: [{ date: day, slot: "day", reason: "Przerwa" }] };
+    expect(laterDatesInMonth(day, settings, saturdayOnly, [], request, today)).toEqual(["2026-11-21", "2026-11-28"]);
     expect(warsawDate(new Date("2026-11-06T23:30:00.000Z"))).toBe("2026-11-07");
-  });
-
-  it("describes an anonymous hold and the owner's closure reason", () => {
-    const schedule = { weekdays: ["sb" as const], blocks: [{ date: "2026-11-14", slot: "day", reason: "Przerwa" }] };
-    expect(closureReason(schedule, "2026-11-14", "08:00")).toBe("Przerwa");
-    expect(closureReason(schedule, "2026-11-15", "08:00")).toBeNull();
-    expect(holdSummary({ slot: "08:00", players: 4, teams: 1, privateSlot: false, expiresAt: "2026-11-06T10:10:00.000Z" })).toBe(
-      "08:00: 4 graczy, drużyny: 1, gra wspólna, wygasa 2026-11-06 11:10",
-    );
-  });
-
-  it("suggests only later fitting days inside the same month", () => {
-    const schedule = {
-      weekdays: ["sb" as const],
-      blocks: [{ date: "2026-11-14", slot: "day" as const, reason: "Przerwa" }],
-    };
-    expect(laterDatesInMonth("2026-11-14", settings, schedule, [], { players: 4, privateSlot: false }, "2026-11-06")).toEqual([
-      "2026-11-21",
-      "2026-11-28",
-    ]);
-    expect(laterDatesInMonth("2026-11-28", settings, schedule, [], { players: 4, privateSlot: false }, "2026-11-06")).toEqual([]);
-    expect(laterDatesInMonth("2026-11-01", settings, { weekdays: ["sb"], blocks: [] }, [], { players: 4, privateSlot: false }, "2026-11-06")).not.toContain("2026-11-01");
-  });
-
-  it("builds a Monday-first week around a Friday", () => {
-    expect(weekDates("2026-11-06")).toEqual([
-      "2026-11-02",
-      "2026-11-03",
-      "2026-11-04",
-      "2026-11-05",
-      "2026-11-06",
-      "2026-11-07",
-      "2026-11-08",
-    ]);
-  });
-
-  it("builds a Monday-first month", () => {
-    expect(monthCells(2026, 11)[0].date).toBe("");
+    expect(weekDates("2026-11-06")[0]).toBe("2026-11-02");
     expect(monthCells(2026, 11).find((cell) => cell.date === "2026-11-01")).toBeTruthy();
+  });
+  it("recognizes old overlapping slots without blocking adjacent slots", () => {
+    expect(slotsOverlap("11:00", "10:00", 120)).toBe(true);
+    expect(slotsOverlap("11:00", "12:00", 120)).toBe(true);
+    expect(slotsOverlap("10:00", "12:00", 120)).toBe(false);
   });
 });

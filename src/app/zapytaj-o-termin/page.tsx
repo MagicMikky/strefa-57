@@ -23,10 +23,9 @@ export default async function InquiryPage({ searchParams }: InquiryPageProps) {
   const packages = packagesForDisplay(copy);
   const slot = business.settings.slotStartTimes.includes(params.slot ?? "") ? params.slot : undefined;
   const players = Number(params.gracze);
-  const initialPlayers = Number.isInteger(players) && players >= 1 && players <= business.settings.maxPlayersPerTeam ? players : undefined;
+  const initialPlayers = Number.isInteger(players) && players >= business.settings.minPlayersPerBooking && players <= business.settings.maxPlayersPerSlot ? players : undefined;
   const initialMessage = [
     slot ? `Interesuje mnie slot ${slot}–${addMinutes(slot, business.settings.slotDurationMinutes)}.` : "",
-    params.tryb === "prywatny" ? "Chcę grę na wyłączność." : "",
   ].filter(Boolean).join(" ");
   return (
     <>
@@ -55,6 +54,7 @@ export default async function InquiryPage({ searchParams }: InquiryPageProps) {
               initialEventType={params.wydarzenie}
               initialDate={/^\d{4}-\d{2}-\d{2}$/.test(params.data ?? "") ? params.data : undefined}
               initialPlayers={initialPlayers}
+              initialSharing={params.tryb === "wspolny"}
               initialMessage={initialMessage || undefined}
               initialPreferredTime={slot}
               slotStarts={business.settings.slotStartTimes}

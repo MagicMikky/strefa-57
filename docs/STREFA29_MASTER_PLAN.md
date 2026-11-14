@@ -1,5 +1,7 @@
 # PAINTBALL STREFA 29 — JEDYNY PLAN NADRZĘDNY PROJEKTU
 
+> **Aktualizacja decyzji 2026-11-13:** Parametry 8/2–4/32, starty 08:00/11:00/14:00 i tydzień poniedziałek–piątek opisane dalej są historycznym stanem tej rewizji. Obowiązują nowe ustalenia z `STREFA29_DECYZJE_DO_USTALENIA.md`: grupy 8–50 osób, 50 osób na slot, 10:00/12:00/15:00/18:00 przez siedem dni, także święta; domyślna wyłączność i opcjonalna wspólna gra bez dopłaty. Klient nadal wysyła zapytanie, pracownik może dodać rezerwację telefoniczną w panelu. Zadatek 500 zł i ognisko/grill po 200 zł są rozliczane poza stroną. Checkout i płatności online pozostają wyłączone.
+
 **Wersja:** 2026-11-06 / Consolidation v2 — Sprint 0  
 **Repozytorium:** https://github.com/MagicMikky/strefa-57  
 **Aktualna rewizja `main`:** `14e082d6b09e34daa186526b204be903406e82dd` (2026-11-06, 23:24 +0100)  

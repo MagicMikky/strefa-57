@@ -22,7 +22,7 @@ export default async function DirectionsPage() {
       <PageHero
         eyebrow="Dojazd"
         title={<>Najpierw cel. <em>Potem trasa.</em></>}
-        lead={`Adres pola to ${address}. ${business.contact.directions}`}
+        lead={`Adres poligonu to ${address}, około 20 minut od centrum Gdańska. ${business.contact.directions}`}
       >
         <ButtonLink href="/zapytaj-o-termin">Zapytaj o termin</ButtonLink>
         <ButtonLink href="/kontakt" variant="ghost">Kontakt</ButtonLink>

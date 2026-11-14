@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { fallbackBusiness } from "@/lib/business/model";
 import { decideHold, type CapacityHold, type HoldRequest } from "@/lib/holds/model";
 
-const settings = fallbackBusiness().settings;
+const settings = { ...fallbackBusiness().settings, maxPlayersPerSlot: 32, maxTeamsPerMatch: 4, slotStartTimes: ["08:00", "11:00", "14:00"] };
 const schedule = { weekdays: ["sb" as const], blocks: [] };
 const now = new Date("2026-11-06T10:00:00.000Z");
 

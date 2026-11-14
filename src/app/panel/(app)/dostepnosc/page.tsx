@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AvailabilityCalendar } from "@/components/availability-calendar";
 import { warsawDate } from "@/lib/availability/model";
 import { checkoutReadiness } from "@/lib/business/checkout-gate";
@@ -27,6 +28,7 @@ export default async function PanelAvailabilityPage() {
           Widok liczy opublikowaną pojemność, niewygasłe blokady i potwierdzone terminy. Potwierdzenie wizyty wykonasz przy zgłoszeniu.
         </p>
       </div>
+      <Link className="w-fit rounded-full bg-[var(--forest)] px-5 py-3 text-sm font-bold text-white" href="/panel/rezerwacje">Dodaj rezerwację telefoniczną</Link>
       <div className="rounded-2xl border border-black/10 p-4">
         <h2 className="text-lg font-black">Sprzedaż online jest wyłączona</h2>
         <ul className="mt-3 grid gap-2 text-sm">
@@ -43,6 +45,7 @@ export default async function PanelAvailabilityPage() {
         holds={capacity.holds}
         schedule={schedule}
         settings={{
+          minPlayersPerBooking: settings.minPlayersPerBooking,
           maxPlayersPerTeam: settings.maxPlayersPerTeam,
           maxTeamsPerMatch: settings.maxTeamsPerMatch,
           maxPlayersPerSlot: settings.maxPlayersPerSlot,

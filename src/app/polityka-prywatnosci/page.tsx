@@ -9,7 +9,8 @@ export default function PrivacyPage() {
       <h2>1. Administrator danych</h2>
       <p>Pełna nazwa prawna, adres, e-mail oraz pozostałe dane administratora wymagają bezpośredniego potwierdzenia przez właściciela przed uruchomieniem strony produkcyjnej.</p>
       <h2>2. Formularz zapytania</h2>
-      <p>Formularz może przetwarzać imię, telefon lub e-mail, liczbę graczy, preferowany termin, termin zastępczy, rodzaj wydarzenia, wybrany pakiet i dobrowolną wiadomość. Celem jest odpowiedź na zapytanie i przygotowanie propozycji organizacji gry.</p>
+      <p>Formularz może przetwarzać imię, telefon lub e-mail, liczbę graczy, preferowany termin, termin zastępczy, rodzaj wydarzenia, wybrany pakiet, wybór gry wspólnej i dobrowolną wiadomość. Celem jest odpowiedź na zapytanie i przygotowanie propozycji organizacji gry.</p>
+      <p>Po rozmowie telefonicznej uprawniony pracownik może zapisać w panelu imię lub nazwę kontaktu, telefon, liczbę uczestników, termin, tryb gry i wewnętrzną notatkę. Publiczny kalendarz pokazuje tylko dostępność bez danych kontaktowych.</p>
       <h2>3. Zapis zapytań</h2>
       <p>Formularz zapisuje zgłoszenie w bazie PostgreSQL strony. Zapis obejmuje pola z sekcji 2 oraz informację, że osoba przyjęła tę wersję polityki. Podstawa prawna pozostaje do zatwierdzenia przez właściciela.</p>
       <p>Zgłoszenie jest dostępne dla uprawnionych pracowników w panelu strony i nie jest przesyłane do skrzynki e-mail. Treść formularza nie trafia do analityki.</p>

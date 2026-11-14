@@ -35,7 +35,7 @@ describe("company configuration", () => {
     expect(result.ok).toBe(false);
   });
 
-  it("keeps commercial values out of the accepted settings", () => {
+  it("accepts owner-approved operational prices without enabling checkout", () => {
     const input = sample();
     const result = normalizeBusiness({
       ...input,
@@ -45,8 +45,8 @@ describe("company configuration", () => {
     if (!result.ok) return;
     expect(result.value.contact.phoneHref).toBe("tel:+48500600700");
     expect(result.value.contact.emailHref).toBe("mailto:biuro@example.com");
-    expect(result.value.settings).not.toHaveProperty("depositAmount");
-    expect(result.value.settings.maxPlayersPerSlot).toBe(32);
+    expect(result.value.settings.depositAmount).toBe("500.00");
+    expect(result.value.settings.maxPlayersPerSlot).toBe(50);
   });
 
   it("rejects a slot that cannot hold the declared teams", () => {

@@ -26,7 +26,7 @@ function request(key: string): HoldRequest {
 
 describe.skipIf(!enabled)("capacity hold store on PostgreSQL", () => {
   const prisma = new PrismaClient();
-  const settings = { ...fallbackBusiness().settings, maxTeamsPerMatch: 1 };
+  const settings = { ...fallbackBusiness().settings, maxPlayersPerSlot: 8, maxTeamsPerMatch: 1, slotStartTimes: ["08:00"] };
   const schedule = { weekdays: ["sb" as const], blocks: [] };
 
   afterAll(async () => {

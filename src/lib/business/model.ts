@@ -12,6 +12,9 @@ export interface BusinessProfileInput {
   legalName: string;
   taxId: string;
   street: string;
+  registeredStreet: string;
+  registeredPostalCode: string;
+  registeredCity: string;
   postalCode: string;
   city: string;
   region: string;
@@ -32,6 +35,7 @@ export interface BusinessContactInput {
 }
 
 export interface BusinessSettingsInput {
+  minPlayersPerBooking: number;
   maxPlayersPerTeam: number;
   minTeamsPerMatch: number;
   maxTeamsPerMatch: number;
@@ -41,6 +45,9 @@ export interface BusinessSettingsInput {
   slotBufferMinutes: number;
   allowSharedSlot: boolean;
   allowPrivateSlot: boolean;
+  depositAmount: string;
+  campfirePrice: string;
+  grillPrice: string;
 }
 
 export interface BusinessBundle {
@@ -50,15 +57,19 @@ export interface BusinessBundle {
 }
 
 export const initialBusinessSettings: BusinessSettingsInput = {
+  minPlayersPerBooking: 8,
   maxPlayersPerTeam: 8,
   minTeamsPerMatch: 2,
-  maxTeamsPerMatch: 4,
-  maxPlayersPerSlot: 32,
-  slotStartTimes: ["08:00", "11:00", "14:00"],
+  maxTeamsPerMatch: 8,
+  maxPlayersPerSlot: 50,
+  slotStartTimes: ["10:00", "12:00", "15:00", "18:00"],
   slotDurationMinutes: 120,
-  slotBufferMinutes: 60,
+  slotBufferMinutes: 0,
   allowSharedSlot: true,
   allowPrivateSlot: true,
+  depositAmount: "500.00",
+  campfirePrice: "200.00",
+  grillPrice: "200.00",
 };
 
 export function fallbackBusiness(): BusinessBundle {
@@ -68,6 +79,9 @@ export function fallbackBusiness(): BusinessBundle {
       legalName: "",
       taxId: "",
       street: siteConfig.address.street,
+      registeredStreet: "",
+      registeredPostalCode: "",
+      registeredCity: "",
       postalCode: siteConfig.address.postalCode,
       city: siteConfig.address.city,
       region: siteConfig.address.region,
@@ -154,6 +168,9 @@ export function normalizeBusiness(input: {
     [input.profile.legalName, 160, "Nazwa prawna"],
     [input.profile.taxId, 10, "NIP"],
     [input.profile.street, 120, "Ulica"],
+    [input.profile.registeredStreet, 120, "Ulica rejestrowa"],
+    [input.profile.registeredPostalCode, 12, "Kod rejestrowy"],
+    [input.profile.registeredCity, 80, "Miejscowość rejestrowa"],
     [input.profile.postalCode, 12, "Kod pocztowy"],
     [input.profile.city, 80, "Miejscowość"],
     [input.profile.region, 80, "Województwo"],
@@ -213,6 +230,7 @@ export function normalizeBusiness(input: {
 
   const settings = input.settings;
   const problems = [
+    integer(settings.minPlayersPerBooking, 1, 256, "Minimalna liczba graczy w rezerwacji"),
     integer(settings.maxPlayersPerTeam, 1, 64, "Limit zawodników w drużynie"),
     integer(settings.minTeamsPerMatch, 1, 8, "Minimalna liczba drużyn"),
     integer(settings.maxTeamsPerMatch, 1, 8, "Maksymalna liczba drużyn"),
@@ -227,6 +245,9 @@ export function normalizeBusiness(input: {
   if (settings.maxPlayersPerSlot < settings.maxPlayersPerTeam) {
     return { ok: false, error: "Slot musi pomieścić przynajmniej jedną pełną drużynę." };
   }
+  if (settings.minPlayersPerBooking > settings.maxPlayersPerSlot) {
+    return { ok: false, error: "Minimalna grupa nie może przekraczać pojemności slotu." };
+  }
   if (settings.maxPlayersPerSlot > settings.maxPlayersPerTeam * settings.maxTeamsPerMatch) {
     return { ok: false, error: "Limit graczy w slocie nie może przekraczać iloczynu limitu drużyny i liczby drużyn." };
   }
@@ -237,6 +258,9 @@ export function normalizeBusiness(input: {
   if (times.some((item) => !/^([01]\d|2[0-3]):[0-5]\d$/.test(item))) {
     return { ok: false, error: "Godziny startu podaj w formacie GG:MM." };
   }
+  for (const [value, label] of [[settings.depositAmount, "Zadatek"], [settings.campfirePrice, "Ognisko"], [settings.grillPrice, "Grill"]]) {
+    if (!/^\d{1,6}\.\d{2}$/.test(value)) return { ok: false, error: `${label} podaj w PLN z dwoma miejscami po przecinku, np. 200.00.` };
+  }
 
   return {
     ok: true,
@@ -246,6 +270,9 @@ export function normalizeBusiness(input: {
         legalName: cleaned["Nazwa prawna"],
         taxId: cleaned.NIP,
         street: cleaned.Ulica,
+        registeredStreet: cleaned["Ulica rejestrowa"],
+        registeredPostalCode: cleaned["Kod rejestrowy"],
+        registeredCity: cleaned["Miejscowość rejestrowa"],
         postalCode: cleaned["Kod pocztowy"],
         city: cleaned.Miejscowość,
         region: cleaned.Województwo,

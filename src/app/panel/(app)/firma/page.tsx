@@ -84,6 +84,7 @@ export default async function CompanyPage({
         <fieldset className="grid gap-4 rounded-3xl bg-white p-5 shadow-sm">
           <legend className="text-lg font-black">Lokalizacja</legend>
           <Field name="street" label="Ulica" value={draft.profile.street} />
+          <p className="text-sm text-black/60">Adres poligonu. Adres rejestrowy firmy podaj osobno, gdy zostanie potwierdzony.</p>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field name="postalCode" label="Kod pocztowy" value={draft.profile.postalCode} />
             <Field name="city" label="Miejscowość" value={draft.profile.city} />
@@ -101,11 +102,17 @@ export default async function CompanyPage({
             <textarea className="mt-1 min-h-20 w-full rounded-xl border border-black/10 px-3 py-2 font-normal" name="directions" defaultValue={draft.contact.directions} />
           </label>
           <Field name="mapNote" label="Krótka wskazówka na mapę" value={draft.profile.mapNote} />
+          <Field name="registeredStreet" label="Ulica rejestrowa firmy" value={draft.profile.registeredStreet} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field name="registeredPostalCode" label="Kod rejestrowy" value={draft.profile.registeredPostalCode} />
+            <Field name="registeredCity" label="Miejscowość rejestrowa" value={draft.profile.registeredCity} />
+          </div>
         </fieldset>
 
         <fieldset className="grid gap-4 rounded-3xl bg-white p-5 shadow-sm">
           <legend className="text-lg font-black">Podstawowe ustawienia</legend>
           <div className="grid gap-4 sm:grid-cols-2">
+            <Field name="minPlayersPerBooking" label="Minimalna grupa" value={String(draft.settings.minPlayersPerBooking)} />
             <Field name="maxPlayersPerTeam" label="Zawodnicy w drużynie" value={String(draft.settings.maxPlayersPerTeam)} />
             <Field name="minTeamsPerMatch" label="Minimum drużyn" value={String(draft.settings.minTeamsPerMatch)} />
             <Field name="maxTeamsPerMatch" label="Maksimum drużyn" value={String(draft.settings.maxTeamsPerMatch)} />
@@ -113,7 +120,12 @@ export default async function CompanyPage({
             <Field name="slotDurationMinutes" label="Czas gry (min)" value={String(draft.settings.slotDurationMinutes)} />
             <Field name="slotBufferMinutes" label="Przerwa (min)" value={String(draft.settings.slotBufferMinutes)} />
           </div>
-          <Field name="slotStartTimes" label="Godziny startu" value={draft.settings.slotStartTimes.join(",")} hint="Rozdziel przecinkami, na przykład 08:00,11:00,14:00." />
+          <Field name="slotStartTimes" label="Godziny startu" value={draft.settings.slotStartTimes.join(",")} hint="Rozdziel przecinkami, na przykład 10:00,12:00,15:00,18:00." />
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Field name="depositAmount" label="Zadatek za grupę (PLN)" value={draft.settings.depositAmount} />
+            <Field name="campfirePrice" label="Ognisko (PLN)" value={draft.settings.campfirePrice} />
+            <Field name="grillPrice" label="Grill (PLN)" value={draft.settings.grillPrice} />
+          </div>
           <label className="flex items-center gap-2 text-sm font-semibold">
             <input type="checkbox" name="allowSharedSlot" defaultChecked={draft.settings.allowSharedSlot} />
             Slot wspólny jest dozwolony
@@ -123,7 +135,7 @@ export default async function CompanyPage({
             Slot prywatny jest dozwolony
           </label>
           <p className="text-sm text-black/60">
-            Liczba zestawów, ceny, zadatek, dopłata za slot prywatny, operator płatności oraz zasady anulowania
+            Liczba zestawów, ceny pakietów, operator płatności oraz zasady anulowania
             pozostają nieustalone i nie da się ich tu włączyć.
           </p>
         </fieldset>

@@ -63,7 +63,10 @@ export function decideHold(
   const uses: SlotUse[] = activeHolds(existing, request.now)
     .filter((hold) => hold.date === request.date && hold.idempotencyKey !== request.idempotencyKey)
     .map((hold) => ({ slot: hold.slot, players: hold.players, teams: hold.teams, privateSlot: hold.privateSlot }));
-  const day = evaluateDay(request.date, settings, schedule, uses, { players: request.players, privateSlot: request.privateSlot }, warsawDate(request.now));
+  if (uses.filter((use) => use.slot === request.slot).reduce((sum, use) => sum + use.teams, 0) + request.teams > settings.maxTeamsPerMatch) {
+    return { ok: false, error: "unavailable" };
+  }
+  const day = evaluateDay(request.date, { ...settings, minPlayersPerBooking: 1 }, schedule, uses, { players: request.players, privateSlot: request.privateSlot }, warsawDate(request.now));
   const slot = day.slots.find((item) => item.start === request.slot);
   if (!slot?.fitsRequest) return { ok: false, error: "unavailable" };
   return {

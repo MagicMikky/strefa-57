@@ -18,6 +18,9 @@ function profileData(profile: BusinessProfileInput, version: number, actorId: st
     legalName: profile.legalName,
     taxId: profile.taxId,
     street: profile.street,
+    registeredStreet: profile.registeredStreet,
+    registeredPostalCode: profile.registeredPostalCode,
+    registeredCity: profile.registeredCity,
     postalCode: profile.postalCode,
     city: profile.city,
     region: profile.region,
@@ -48,6 +51,7 @@ function contactData(contact: BusinessBundle["contact"], version: number, actorI
 
 function settingsData(settings: BusinessSettingsInput, version: number, actorId: string) {
   return {
+    minPlayersPerBooking: settings.minPlayersPerBooking,
     maxPlayersPerTeam: settings.maxPlayersPerTeam,
     minTeamsPerMatch: settings.minTeamsPerMatch,
     maxTeamsPerMatch: settings.maxTeamsPerMatch,
@@ -58,7 +62,9 @@ function settingsData(settings: BusinessSettingsInput, version: number, actorId:
     allowSharedSlot: settings.allowSharedSlot,
     allowPrivateSlot: settings.allowPrivateSlot,
     equipmentSets: null,
-    depositAmount: null,
+    depositAmount: settings.depositAmount,
+    campfirePrice: settings.campfirePrice,
+    grillPrice: settings.grillPrice,
     privateSlotSurcharge: null,
     paymentProvider: null,
     cancellationPolicy: null,
@@ -73,6 +79,9 @@ export function toBundle(profile: {
   legalName: string;
   taxId: string;
   street: string;
+  registeredStreet: string;
+  registeredPostalCode: string;
+  registeredCity: string;
   postalCode: string;
   city: string;
   region: string;
@@ -91,6 +100,7 @@ export function toBundle(profile: {
   socialText: string;
   directions: string;
 }, settings: {
+  minPlayersPerBooking: number;
   maxPlayersPerTeam: number;
   minTeamsPerMatch: number;
   maxTeamsPerMatch: number;
@@ -100,6 +110,9 @@ export function toBundle(profile: {
   slotBufferMinutes: number;
   allowSharedSlot: boolean;
   allowPrivateSlot: boolean;
+  depositAmount: string | null;
+  campfirePrice: string | null;
+  grillPrice: string | null;
 }): BusinessBundle {
   return {
     profile: {
@@ -109,6 +122,7 @@ export function toBundle(profile: {
     },
     contact,
     settings: {
+      minPlayersPerBooking: settings.minPlayersPerBooking,
       maxPlayersPerTeam: settings.maxPlayersPerTeam,
       minTeamsPerMatch: settings.minTeamsPerMatch,
       maxTeamsPerMatch: settings.maxTeamsPerMatch,
@@ -118,6 +132,9 @@ export function toBundle(profile: {
       slotBufferMinutes: settings.slotBufferMinutes,
       allowSharedSlot: settings.allowSharedSlot,
       allowPrivateSlot: settings.allowPrivateSlot,
+      depositAmount: settings.depositAmount ?? "500.00",
+      campfirePrice: settings.campfirePrice ?? "200.00",
+      grillPrice: settings.grillPrice ?? "200.00",
     },
   };
 }

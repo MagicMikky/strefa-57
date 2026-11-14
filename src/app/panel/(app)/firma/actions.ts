@@ -20,6 +20,9 @@ function bundleFromForm(form: FormData): { ok: true; value: BusinessBundle } | {
       legalName: text(form, "legalName"),
       taxId: text(form, "taxId"),
       street: text(form, "street"),
+      registeredStreet: text(form, "registeredStreet"),
+      registeredPostalCode: text(form, "registeredPostalCode"),
+      registeredCity: text(form, "registeredCity"),
       postalCode: text(form, "postalCode"),
       city: text(form, "city"),
       region: text(form, "region"),
@@ -38,6 +41,7 @@ function bundleFromForm(form: FormData): { ok: true; value: BusinessBundle } | {
       directions: text(form, "directions"),
     },
     settings: {
+      minPlayersPerBooking: Number(form.get("minPlayersPerBooking")),
       maxPlayersPerTeam: Number(form.get("maxPlayersPerTeam")),
       minTeamsPerMatch: Number(form.get("minTeamsPerMatch")),
       maxTeamsPerMatch: Number(form.get("maxTeamsPerMatch")),
@@ -47,6 +51,9 @@ function bundleFromForm(form: FormData): { ok: true; value: BusinessBundle } | {
       slotBufferMinutes: Number(form.get("slotBufferMinutes")),
       allowSharedSlot: form.get("allowSharedSlot") === "on",
       allowPrivateSlot: form.get("allowPrivateSlot") === "on",
+      depositAmount: text(form, "depositAmount"),
+      campfirePrice: text(form, "campfirePrice"),
+      grillPrice: text(form, "grillPrice"),
     },
   });
 }

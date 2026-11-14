@@ -50,11 +50,11 @@ export default async function InquiryDetailPage({
     : [];
   const [business, confirmation] = await Promise.all([
     getPublicBusiness(),
-    process.env.DATABASE_URL ? getPrisma().confirmedSlot.findUnique({ where: { inquiryId: id } }) : Promise.resolve(null),
+    process.env.DATABASE_URL ? getPrisma().confirmedSlot.findFirst({ where: { inquiryId: id, cancelledAt: null } }) : Promise.resolve(null),
   ]);
   const confirmationErrors: Record<string, string> = {
     invalid: "Wybierz przyszłą datę i skonfigurowany slot, który nie został ręcznie zablokowany.",
-    unavailable: "Ten slot jest już zajęty lub ma aktywną blokadę. Wybierz inny termin.",
+    unavailable: "Ten slot nie pomieści tej grupy lub ma aktywną blokadę. Wybierz inny termin.",
     "already-confirmed": "To zgłoszenie ma już potwierdzony termin. Najpierw anuluj poprzedni.",
     missing: "Nie znaleziono zgłoszenia.",
     "missing-confirmation": "Nie znaleziono potwierdzonego terminu.",
@@ -73,13 +73,14 @@ export default async function InquiryDetailPage({
         </p>
       </header>
       {feedback.error && confirmationErrors[feedback.error] ? <p role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-red-900">{confirmationErrors[feedback.error]}</p> : null}
-      {feedback.result === "confirmed" ? <p role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-emerald-900">Termin potwierdzony. Slot jest teraz niedostępny w kalendarzu.</p> : null}
+      {feedback.result === "confirmed" ? <p role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-emerald-900">Termin potwierdzony. Kalendarz uwzględnia zajętą pojemność.</p> : null}
       {feedback.result === "cancelled" ? <p role="status" className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950">Potwierdzenie anulowane. Slot ponownie podlega harmonogramowi.</p> : null}
       <dl className="grid gap-3 rounded-3xl border border-black/10 bg-white p-5 md:grid-cols-2">
         <Fact label="E-mail" value={inquiry.email} />
         <Fact label="Telefon" value={inquiry.phone || "—"} />
         <Fact label="Rodzaj wydarzenia" value={inquiry.eventType} />
         <Fact label="Liczba graczy" value={String(inquiry.playerCount)} />
+        <Fact label="Tryb" value={inquiry.allowSharing ? "Można dołączyć do grupy" : "Na wyłączność"} />
         <Fact label="Preferowany termin" value={inquiry.preferredDate + " " + inquiry.preferredTime} />
         <Fact label="Termin alternatywny" value={inquiry.alternateDate || "—"} />
         <Fact label="Pakiet" value={inquiry.packageId} />
@@ -91,7 +92,7 @@ export default async function InquiryDetailPage({
           <h3 className="text-xl font-black">Potwierdzenie terminu</h3>
           {confirmation ? (
             <div className="mt-3 grid gap-3">
-              <p>Potwierdzono <strong>{confirmation.date} o {confirmation.slot}</strong>. Ten slot jest zajęty w całości.</p>
+              <p>Potwierdzono <strong>{confirmation.date} o {confirmation.slot}</strong>. {confirmation.privateSlot ? "Slot jest zajęty w całości." : `Gra wspólna: ${confirmation.players} osób.`}</p>
               <form action={cancelInquiryVisit}>
                 <input name="id" type="hidden" value={inquiry.id} />
                 <button className="rounded-full border border-red-300 px-5 py-2 font-semibold text-red-900" type="submit">Anuluj potwierdzenie</button>
@@ -99,7 +100,7 @@ export default async function InquiryDetailPage({
             </div>
           ) : (
             <form action={confirmInquiryVisit} className="mt-3 grid max-w-xl gap-4">
-              <p className="text-sm text-[var(--muted)]">Potwierdź po uzgodnieniu wizyty z klientem. Zajmie to cały wybrany slot. Możesz potwierdzić także dzień spoza opublikowanego harmonogramu; taki dzień pozostanie zamknięty dla nowych zapytań.</p>
+              <p className="text-sm text-[var(--muted)]">Potwierdź po uzgodnieniu wizyty z klientem. Rezerwacja na wyłączność zajmie cały slot; wspólna pozostawi wolne miejsca do limitu. Nie można potwierdzić ręcznie zablokowanego dnia lub godziny.</p>
               <input name="id" type="hidden" value={inquiry.id} />
               <label className="grid gap-1 text-sm font-semibold">Data
                 <input className="rounded-xl border border-black/15 px-3 py-2" name="date" type="date" defaultValue={inquiry.preferredDate} required />

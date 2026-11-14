@@ -91,6 +91,9 @@ export default async function FaqPage() {
               Formularz przekazuje preferencje grupy. Nie pokazuje wolnych miejsc, nie
               blokuje terminu i nie pobiera płatności.
             </InfoNotice>
+            <InfoNotice title="Aktualne zasady wizyty">
+              Przyjmujemy grupy 8–50 osób przez cały rok, także w weekendy i święta. Terminy standardowo są na wyłączność; możesz bez dopłaty zgodzić się na wspólną grę. Osoby poniżej 18 lat potrzebują oświadczenia zgody opiekuna prawnego. W sprawie pogorszenia pogody i ewentualnego zwrotu zadatku skontaktuj się telefonicznie.
+            </InfoNotice>
           </div>
           <FaqList items={faqItems} />
         </Container>

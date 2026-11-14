@@ -42,6 +42,7 @@ function mapInquiry(row: InquiryRow): InquiryRecord {
     contentHash: row.contentHash,
     status,
     playerCount: row.playerCount,
+    allowSharing: row.allowSharing,
     preferredDate: row.preferredDate,
     preferredTime: row.preferredTime,
     alternateDate: row.alternateDate,
@@ -287,11 +288,11 @@ export function createPrismaInquiryRepository(
     async deleteOlderThan(cutoff) {
       // Keep future confirmed visits manageable from their inquiry page.
       const future = await db.confirmedSlot.findMany({
-        where: { date: { gte: warsawDate() } },
+        where: { date: { gte: warsawDate() }, cancelledAt: null, inquiryId: { not: null } },
         select: { inquiryId: true },
       });
       const result = await db.inquiry.deleteMany({
-        where: { createdAt: { lt: cutoff }, id: { notIn: future.map((item) => item.inquiryId) } },
+        where: { createdAt: { lt: cutoff }, id: { notIn: future.map((item) => item.inquiryId).filter((id): id is string => id !== null) } },
       });
       return result.count;
     },

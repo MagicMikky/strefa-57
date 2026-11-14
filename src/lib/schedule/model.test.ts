@@ -20,7 +20,7 @@ describe("schedule catalog", () => {
 
   it("rejects a bad date, an unknown slot, markup and an equipment count", () => {
     expect(normalizeSchedule({ weekdays: [], blocks: [{ date: "2026-02-31", slot: "day", reason: "x" }] }, slots).ok).toBe(false);
-    expect(normalizeSchedule({ weekdays: [], blocks: [{ date: "2026-12-24", slot: "09:00", reason: "x" }] }, slots).ok).toBe(false);
+    expect(normalizeSchedule({ weekdays: [], blocks: [{ date: "2026-12-24", slot: "25:00", reason: "x" }] }, slots).ok).toBe(false);
     expect(normalizeSchedule({ weekdays: [], blocks: [{ date: "2026-12-24", slot: "08:00", reason: "<b>x</b>" }] }, slots).ok).toBe(false);
     expect(normalizeSchedule({ weekdays: [], blocks: [], equipmentSets: 20 }, slots).ok).toBe(false);
     const twice = normalizeSchedule({
@@ -35,7 +35,7 @@ describe("schedule catalog", () => {
 
   it("keeps an unpublished draft private", () => {
     const fallback = fallbackSchedule();
-    expect(fallback.weekdays).toEqual(["pn", "wt", "sr", "cz", "pt"]);
+    expect(fallback.weekdays).toEqual(["pn", "wt", "sr", "cz", "pt", "sb", "nd"]);
     expect(selectPublishedSchedule(null, fallback)).toBe(fallback);
     expect(authorize("manager", "business.publish")).toBe("forbidden");
     expect(authorize("employee", "business.publish")).toBe("forbidden");
